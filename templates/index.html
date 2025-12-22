@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC+ Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <h1>ABC+ <span class="title-suffix">Converter</span></h1>
+        <div class="status-bar">
+            <div id="status-dot" class="status-dot"></div>
+            <span id="status-text">Ready</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="editor-pane">
+            <div class="pane-header">
+                <i class="fa-solid fa-music"></i> ABC Input
+            </div>
+            <textarea id="abc-input" placeholder="Paste your ABC notation here...
+Example:
+X:1
+T:Scale
+K:C
+C D E F | G A B c |"></textarea>
+        </div>
+
+        <div class="editor-pane pane-dark">
+            <div class="pane-header">
+                <span><i class="fa-solid fa-code"></i> MusicXML Output</span>
+                <div class="pane-actions">
+                    <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <button id="download-btn" class="icon-btn" title="Download XML">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            <textarea id="output-xml" readonly placeholder="XML output will appear here..."></textarea>
+        </div>
+    </main>
+
+    <div class="fab-container">
+        <button id="convert-btn" class="primary-btn">
+            <i class="fa-solid fa-bolt"></i> Convert
+        </button>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

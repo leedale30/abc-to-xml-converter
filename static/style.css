@@ -1,0 +1,241 @@
+:root {
+    --bg-color: #0d0d12;
+    --card-bg: #1a1a24;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --accent-color: #7b2cbf;
+    /* Neon Purple */
+    --accent-hover: #9d4edd;
+    --success-color: #00ff9d;
+    /* Neon Green */
+    --error-color: #ff0055;
+    /* Neon Red */
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+header {
+    background: rgba(13, 13, 18, 0.8);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(to right, #fff, #a0a0b0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.status-bar {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--text-secondary);
+    transition: background-color 0.3s ease;
+}
+
+.status-dot.processing {
+    background-color: #f7b801;
+    box-shadow: 0 0 10px #f7b801;
+}
+
+.status-dot.success {
+    background-color: var(--success-color);
+    box-shadow: 0 0 10px var(--success-color);
+}
+
+.status-dot.error {
+    background-color: var(--error-color);
+    box-shadow: 0 0 10px var(--error-color);
+}
+
+/* Main Layout */
+main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    position: relative;
+    height: 100%;
+}
+
+.editor-pane {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-right: var(--glass-border);
+    background: var(--bg-color);
+}
+
+.editor-pane.pane-dark {
+    background: #13131a;
+}
+
+.title-suffix {
+    font-weight: 400;
+    opacity: 0.7;
+}
+
+.pane-header {
+    padding: 0.75rem 1.5rem;
+    background: var(--card-bg);
+    border-bottom: var(--glass-border);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pane-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+button.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+button.icon-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Code Area */
+textarea,
+pre {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    border: none;
+    resize: none;
+    padding: 1.5rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #e0e0e0;
+    outline: none;
+    overflow-y: auto;
+}
+
+textarea {
+    color: #a6accd;
+    /* Paler for input */
+}
+
+/* Output Styling */
+#output-xml {
+    color: #89ddff;
+    /* Syntax highlight simulation */
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Floating Action Button */
+.fab-container {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    gap: 1rem;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(123, 44, 191, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px) translateX(-50%);
+    /* Correcting transform conflict */
+    /* Wait, applying multiple transforms overrides. Need to use nested wrapper or apply simple translate */
+    transform: translateY(-2px);
+    /* This would remove the translateX(-50%)... bad idea if container handles centering.
+    Actually container handles centering. Button just lives in it. */
+    box-shadow: 0 6px 25px rgba(123, 44, 191, 0.6);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2a2a35;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3a45;
+}
+
+/* Utility */
+.hidden {
+    display: none;
+}

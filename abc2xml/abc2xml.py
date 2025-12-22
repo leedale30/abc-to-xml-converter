@@ -1358,10 +1358,23 @@ class MusicXml:
             
             # Handle placement: @above, @below, @x=...,y=...
             placement = ''
-            if '@' in d and not d.startswith('text('): # text() might contain @ but we assume @ is separator
-                 parts = d.split('@')
+            
+            # [FIX] Handle @ splitting even for text(), but be careful
+            # If it's text("..."), we only look for @ AFTER the closing quote/paren
+            split_at = -1
+            if '@' in d:
+                if d.startswith('text('):
+                     # Find last )
+                     rpar = d.rfind(')')
+                     at_sign = d.rfind('@')
+                     if at_sign > rpar: # @ is after the text content
+                         split_at = at_sign
+                else:
+                     split_at = d.find('@') # Standard deco, split at first @
+            
+            if split_at != -1:
+                 parts = [d[:split_at], d[split_at+1:]]
                  d = parts[0]
-                 # rudimentary placement handling
                  if 'above' in parts[1]: placement = 'above'
                  elif 'below' in parts[1]: placement = 'below'
             
@@ -2242,7 +2255,8 @@ def fixDoctype (elem):
     else:       xs = E.tostring (elem, encoding='utf-8')    # keep the string utf-8 encoded for writing to file
     ys = xs.split ('\n')
     ys.insert (0, xmlVersion)  # crooked logic of ElementTree lib
-    ys.insert (1, '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">')
+    # [FIX] Musescore crashes if we include this DTD because the URL is dead/slow.
+    # ys.insert (1, '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">')
     return '\n'.join (ys)
 
 def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file

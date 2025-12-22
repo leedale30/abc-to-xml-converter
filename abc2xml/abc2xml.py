@@ -1725,6 +1725,10 @@ class MusicXml:
         s.ntup, s.trem, s.intrem = -1, 0, 0
         s.acciatura = 0 # next grace element gets acciatura attribute
         overlay = 0
+        
+        # [NEW] Capture start ticks for beat validation
+        start_ticks = s.gTime[1]
+        
         maat = E.Element ('measure', number = str(i))
         s.maat = maat
         if fieldmap: s.doFields (maat, fieldmap, lev + 1)
@@ -1792,6 +1796,19 @@ class MusicXml:
                 s.doChordSym (maat, x, lev + 1)
         s.stopBeams ()
         s.prevmsre = maat
+
+        # [NEW] Validate measure duration
+        if not overlay:
+            end_ticks = s.gTime[1]
+            actual_len = end_ticks - start_ticks
+            if s.mdur[1] > 0: # Avoid div by zero if den is weird
+                expected_len = (4 * s.divisions * s.mdur[0]) // s.mdur[1]
+                # Allow tiny margin? No, usually precise.
+                if actual_len > expected_len:
+                    actual_beats = actual_len / s.divisions
+                    expected_beats = expected_len / s.divisions
+                    info('Measure %s has too many beats! (Found %.2f, expected %.2f)' % (i, actual_beats, expected_beats))
+
         return maat, overlay
 
     def mkPart (s, maten, id, lev, attrs, nstaves, rOpt):

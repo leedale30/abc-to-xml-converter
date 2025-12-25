@@ -1,0 +1,67 @@
+{
+    "abcPlusVersion": "1.0",
+    "directives": {
+        "dir": {
+            "scope": "direction",
+            "placement": "before_measure",
+            "attributes": {
+                "mood": "string",
+                "intensity": "float"
+            },
+            "musicXML": {
+                "element": "direction",
+                "type": "words"
+            }
+        },
+        "fx": {
+            "scope": "measure",
+            "placement": "after_barline",
+            "attributes": {
+                "name": "string",
+                "speed": "string"
+            },
+            "musicXML": {
+                "element": "direction",
+                "type": "words"
+            }
+        },
+        "analysis": {
+            "scope": "measure",
+            "placement": "after_barline",
+            "attributes": {
+                "function": "string"
+            },
+            "musicXML": {
+                "element": "direction",
+                "type": "words"
+            }
+        },
+        "game_state": {
+            "scope": "measure",
+            "placement": "after_barline",
+            "attributes": {
+                "state": "string"
+            },
+            "musicXML": null
+        },
+        "loop": {
+            "scope": "measure",
+            "placement": "after_barline",
+            "attributes": {
+                "safe": "boolean"
+            },
+            "musicXML": null
+        },
+        "art": {
+            "scope": "note",
+            "placement": "after_note",
+            "attributes": {
+                "type": "string"
+            },
+            "musicXML": {
+                "element": "notations",
+                "type": "articulations"
+            }
+        }
+    }
+}

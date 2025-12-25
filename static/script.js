@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     convertBtn.addEventListener('click', async () => {
         const abcContent = inputArea.value;
+
         if (!abcContent.trim()) {
             updateStatus('Please enter ABC notation', 'error');
             return;
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     downloadBtn.addEventListener('click', () => {
         if (!outputArea.value) return;
-        const blob = new Blob([outputArea.value], { type: 'text/xml' });
+        const blob = new Blob([outputArea.value], { type: 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

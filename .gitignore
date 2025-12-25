@@ -3,6 +3,5 @@ __pycache__/
 .DS_Store
 *.musicxml
 *.xml
-*.abc
 !abcplus.abc
 !test_new_commands.abc

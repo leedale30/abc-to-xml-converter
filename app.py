@@ -142,12 +142,59 @@ def convert():
                 return jsonify({'error': result.stderr or 'Unknown error occurred'}), 500
             
             xml_output = result.stdout
-            return jsonify({'xml_content': xml_output})
+            return jsonify({
+                'xml_content': xml_output,
+                'logs': result.stderr
+            })
             
         finally:
             # Clean up temp file
             if os.path.exists(temp_abc_path):
                 os.remove(temp_abc_path)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/save', methods=['POST'])
+def save_session():
+    try:
+        data = request.json
+        abc_content = data.get('abc_content', '')
+        xml_content = data.get('xml_content', '')
+        logs = data.get('logs', '')
+        
+        # Determine folder name
+        # Try to find T:Title
+        title_match = re.search(r'^T:\s*(.*)$', abc_content, re.MULTILINE)
+        if title_match:
+            # Sanitize title
+            safe_title = re.sub(r'[^\w\-]', '_', title_match.group(1).strip())
+        else:
+            safe_title = "Untitled"
+            
+        import datetime
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        folder_name = f"{timestamp}_{safe_title}"
+        
+        # Base save directory
+        save_base = os.path.join(os.path.dirname(__file__), 'saved_sessions')
+        if not os.path.exists(save_base):
+            os.makedirs(save_base)
+            
+        session_dir = os.path.join(save_base, folder_name)
+        os.makedirs(session_dir)
+        
+        # Write files
+        with open(os.path.join(session_dir, 'input.abc'), 'w') as f:
+            f.write(abc_content)
+        
+        with open(os.path.join(session_dir, 'output.musicxml'), 'w') as f:
+            f.write(xml_content)
+            
+        with open(os.path.join(session_dir, 'conversion.log'), 'w') as f:
+            f.write(logs)
+            
+        return jsonify({'message': 'Session saved successfully', 'path': session_dir})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

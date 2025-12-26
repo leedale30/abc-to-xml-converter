@@ -48,9 +48,23 @@ C D E F | G A B c |"></textarea>
                     <button id="download-btn" class="icon-btn" title="Download XML">
                         <i class="fa-solid fa-download"></i>
                     </button>
+                    <button id="save-session-btn" class="icon-btn" title="Save Project to App Folder">
+                        <i class="fa-solid fa-folder-plus"></i>
+                    </button>
                 </div>
             </div>
             <textarea id="output-xml" readonly placeholder="XML output will appear here..."></textarea>
+
+            <div class="logs-container">
+                <div class="pane-header sub-header">
+                    <span><i class="fa-solid fa-triangle-exclamation"></i> Validation Logs</span>
+                    <button id="copy-logs-btn" class="icon-btn" title="Copy Logs to Clipboard">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+                <textarea id="output-logs" readonly
+                    placeholder="Warnings and logs (e.g., 'Too many beats') will appear here..."></textarea>
+            </div>
         </div>
     </main>
 

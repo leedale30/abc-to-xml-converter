@@ -36,10 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 outputArea.value = data.xml_content;
+                document.getElementById('output-logs').value = data.logs || 'No warnings found.';
                 updateStatus('Conversion Successful', 'success');
             } else {
                 updateStatus('Conversion Failed', 'error');
                 outputArea.value = 'Error:\n' + (data.error || 'Unknown error');
+                document.getElementById('output-logs').value = data.error || '';
             }
         } catch (error) {
             updateStatus('Network Error', 'error');
@@ -57,6 +59,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000);
         });
     });
+
+    const saveSessionBtn = document.getElementById('save-session-btn');
+    if (saveSessionBtn) {
+        saveSessionBtn.addEventListener('click', async () => {
+            if (!outputArea.value) {
+                updateStatus('Nothing to save', 'error');
+                return;
+            }
+
+            updateStatus('Saving session...', 'processing');
+            const logsValue = document.getElementById('output-logs').value;
+
+            try {
+                const response = await fetch('/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        abc_content: inputArea.value,
+                        xml_content: outputArea.value,
+                        logs: logsValue
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    updateStatus('Saved to ' + data.path, 'success');
+                    // Reset status text after 5 seconds because path is long
+                    setTimeout(() => updateStatus('Ready', 'processing'), 5000);
+                } else {
+                    updateStatus('Save Failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                updateStatus('Network Error during save', 'error');
+            }
+        });
+    }
+
+    const copyLogsBtn = document.getElementById('copy-logs-btn');
+    if (copyLogsBtn) {
+        copyLogsBtn.addEventListener('click', () => {
+            const logsArea = document.getElementById('output-logs');
+            if (!logsArea.value) return;
+            navigator.clipboard.writeText(logsArea.value).then(() => {
+                updateStatus('Logs copied!', 'success');
+                setTimeout(() => {
+                    updateStatus('Ready', 'processing');
+                }, 2000);
+            });
+        });
+    }
 
     downloadBtn.addEventListener('click', () => {
         if (!outputArea.value) return;

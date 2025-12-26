@@ -2257,6 +2257,9 @@ def fixDoctype (elem):
     ys.insert (0, xmlVersion)  # crooked logic of ElementTree lib
     # [FIX] Musescore crashes if we include this DTD because the URL is dead/slow.
     # ys.insert (1, '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">')
+    
+    # [NEW] Add XSD model for VS Code validation (vscode-sxml)
+    ys.insert(1, '<?xml-model href="https://www.w3.org/2021/06/musicxml40/musicxml.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>')
     return '\n'.join (ys)
 
 def xml2mxl (pad, fnm, data):   # write xml data to compressed .mxl file

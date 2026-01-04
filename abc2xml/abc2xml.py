@@ -832,7 +832,9 @@ class MusicXml:
     tecMap = {'upbow':'up-bow', 'downbow':'down-bow', 'plus':'stopped','open':'open-string','snap':'snap-pizzicato',
               'thumb':'thumb-position', 'pizz':'pizzicato', 'arco':'arco', 'harmonic':'harmonic', 'mute':'con-sordino'}
     capoMap = {'fine':('Fine','fine','yes'), 'D.S.':('D.S.','dalsegno','segno'), 'D.C.':('D.C.','dacapo','yes'),'dacapo':('D.C.','dacapo','yes'),
-               'dacoda':('To Coda','tocoda','coda'), 'coda':('coda','coda','coda'), 'segno':('segno','segno','segno')}
+               'dacoda':('To Coda','tocoda','coda'), 'coda':('coda','coda','coda'), 'segno':('segno','segno','segno'),
+               'D.S.alCoda':('D.S. al Coda','dalsegno','segno'), 'D.C.alCoda':('D.C. al Coda','dacapo','yes'),
+               'D.S.alFine':('D.S. al Fine','dalsegno','segno'), 'D.C.alFine':('D.C. al Fine','dacapo','yes')}
     sharpness = ['Fb', 'Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A', 'E', 'B', 'F#','C#','G#','D#','A#','E#','B#']
     offTab = {'maj':8, 'm':11, 'min':11, 'mix':9, 'dor':10, 'phr':12, 'lyd':7, 'loc':13}
     modTab = {'maj':'major', 'm':'minor', 'min':'minor', 'mix':'mixolydian', 'dor':'dorian', 'phr':'phrygian', 'lyd':'lydian', 'loc':'locrian'}
@@ -1143,16 +1145,18 @@ class MusicXml:
                 if d in slurMap: s.slurbeg.append (d); continue # slurs made in while loop at the end
                 elif d == 'fermata' or d == 'H':
                     ntn = E.Element ('fermata', type='upright')
+                elif d == 'longfermata':
+                    ntn = E.Element ('fermata', type='upright', shape='long')
                 elif d == 'arpeggio':
                     ntn = E.Element ('arpeggiate', number='1')
-                elif d in ['~(', '~)']:
-                    if d[1] == '(': tp = 'start'; s.glisnum += 1; gn = s.glisnum
-                    else:           tp = 'stop'; gn = s.glisnum; s.glisnum -= 1
+                elif d in ['~(', '~)', 'gliss(', 'gliss)']:
+                    if d.endswith('('): tp = 'start'; s.glisnum += 1; gn = s.glisnum
+                    else:               tp = 'stop'; gn = s.glisnum; s.glisnum -= 1
                     if s.glisnum < 0: s.glisnum = 0; continue   # stop without previous start
                     ntn = E.Element ('glissando', {'line-type':'wavy', 'number':'%d' % gn, 'type':tp})
-                elif d in ['-(', '-)']:
-                    if d[1] == '(': tp = 'start'; s.slidenum += 1; gn = s.slidenum
-                    else:           tp = 'stop'; gn = s.slidenum; s.slidenum -= 1
+                elif d in ['-(', '-)', 'slide(', 'slide)']:
+                    if d.endswith('('): tp = 'start'; s.slidenum += 1; gn = s.slidenum
+                    else:               tp = 'stop'; gn = s.slidenum; s.slidenum -= 1
                     if s.slidenum < 0: s.slidenum = 0; continue   # stop without previous start
                     ntn = E.Element ('slide', {'line-type':'solid', 'number':'%d' % gn, 'type':tp})
 
@@ -1402,13 +1406,14 @@ class MusicXml:
                 if 'end' in d: type = 'stop'
                 
                 addDirection (maat, E.Element ('wedge', type=type), lev, gstaff, placement=placement)
-            elif d.startswith ('8v'):
-                if 'a' in d: type, plce = 'down', 'above'
+            elif d.startswith ('8v') or d.startswith('8va'):
+                # Handle 8va(, 8va), 8vb(, 8vb), old 8va/8vb forms
+                if 'a' in d or d == '8va(' or d == '8va)': type, plce = 'down', 'above'
                 else:        type, plce = 'up', 'below'
                 if ')' in d: type = 'stop'
                 addDirection (maat, E.Element ('octave-shift', type=type, size='8'), lev, gstaff, placement=plce)
-            elif d in (['ped','ped-up']):
-                type = 'stop' if d.endswith ('up') else 'start'
+            elif d in ['ped', 'ped-up', 'ped(', 'ped)']:
+                type = 'stop' if d.endswith('up') or d.endswith(')') else 'start'
                 addDirection (maat, E.Element ('pedal', type=type), lev, gstaff)
             elif d in ['coda', 'segno']:
                 text, attr, val = s.capoMap [d]
@@ -1424,7 +1429,10 @@ class MusicXml:
             elif d == '(' or d == '.(': s.slurbeg.append (d)   # start slur on next note
             elif d in ['/-','//-','///-','////-']:  # duplet tremolo sequence
                 s.tmnum, s.tmden, s.ntup, s.trem, s.intrem = 2, 1, 2, len (d) - 1, 1
-            elif d in ['/','//','///']: s.trem = - len (d)  # single note tremolo
+            elif d in ['/','//','///']:  # single note tremolo with slash notation
+                s.trem = -len(d)
+            elif d in ['trem1', 'trem2', 'trem3']:  # single note tremolo with explicit bar count
+                s.trem = -int(d[4:])
             elif d == 'dolce' or d == 'espressivo' or d == 'rit.': # Expressive text aliases
                 words = E.Element('words')
                 words.text = d

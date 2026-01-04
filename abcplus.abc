@@ -648,3 +648,39 @@ K:Dm
 [V:Vla] !ff! f'8 | g'8 | g'8 | !fermata! f'8 |]
 [V:Vc] !ff! d8 | d8 | e8 | !fermata! d8 |]
 [V:CB] !ff! D,8 | D,8 | D,8 | !fermata! D,8 |]
+
+% =============================================================================
+% ABC+ FEATURE SHOWCASE
+% Demonstrates advanced ABC+ notation features for MusicXML conversion
+% =============================================================================
+
+X:2
+T:ABC+ Feature Showcase
+C:Antony Leedale
+M:4/4
+L:1/8
+Q:"Allegro Con Brio" 1/4=130
+K:Cm
+%%score [RH] [LH]
+V:RH clef=treble name="Piano" snm="Pno."
+V:LH clef=bass
+
+% --- SECTION 1: ARTICULATIONS & DYNAMICS ---
+[V:RH] !ff! !marcato!C2 !staccato!D2 !tenuto!E2 !accent!F2 | !subito-p! G A B c !breath! z2 !fermata!G2 ||
+[V:LH] !sfz!C,8 | !p! G,4 z4 ||
+
+% --- SECTION 2: SPANNERS (OCTAVE & HAIRPINS) ---
+[V:RH] !8va(! c d e f g a b c' !8va)! | !cresc(start)! d' e' f' g' !cresc(end)! !ff! a'4 |
+[V:LH] C,2 E,2 G,2 C2 | F,8 |
+
+% --- SECTION 3: ADVANCED SPANNERS (GLISS & PEDAL) ---
+[V:RH] !gliss(! c2 c'2 !gliss)! !arpeggio![cgb]4 | z8 |
+[V:LH] !ped(! C,8 | G,8 !ped)! |
+
+% --- SECTION 4: ORNAMENTATION (TRILLS, TURNS, MORDENTS) ---
+[V:RH] !trill!c'4 !turn!b2 !mordent!a2 | !pralltriller!g2 f2 !trem2!e4 |
+[V:LH] C,4 D,4 | E,4 C,4 |
+
+% --- SECTION 5: NAVIGATION & BARLINES ---
+[V:RH] !segno! c d e f | !D.S.alCoda! g a b c' || !coda! !longfermata!c'4 |]
+[V:LH] !staccato!C,4 !staccato!G,4 | G,4 G,4 || !longfermata!C,4 |]

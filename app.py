@@ -200,4 +200,14 @@ def save_session():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    import webbrowser
+    import threading
+    
+    # Auto-open browser after a short delay
+    def open_browser():
+        webbrowser.open('http://127.0.0.1:5000')
+    
+    threading.Timer(1.5, open_browser).start()
+    
+    # Run Flask (debug=False for production app)
+    app.run(debug=False, port=5000, host='127.0.0.1')

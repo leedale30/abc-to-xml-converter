@@ -822,7 +822,8 @@ class MusicXml:
             'vivace':168, 'adagio':59, 'vivo':180, 'lento':62, 'presto':192, 'larghetto':66, 'allegrissimo':208, 'adagietto':76,
             'vivacissimo':220, 'andante':88, 'prestissimo':240, 'andantino':96}
     wedgeMap = {'>(':1, '>)':1, '<(':1,'<)':1,'crescendo(':1,'crescendo)':1,'diminuendo(':1,'diminuendo)':1,
-                'cresc(start)':1, 'cresc(end)':1, 'dim(start)':1, 'dim(end)':1}
+                'cresc(start)':1, 'cresc(end)':1, 'dim(start)':1, 'dim(end)':1,
+                'crescendo':1, 'decrescendo':1, 'diminuendo':1, 'w':1}
     artMap = {'.':'staccato','>':'accent','accent':'accent','wedge':'staccatissimo','tenuto':'tenuto',
               'breath':'breath-mark','marcato':'strong-accent','^':'strong-accent','slide':'scoop',
               'staccato':'staccato', 'tenuto':'tenuto', 'accent':'accent', 'marcato':'strong-accent'}
@@ -1146,7 +1147,18 @@ class MusicXml:
                 elif d == 'fermata' or d == 'H':
                     ntn = E.Element ('fermata', type='upright')
                 elif d == 'longfermata':
-                    ntn = E.Element ('fermata', type='upright', shape='long')
+                    ntn = E.Element ('fermata', type='upright')
+                    ntn.set('shape', 'long')
+                elif d == 'shortfermata':
+                    ntn = E.Element ('fermata', type='upright')
+                    ntn.set('shape', 'short')
+                elif d == 'legato':
+                    # Legato is typically rendered as a slur
+                    ntn = E.Element ('slur', type='start', number='1')
+                elif d == 'div':
+                    # Divisi marking - use other-articulation
+                    ntn = E.Element ('other-articulation')
+                    ntn.text = 'divisi'
                 elif d == 'arpeggio':
                     ntn = E.Element ('arpeggiate', number='1')
                 elif d in ['~(', '~)', 'gliss(', 'gliss)']:
@@ -1329,7 +1341,7 @@ class MusicXml:
             return
         bbrk = s.grcbbrk or n.bbrk.t[0] or den < 32
         s.grcbbrk = False
-        if not s.prevNote:  pbm = None
+        if s.prevNote is None:  pbm = None
         else:               pbm = s.prevNote.find ('beam')
         bm = E.Element ('beam', number='1')
         bm.text = 'begin'
@@ -1346,7 +1358,7 @@ class MusicXml:
             s.prevNote = nt
 
     def stopBeams (s):
-        if not s.prevNote: return
+        if s.prevNote is None: return
         pbm = s.prevNote.find ('beam')
         if pbm != None:
             if pbm.text == 'begin':
@@ -1399,8 +1411,13 @@ class MusicXml:
                 else:
                      addDirection (maat, dynel, lev, gstaff, [E.Element (d)], placement if placement else 'below', s.gcue_on)
             elif d in s.wedgeMap:  # wedge
-                if ')' in d: type = 'stop'
-                else: type = 'crescendo' if '<' in d or 'crescendo' in d else 'diminuendo'
+                if ')' in d or 'end' in d: type = 'stop'
+                elif d == 'w' or d == 'crescendo' or d == 'cresc' or '<' in d or 'crescendo' in d:
+                    type = 'crescendo'
+                elif d == 'decrescendo' or d == 'diminuendo' or d == 'dim' or '>' in d:
+                    type = 'diminuendo'
+                else:
+                    type = 'crescendo' if '<' in d or 'crescendo' in d else 'diminuendo'
                 # Handle start/end markers from request: cresc(start), cresc(end)
                 if 'start' in d: type = 'crescendo' if 'cresc' in d else 'diminuendo'
                 if 'end' in d: type = 'stop'
@@ -1975,7 +1992,8 @@ class MusicXml:
         elif x.startswith ('MIDI') or x.startswith ('midi'):
             r1 = re.search (r'program *(\d*) +(\d+)', x)
             r2 = re.search (r'channel *(\d+)', x)
-            r3 = re.search (r"drummap\s+([_=^]*)([A-Ga-g])([,']*)\s+(\d+)", x)
+            # Support both ABC notation (^_=) and standard notation (#b) for accidentals
+            r3 = re.search (r"drummap\s+([_=^#b]?)([A-Ga-g])([#b]?)([,']*)\s+(\d+)", x)
             r4 = re.search (r'control *(\d+) +(\d+)', x)
             ch_nw, prg_nw, vol_nw, pan_nw = '', '', '', ''
             if r1: ch_nw, prg_nw = r1.groups () # channel nr or '', program nr
@@ -1993,13 +2011,33 @@ class MusicXml:
                 if instId in s.midiInst: instChange (ch, prg)   # instChance -> doFields
                 s.midprg = [ch, prg, vol, pan]  # mknote: new instrument -> s.midiInst
             if r3:      # translate drummap to percmap
-                acc, step, oct, midi = r3.groups ()
-                oct = -len (oct) if ',' in x else len (oct)
+                acc_pre, step, acc_post, oct, midi = r3.groups ()
+                # Normalize accidentals: # -> ^, b -> _
+                acc = acc_pre or acc_post
+                if acc == '#': acc = '^'
+                elif acc == 'b': acc = '_'
+                oct = -len (oct) if ',' in oct else len (oct)
                 notehead = 'x' if acc == '^' else 'circle-x' if acc == '_' else 'normal'
                 s.percMap [(s.pid, acc + step, oct)] = (step, oct, midi, notehead)
             r = re.search (r'transpose[^-\d]*(-?\d+)', x)
             if r: addTrans (r.group (1))        # addTrans -> doFields
         elif x.startswith ('percmap'): readPercMap (x); s.pMapFound = 1
+        elif x.startswith ('drummap'):
+            # Handle I:drummap lines directly (not prefixed with MIDI)
+            # Support both ABC notation (^_=) and standard notation (#b) for accidentals
+            r3 = re.search (r"drummap\s+\w+\s+([_=^#b]?)([A-Ga-g])([#b]?)(\d)\s+(\d+)", x)
+            if r3:
+                acc_pre, step, acc_post, octave, midi = r3.groups ()
+                # Normalize accidentals: # -> ^, b -> _
+                acc = acc_pre or acc_post
+                if acc == '#': acc = '^'
+                elif acc == 'b': acc = '_'
+                # Convert octave number to ABC octave offset (C4 = middle C = octave 0 in ABC)
+                oct = int(octave) - 4
+                notehead = 'x' if acc == '^' else 'circle-x' if acc == '_' else 'normal'
+                s.percMap [(s.pid, acc + step, oct)] = (step.upper(), oct, midi, notehead)
+            else:
+                info ('could not parse drummap: %s' % x)
         else: info ('skipped I-field: %s' % x)
 
     def parseStaveDef (s, vdefs):
@@ -2337,7 +2375,7 @@ def getXmlScores (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False)
 def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): # added by David Randolph
     xml_docs = []
     abctext = expand_abc_include (abc_string)
-    fragments = re.split ('^\s*X:', abctext, flags=re.M)
+    fragments = re.split (r'^\s*X:', abctext, flags=re.M)
     preamble = fragments [0]    # tunes can be preceeded by formatting instructions
     tunes = fragments[1:]
     if not tunes and preamble: tunes, preamble = ['1\n' + preamble], ''  # tune without X:

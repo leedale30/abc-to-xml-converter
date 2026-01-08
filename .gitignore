@@ -3,5 +3,11 @@ __pycache__/
 .DS_Store
 *.musicxml
 *.xml
-!abcplus.abc
-!test_new_commands.abc
+
+# Build artifacts
+build/
+dist/
+.venv/
+
+# Unused files
+DONTNEED/

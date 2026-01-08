@@ -2366,15 +2366,26 @@ def writefile (pad, fnm, fnmNum, xmldoc, mxlOpt, tOpt=False):
     if pad:
         if not mxlOpt or mxlOpt in ['a', 'add']:
             outfnm = os.path.join (pad, ifnm + '.xml')  # joined with path from -o option
-            outfile = open (outfnm, 'w')
+            outfile = open (outfnm, 'w', encoding='utf-8')
             outfile.write (xmlstr)
             outfile.close ()
             info ('%s written' % outfnm, warn=0)
         if mxlOpt: xml2mxl (pad, ifnm, xmlstr)          # also write a compressed version
     else:
-        outfile = sys.stdout
-        outfile.write (xmlstr)
-        outfile.write ('\n')
+        # Prevent UnicodeEncodeError on stdout
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except AttributeError:
+            # Fallback for older python or weird envs
+            pass
+        
+        try:
+            sys.stdout.write (xmlstr)
+            sys.stdout.write ('\n')
+        except UnicodeEncodeError:
+            # Fallback to binary write if text write fails
+            sys.stdout.buffer.write (xmlstr.encode('utf-8'))
+            sys.stdout.buffer.write (b'\n')
 
 def readfile (fnmext, errmsg='read error: '):
     try:

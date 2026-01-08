@@ -1335,7 +1335,7 @@ class MusicXml:
                     pext.set ('type', 'continue')
                 ext = E.Element ('extend', type = 'stop')   # always stop on current extend
                 addElem (lyrel, ext, lev + 1)
-            elif lyrobj.name == 'ext': info ('lyric extend error'); continue
+            elif lyrobj.name == 'ext': continue  # silently skip orphaned extend markers
             else: continue          # skip other lyric elements or errors
             addElem (nt, lyrel, lev)
             s.prevLyric [i] = lyrel # for extension (melisma) on the next note

@@ -826,7 +826,9 @@ class MusicXml:
             'vivacissimo':220, 'andante':88, 'prestissimo':240, 'andantino':96}
     wedgeMap = {'>(':1, '>)':1, '<(':1,'<)':1,'crescendo(':1,'crescendo)':1,'diminuendo(':1,'diminuendo)':1,
                 'cresc(start)':1, 'cresc(end)':1, 'dim(start)':1, 'dim(end)':1,
-                'crescendo':1, 'decrescendo':1, 'diminuendo':1, 'w':1}
+                'crescendo':1, 'decrescendo':1, 'diminuendo':1, 'w':1,
+                'cresc':1, 'decresc':1, 'cresc(':1, 'cresc)':1, 'decresc(':1, 'decresc)':1,
+                'dim':1, 'dim(':1, 'dim)':1}
     artMap = {'.':'staccato','>':'accent','accent':'accent','wedge':'staccatissimo','tenuto':'tenuto',
               'breath':'breath-mark','marcato':'strong-accent','^':'strong-accent','slide':'scoop',
               'staccato':'staccato', 'tenuto':'tenuto', 'accent':'accent', 'marcato':'strong-accent'}
@@ -1415,12 +1417,12 @@ class MusicXml:
                      addDirection (maat, dynel, lev, gstaff, [E.Element (d)], placement if placement else 'below', s.gcue_on)
             elif d in s.wedgeMap:  # wedge
                 if ')' in d or 'end' in d: type = 'stop'
-                elif d == 'w' or d == 'crescendo' or d == 'cresc' or '<' in d or 'crescendo' in d:
+                elif d in ['w', 'crescendo', 'cresc', 'cresc('] or '<' in d or 'crescendo(' in d:
                     type = 'crescendo'
-                elif d == 'decrescendo' or d == 'diminuendo' or d == 'dim' or '>' in d:
+                elif d in ['decrescendo', 'diminuendo', 'dim', 'decresc', 'dim(', 'decresc('] or '>' in d:
                     type = 'diminuendo'
                 else:
-                    type = 'crescendo' if '<' in d or 'crescendo' in d else 'diminuendo'
+                    type = 'crescendo' if '<' in d or 'cresc' in d else 'diminuendo'
                 # Handle start/end markers from request: cresc(start), cresc(end)
                 if 'start' in d: type = 'crescendo' if 'cresc' in d else 'diminuendo'
                 if 'end' in d: type = 'stop'

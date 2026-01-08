@@ -13,6 +13,9 @@ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 See the Lesser GNU General Public License for more details. <http://www.gnu.org/licenses/lgpl.html>.
 '''
 
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
 from functools import reduce
 from pyparsing import Word, OneOrMore, Optional, Literal, NotAny, MatchFirst
 from pyparsing import Group, oneOf, Suppress, ZeroOrMore, Combine, FollowedBy

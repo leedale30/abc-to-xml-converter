@@ -1,5 +1,10 @@
 import os
 import subprocess
+import warnings
+
+# Suppress pyparsing deprecation warnings (abc2xml uses old API)
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='pyparsing')
+
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)

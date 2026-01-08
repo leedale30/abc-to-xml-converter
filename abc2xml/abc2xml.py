@@ -1320,8 +1320,9 @@ class MusicXml:
                         
                         if abbr in analysis_map:
                             txt = f"{analysis_map[abbr]}{details}"
-                            lyrel.set("font-size", "x-small")
-                            lyrel.set("font-style", "italic")
+                            lyrel.set("font-family", "Avenir Next Condensed")
+                            lyrel.set("font-size", "8")
+                            lyrel.set("font-style", "normal") # Can be normal if preferred, since font is unique
 
                 addElemT (lyrel, 'text', txt, lev + 1)
             elif lyrobj.name == 'melisma_start' and i in s.prevLyric: # start melisma

@@ -2439,6 +2439,8 @@ def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): 
         except ParseException:
             pass         # output already printed
         except Exception as err:
+            import traceback
+            traceback.print_exc()
             info ('an exception occurred.\n%s' % err)
     return xml_docs
 

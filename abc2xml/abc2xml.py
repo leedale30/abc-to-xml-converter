@@ -189,6 +189,10 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     chord_sym        = chordsym + Optional (Literal ('(') + CharsNotIn (')') + Literal (')')).suppress ()
     chord_or_text    = Suppress ('"') + (chord_sym ^ text_expression) + Suppress ('"')
 
+    # Handle misplaced annotations like ^"Text" (instead of "^Text")
+    misplaced_annotation = Literal('^') + Regex(r'"[^"]+"')
+    misplaced_annotation.setParseAction(lambda t: pObj('text', ['^' + t[1].strip('"')]))
+
     volta_nums = Optional ('[').suppress () + Combine (Word (nums) + ZeroOrMore (oneOf (', -') + Word (nums)))
     volta_text = Literal ('[').suppress () + Regex (r'"[^"]+"')
     volta = volta_nums | volta_text
@@ -203,7 +207,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     
     errors =  ~bar_right + Optional (Word (' \n')) + CharsNotIn (':&|', exact=1)
     linebreak = Literal ('$') | ~decorations + Literal ('!')    # no need for I:linebreak !!!
-    element = fld_or_lyr | broken | decorations | stem | chord_or_text | grace_notes | tuplet_start | linebreak | errors
+    element = fld_or_lyr | broken | decorations | stem | chord_or_text | misplaced_annotation | grace_notes | tuplet_start | linebreak | errors
     measure      = Group (ZeroOrMore (inline_field) + Optional (bar_left) + ZeroOrMore (element) + bar_right + Optional (linebreak) + Optional (lyr_blk))
     noBarMeasure = Group (ZeroOrMore (inline_field) + Optional (bar_left) + OneOrMore (element) + Optional (linebreak) + Optional (lyr_blk))
     abc_voice = ZeroOrMore (measure) + Optional (noBarMeasure | Group (bar_left)) + ZeroOrMore (inline_field).suppress () + StringEnd ()

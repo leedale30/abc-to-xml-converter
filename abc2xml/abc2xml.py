@@ -191,7 +191,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
 
     # Handle misplaced annotations like ^"Text" (instead of "^Text")
     misplaced_annotation = Literal('^') + Regex(r'"[^"]+"')
-    misplaced_annotation.setParseAction(lambda t: pObj('text', ['^' + t[1].strip('"')]))
+    misplaced_annotation.setParseAction(lambda t: pObj('text', ['^', t[1].strip('"')]))
 
     volta_nums = Optional ('[').suppress () + Combine (Word (nums) + ZeroOrMore (oneOf (', -') + Word (nums)))
     volta_text = Literal ('[').suppress () + Regex (r'"[^"]+"')
@@ -2439,8 +2439,6 @@ def getXmlDocs (abc_string, skip=0, num=1, rOpt=False, bOpt=False, fOpt=False): 
         except ParseException:
             pass         # output already printed
         except Exception as err:
-            import traceback
-            traceback.print_exc()
             info ('an exception occurred.\n%s' % err)
     return xml_docs
 

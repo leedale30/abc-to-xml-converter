@@ -1299,6 +1299,30 @@ class MusicXml:
                 txt = lyrobj.t[0]                       # the syllabe
                 txt = re.sub (r'(?<!\\)~', ' ', txt)    # replace ~ by space when not escaped (preceded by \)
                 txt = re.sub (r'\\(.)', r'\1', txt)     # replace all escaped characters by themselves (for the time being)
+                
+                # Expand analysis abbreviations (custom logic)
+                if txt.startswith('^'):
+                    match = re.match(r'\^([A-Za-z]+)(\(.*\))?$', txt)
+                    if match:
+                        abbr = match.group(1)
+                        details = match.group(2) or ''
+                        
+                        analysis_map = {
+                            "CT": "Chord Tone",
+                            "Sus": "Suspension",
+                            "App": "Appoggiatura",
+                            "P": "Passing Tone",
+                            "N": "Neighbor Tone",
+                            "Ant": "Anticipation",
+                            "Esc": "Escape Tone",
+                            "Ped": "Pedal Point"
+                        }
+                        
+                        if abbr in analysis_map:
+                            txt = f"{analysis_map[abbr]}{details}"
+                            lyrel.set("font-size", "x-small")
+                            lyrel.set("font-style", "italic")
+
                 addElemT (lyrel, 'text', txt, lev + 1)
             elif lyrobj.name == 'melisma_start' and i in s.prevLyric: # start melisma
                  if s.prevLyric[i].find('extend') == None:

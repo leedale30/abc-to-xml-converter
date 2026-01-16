@@ -1,6 +1,12 @@
 import os
 import subprocess
 import warnings
+import urllib.request
+import urllib.error
+
+# App version - keep in sync with setup.py CFBundleVersion
+APP_VERSION = "1.0.0"
+GITHUB_REPO = "leedale30/abc-to-xml-converter"
 
 # Suppress pyparsing deprecation warnings (abc2xml uses old API)
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='pyparsing')
@@ -203,6 +209,36 @@ def save_session():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/check-update')
+def check_update():
+    """Check GitHub for a newer release."""
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+        req = urllib.request.Request(url, headers={'User-Agent': 'ABC-Converter'})
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+        
+        latest_version = data.get('tag_name', '').lstrip('v')
+        download_url = data.get('html_url', f'https://github.com/{GITHUB_REPO}/releases')
+        
+        # Simple version comparison (assumes semantic versioning)
+        update_available = latest_version > APP_VERSION if latest_version else False
+        
+        return jsonify({
+            'update_available': update_available,
+            'current_version': APP_VERSION,
+            'latest_version': latest_version,
+            'download_url': download_url
+        })
+    except Exception as e:
+        # Fail silently - don't block app if GitHub is unreachable
+        return jsonify({
+            'update_available': False,
+            'current_version': APP_VERSION,
+            'error': str(e)
+        })
 
 if __name__ == '__main__':
     import webbrowser

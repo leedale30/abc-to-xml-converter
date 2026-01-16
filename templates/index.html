@@ -25,6 +25,13 @@
         </div>
     </header>
 
+    <!-- Update notification banner -->
+    <div id="update-banner" class="update-banner hidden">
+        <span><i class="fa-solid fa-rocket"></i> A new version (<span id="latest-version"></span>) is available!</span>
+        <a href="#" id="update-link" target="_blank" class="update-download-btn">Download</a>
+        <button id="dismiss-update" class="icon-btn dismiss-btn" title="Dismiss">×</button>
+    </div>
+
     <main>
         <div class="editor-pane">
             <div class="pane-header">
@@ -50,6 +57,9 @@ C D E F | G A B c |"></textarea>
                     </button>
                     <button id="save-session-btn" class="icon-btn" title="Save Project to App Folder">
                         <i class="fa-solid fa-folder-plus"></i>
+                    </button>
+                    <button id="download-debug-btn" class="icon-btn" title="Download Debug Report (.md)">
+                        <i class="fa-solid fa-bug"></i>
                     </button>
                 </div>
             </div>

@@ -139,13 +139,13 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     slur_ends = OneOrMore (oneOf (') .)'))
 
     # ABC+ Custom Commands
-    custom_slur_start = Regex(r'\(\d+slur-start')
-    custom_slur_end   = Regex(r'\(\d+slur-end')
-    custom_tuplet_start = Regex(r'\(\d+(:\d+)?\s*tuplet-start')
+    custom_slur_start = Regex(r'\(?\d+slur-start')
+    custom_slur_end   = Regex(r'\(?\d+slur-end')
+    custom_tuplet_start = Regex(r'\(?\d+(:\d+)?\s*tuplet-start')
     custom_tuplet_end   = Literal('tuplet-end')
     
     # Allow @ in long decorations
-    long_decoration = Combine (oneOf ('! +') + CharsNotIn ('!+ \n') + oneOf ('! +'))
+    long_decoration = Regex(r'[!+][^!+\n]+[!+]')
     staccato        = Literal ('.') + ~Literal ('|')    # avoid dotted barline
     pizzicato       = Literal ('!+!')   # special case: plus sign is old style deco marker
     decoration      = custom_slur_start | custom_slur_end | custom_tuplet_start | custom_tuplet_end | slur_beg | staccato | userdef_symbol | long_decoration | pizzicato
@@ -208,8 +208,8 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     errors =  ~bar_right + Optional (Word (' \n')) + CharsNotIn (':&|', exact=1)
     linebreak = Literal ('$') | ~decorations + Literal ('!')    # no need for I:linebreak !!!
     element = fld_or_lyr | broken | decorations | stem | chord_or_text | misplaced_annotation | grace_notes | tuplet_start | linebreak | errors
-    measure      = Group (ZeroOrMore (inline_field) + Optional (bar_left) + ZeroOrMore (element) + bar_right + Optional (linebreak) + Optional (lyr_blk))
-    noBarMeasure = Group (ZeroOrMore (inline_field) + Optional (bar_left) + OneOrMore (element) + Optional (linebreak) + Optional (lyr_blk))
+    measure      = Group (ZeroOrMore (inline_field | V_field) + Optional (bar_left) + ZeroOrMore (element | inline_field | V_field) + bar_right + Optional (linebreak) + Optional (lyr_blk))
+    noBarMeasure = Group (ZeroOrMore (inline_field | V_field) + Optional (bar_left) + OneOrMore (element | inline_field | V_field) + Optional (linebreak) + Optional (lyr_blk))
     abc_voice = ZeroOrMore (measure) + Optional (noBarMeasure | Group (bar_left)) + ZeroOrMore (inline_field).suppress () + StringEnd ()
 
     #----------------------------------------
@@ -1184,7 +1184,7 @@ class MusicXml:
                 # Custom Slurs: (1slur-start / (1slur-end
                 elif 'slur-start' in d or 'slur-end' in d:
                     import re
-                    numMatch = re.search(r'\((\d+)slur', d)
+                    numMatch = re.search(r'(\d+)slur', d)
                     slurNum = '1'
                     if numMatch: slurNum = numMatch.group(1)
                     
@@ -1197,6 +1197,29 @@ class MusicXml:
                     
                 elif 'tuplet-end' in d:
                     ntn = E.Element('tuplet', type='stop')
+
+                elif d == 'roll':
+                    # Map roll to wavy-line/trill or tremolo
+                    ntn = E.Element('ornaments')
+                    addElem(ntn, E.Element('trill-mark'), lev + 1)
+                elif d == 'open':
+                    ntn = E.Element('technical')
+                    addElem(ntn, E.Element('open-string'), lev + 1)
+                elif d == 'espressivo':
+                    ntn = E.Element('other-direction')
+                    ntn.text = 'espressivo'
+                elif d == 'tenuto':
+                    ntn = E.Element('articulations')
+                    addElem(ntn, E.Element('tenuto'), lev + 1)
+                elif d == 'text("col legno")':
+                    ntn = E.Element('other-direction')
+                    ntn.text = 'col legno'
+                elif d == 'mute':
+                    ntn = E.Element('technical')
+                    addElem(ntn, E.Element('stopped'), lev + 1)
+                elif d == 'sfz':
+                    ntn = E.Element('dynamics')
+                    addElem(ntn, E.Element('sfz'), lev + 1)
 
                 else: arts.append (d); continue
                 

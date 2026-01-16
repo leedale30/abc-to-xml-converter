@@ -136,7 +136,7 @@ def convert():
             # So yes, capture stdout.
             
             result = subprocess.run(
-                ['python3', CONVERTER_SCRIPT, temp_abc_path],
+                [sys.executable, CONVERTER_SCRIPT, temp_abc_path],
                 capture_output=True,
                 text=True,
                 check=False # Don't raise exception immediately, we want to capture stderr

@@ -1,96 +1,79 @@
-# ABC+ Converter
+# ABC+ Converter 🎼 ➔ 📄
 
-![ABC+ Banner](assets/banner.png)
+![ABC+ Social Preview](assets/social-preview.png)
 
 ## The Bridge Between ABC Simplicity and MusicXML Power
 
-**ABC+ Converter** is a professional-grade, cross-platform application designed to convert advanced ABC notation into high-fidelity **MusicXML 4.0**.
+**ABC+ Converter** is a professional-grade, cross-platform engine designed to translate advanced ABC notation into high-fidelity **MusicXML 4.0**.
 
-Unlike standard converters, ABC+ supports a rich set of modern musical directives including swing playback, advanced layout controls, figured bass, chord diagrams, and complex orchestral notations.
+Designed for composers, engravers, and researchers, ABC+ goes beyond standard converters by supporting a rich set of modern musical directives, including swing playback, complex orchestral layout, figured bass, and custom articulations.
 
-[![Release](https://img.shields.io/github/v/release/leedale30/abc-to-xml-converter?include_prereleases)](https://github.com/leedale30/abc-to-xml-converter/releases)
-[![GitHub Actions Build](https://github.com/leedale30/abc-to-xml-converter/actions/workflows/release.yml/badge.svg)](https://github.com/leedale30/abc-to-xml-converter/actions)
-[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-
----
-
-### 🚀 Key Features
-
-- **MusicXML 4.0 Support**: Implements the latest industry-standard features for maximum compatibility with MuseScore 4, Sibelius, and Finale.
-- **Advanced Playback**: Native support for `%%swing` and `%%mute` directives.
-- **Pro Layout Controls**: Fine-grained vertical spacing with `%%vskip` and separators with `%%sep`.
-- **Figured Bass & Chord Frames**: Full support for Baroque continuo and modern guitar chord diagrams.
-- **Cross-Platform**: Available as a native macOS App, Windows Executable, and Linux Binary.
-- **Interactive UI**: A sleek Flask-based local web interface for real-time conversion and session management.
+[![Release](https://img.shields.io/github/v/release/leedale30/abc-to-xml-converter?include_prereleases&style=for-the-badge)](https://github.com/leedale30/abc-to-xml-converter/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/leedale30/abc-to-xml-converter/release.yml?style=for-the-badge)](https://github.com/leedale30/abc-to-xml-converter/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![MusicXML 4.0](https://img.shields.io/badge/MusicXML-4.0-blue.svg?style=for-the-badge)](https://www.musicxml.com/)
 
 ---
 
-### 📥 Installation & Downloads
+### ✨ Key Features
 
-The latest version of ABC+ Converter is **v1.2.1**.
-
-| Platform | Download Link |
-| :--- | :--- |
-| **macOS** | [Download .app (Universal)](https://github.com/leedale30/abc-to-xml-converter/releases/latest) |
-| **Windows** | [Download .exe (64-bit)](https://github.com/leedale30/abc-to-xml-converter/releases/latest) |
-| **Linux** | [Download Binary (AppImage soon)](https://github.com/leedale30/abc-to-xml-converter/releases/latest) |
-
----
-
-### 📖 Documentation
-
-ABC+ is powered by a robust specification that extends the standard ABC 2.1 format.
-
-- **[ABC+ Specification](./abc-plus-spec/SPECIFICATION.md)**: The core syntax guide.
-- **[Feature Matrix](./FEATURES.md)**: A detailed list of supported MusicXML elements.
-- **[Implementation Checklist](./abc-plus-spec/CHECKLIST.md)**: Track our progress towards 100% MusicXML coverage.
-- **[Developer Guide](./abc-plus-spec/INTEGRATION.md)**: How to integrate the ABC+ spec into your own tools.
+- **🎯 Precision MusicXML 4.0**: Fully compatible with MuseScore 4, Sibelius, and Finale.
+- **🎹 Advanced Playback**: Native interpretation of `%%swing` and `%%mute` for professional MIDI/XML previews.
+- **📏 Pro Layout Controls**: Fine-grained vertical orchestration with `%%vskip` and custom `%%sep` separators.
+- **🎻 Orchestral Power**: Support for complex `@above`/`@below` placements, detailed ornaments, and technical notations.
+- **🎸 Continuo & Chords**: High-fidelity Figured Bass and Guitar Frame support.
+- **🖥️ Cross-Platform**: Native binaries for **macOS**, **Windows**, and **Linux**.
+- **🌐 Interactive Workflow**: Includes a sleek, local web interface for real-time conversion and session management.
 
 ---
 
-### 🛠 Quick Start (Developers)
+### 📥 Downloads
 
-If you want to run the ABC+ Converter from source:
+Get the latest production-ready version (+1.2.0):
 
-1. **Clone the repository with submodules**:
+| Platform | Format | Link |
+| :--- | :--- | :--- |
+| **macOS** | `.app` | [Download Universal](https://github.com/leedale30/abc-to-xml-converter/releases/latest) |
+| **Windows** | `.exe` | [Download x64](https://github.com/leedale30/abc-to-xml-converter/releases/latest) |
+| **Linux** | Binary | [Download x64](https://github.com/leedale30/abc-to-xml-converter/releases/latest) |
 
-   ```bash
-   git clone --recurse-submodules https://github.com/leedale30/abc-to-xml-converter.git
-   cd abc-to-xml-converter
-   ```
+---
 
-2. **Install dependencies**:
+### 📖 Documentation & Spec
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+ABC+ is defined by a rigorous extension of the ABC 2.1 standard.
 
-3. **Run the application**:
+- **[ABC+ Specification](./abc-plus-spec/SPECIFICATION.md)**: The definitive syntax guide.
+- **[Feature Matrix](./FEATURES.md)**: Every supported MusicXML 4.0 element.
+- **[Showcase](./examples/README.md)**: Real-world examples (Bossa Nova, Orchestral, etc.).
+- **[Issues](https://github.com/leedale30/abc-to-xml-converter/issues)**: Something not working? Let us know.
 
-   ```bash
-   python app.py
-   ```
+---
 
-   *Your browser will open automatically at `http://127.0.0.1:5000`.*
+### 🛠 Installation (Developers)
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/leedale30/abc-to-xml-converter.git
+cd abc-to-xml-converter
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch the interactive app
+python app.py
+```
 
 ---
 
 ### 🤝 Contributing
 
-We are on a mission to make ABC the most powerful shorthand for musical notation. Contributions to the `abc2xml` engine or the ABC+ specification are welcome!
-
-1. Fork the repo.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes.
-4. Push to the branch.
-5. Open a Pull Request.
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) and [Security Policy](SECURITY.md).
 
 ---
 
 ### 📄 License
 
-This project is licensed under the **GNU Lesser General Public License v3 (LGPLv3)** - see the [abc2xml/LICENSE](abc2xml/LICENSE) file for details.
-
----
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 *Created and maintained by [Antony Leedale](https://github.com/leedale30).*

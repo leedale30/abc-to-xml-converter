@@ -12,7 +12,6 @@ K:D
 %%frame A_chord x,0,2,2,2,0
 %
 V:1 name="Whistle" clef=treble
-%%whistle-tab on
 %%lyrics-above
 |: FDF A2 A | BAG F2 D | GFG B2 B | Adc d2 e |
 w: With a whis-tle in hand and a pint of the black, I'm play-ing a tune with no look-ing back!
@@ -20,6 +19,5 @@ w: With a whis-tle in hand and a pint of the black, I'm play-ing a tune with no 
 w: The Guin-ness is flow-ing, the mu-sic is bright, we'll dance in the bar 'til the ear-ly morn' light.
 %
 V:2 name="Guitar" clef=tab
-%%whistle-tab off
 |: !frame D_chord! [DFA]3 [DFA]3 | !frame G_chord! [GBd]3 !frame D_chord! [DFA]3 | !frame G_chord! [GBd]3 [GBd]3 | !frame A_chord! [Ace]3 !frame D_chord! [DFA]3 |
 | !frame D_chord! [DFA]3 [DFA]3 | !frame A_chord! [Ace]3 [Ace]3 | !frame G_chord! [GBd]3 !frame D_chord! [DFA]3 | !frame A_chord! [Ace]3 !frame D_chord! [DFA]3 :|

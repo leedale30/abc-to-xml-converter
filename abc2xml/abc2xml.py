@@ -953,8 +953,6 @@ class MusicXml:
         s.gTime = (0,0)     # (XML begin time, XML end time) in divisions
         s.tabStaff = ''     # == pid (part ID) for a tab staff
         s.maat = None       # current measure
-        s.whistleTab = 0    # == 1 if whistle-tab is enabled
-        s.whistleKey = 'D'  # default whistle key
         s.lyricsAbove = 0   # 1 if lyrics should be placed above the staff
 
     def mkPitch (s, acc, note, oct, lev):
@@ -1127,11 +1125,7 @@ class MusicXml:
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
         if gstaff: addElemT (nt, 'staff', str (gstaff), lev + 1)
         if hasStem: s.doBeams (n, nt, den, lev + 1)   # no stems -> no beams in a tab staff
-        
-        # Calculate absolute octave for whistle tab and other notations
-        nUp = step.upper()
-        abs_oct = (4 if nUp == step else 5) + int(oct) + s.gtrans
-        s.doNotations (n, decos, (step, abs_oct), alter, tupnotation, tstop, nt, lev + 1)
+        s.doNotations (n, decos, ptup, alter, tupnotation, tstop, nt, lev + 1)
         if n.objs: s.doLyr (n, nt, lev + 1)
         else: s.prevLyric = {}   # clear on note without lyrics
         return nt
@@ -1204,29 +1198,6 @@ class MusicXml:
             else:
                 addElemT(figure, 'figure-number', char, lev + 2)
 
-    def mkWhistleTab(s, technical, step, alter, octave, lev):
-        pitch = step.upper() + str(octave)
-        if alter == '1': pitch = step.upper() + '#' + str(octave)
-        elif alter == '-1': pitch = step.upper() + 'b' + str(octave)
-        
-        # Mapping for D whistle (standard)
-        chart = {
-            'D4': 'XXXXXX', 'D#4': 'XXXXXH', 'Eb4': 'XXXXXH', 'E4': 'XXXXXO', 'F4': 'XXXXHO', 'F#4': 'XXXXOO',
-            'G4': 'XXXOOO', 'G#4': 'XXHOOO', 'A4': 'XXOOOO', 'A#4': 'XOXOOO', 'Bb4': 'XOXOOO', 'B4': 'XOOOOO',
-            'C5': 'OXXOOO', 'C#5': 'OOOOOO', 'D5': 'OXXXXX', 'D#5': 'XXXXXH', 'Eb5': 'XXXXXH', 'E5': 'XXXXXO',
-            'F5': 'XXXXHO', 'F#5': 'XXXXOO', 'G5': 'XXXOOO', 'G#5': 'XXHOOO', 'A5': 'XXOOOO', 'A#5': 'XOXOOO',
-            'Bb5': 'XOXOOO', 'B5': 'XOOOOO', 'C6': 'OXXOOO', 'C#6': 'OOOOOO', 'D6': 'OXXXXX'
-        }
-        
-        pattern = chart.get(pitch)
-        if not pattern: return
-        
-        for p in pattern:
-            hole = E.Element('hole')
-            addElem(technical, hole, lev)
-            closed = {'X':'yes', 'O':'no', 'H':'half'}.get(p, 'no')
-            addElemT(hole, 'hole-closed', closed, lev + 1)
-
     def cmpNormType (s, rdvs, lev): # compute the normal-type of a tuplet (only needed for Finale)
         if rdvs:    # the last real tuplet note (chord notes can still follow afterwards with rdvs == 0)
             durs = [dur for dur, tmod in s.tupnts if dur > 0]
@@ -1265,7 +1236,7 @@ class MusicXml:
             if slurs: slurs.t.append (')')          # close slur on this note
             else: slurs = pObj ('slurs', [')'])
         tstart = getattr (n, 'tie', 0)  # start a new tie
-        if not (tstop or tstart or decos or slurs or s.slurbeg or tupnotation or s.trem or s.whistleTab): return
+        if not (tstop or tstart or decos or slurs or s.slurbeg or tupnotation or s.trem): return
         nots = E.Element ('notations')
         
         # Sub-containers for grouped notations
@@ -1384,15 +1355,6 @@ class MusicXml:
         if list(arts_cnt): addElem(nots, arts_cnt, lev + 1)
         if list(orns_cnt): addElem(nots, orns_cnt, lev + 1)
         
-        if s.whistleTab and n.name != 'rest':
-            # Create a separate notations block for whistle tab to force placement below
-            whistle_nots = E.Element('notations', placement='below')
-            whistle_tecs = E.Element('technical')
-            addElem(whistle_nots, whistle_tecs, lev + 1)
-            step, oct = ptup
-            s.mkWhistleTab(whistle_tecs, step, alter, oct, lev + 2)
-            addElem(nt, whistle_nots, lev)
-            
         if list(tecs_cnt): addElem(nots, tecs_cnt, lev + 1)
         
         if list(nots): addElem (nt, nots, lev)
@@ -2257,10 +2219,6 @@ class MusicXml:
             s.measureNb = x[10:].strip()
         elif x.startswith ('measurenumbering '):
             s.measureNumbering = 'yes' if 'yes' in x else 'no'
-        elif x.startswith ('whistle-tab'):
-            s.whistleTab = 0 if 'off' in x else 1
-        elif x.startswith ('whistle-key'):
-            s.whistleKey = x[11:].strip().upper()
         elif x.startswith ('lyrics-above'):
             s.lyricsAbove = 1
         elif x.startswith ('lyrics-below'):

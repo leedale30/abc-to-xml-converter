@@ -1,0 +1,59 @@
+X:1
+T:ABC+ Master Showcase
+C:Antony Leedale
+M:4/4
+L:1/8
+Q:1/4=120
+K:C
+%%abc-version 2.1
+%%abc-creator ABC+ Converter v1.2.1
+%%measurenumbering top
+%%score (1 2) 3
+%%frame C_frame (3) 0,1,0,2,3,x
+%%frame G_frame 3,0,0,0,2,3
+%
+% --- Voice Definitions ---
+V:1 name="Soprano" short="S." clef=treble
+V:2 name="Alto" short="A." clef=treble
+V:3 name="Continuo" short="Cont." clef=bass
+%
+% ==========================================
+% SECTION 1: Layout & Playback State
+% ==========================================
+V:1
+!marker "SWING"! !mf! (1slur-start c2 d2 e2 f2 | g2 f2 e2 d2) (1slur-end |
+w: ABC+ is now in full swing!
+V:2
+!p! !text("swing active")@above!
+%%swing 60
+(C2 D2 E2 F2 | E2 D2 C2 B,2) |
+V:3
+!mp! !text("walking bass")@below!
+C,2 E,2 G,2 A,2 | G,2 F,2 E,2 D,2 |
+%
+%%sep 0.5cm 2cm
+%
+% ==========================================
+% SECTION 2: Figured Bass & Chord Frames
+% ==========================================
+V:1
+!marker "HARMONY"! !f! !trill! c4 !mordent! d4 | e2 !fingering(3)! f2 !fret(5)! g4 |
+w: Rich Fig-ured Bass Sup-port
+V:2
+!p! z2 [CEG]2 z2 [G,B,D]2 | z8 |
+V:3
+!text("figured bass")@below!
+!fb "7"! C,2 !fb "6 4"! G,,2 | !fb "4 2"! A,,2 !fb "6"! E,2 |
+%
+%%vskip 1cm
+%
+% ==========================================
+% SECTION 3: Detailed Articulations & Placements
+% ==========================================
+V:1
+!marker "DYNAMICS"! !dim(start)! c4 !accent! d4 | !dim(end)! !subito-p! e2 !wedge(start)! f2 g2 !wedge(end)! !f! a2 |
+w: From loud to soft with ease.
+V:2
+!p! !cresc(start)! [E8G8] | !cresc(end)! !ff! [F8A8] |
+V:3
+C,8 | D,8 |]

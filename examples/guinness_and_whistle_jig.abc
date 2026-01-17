@@ -1,0 +1,25 @@
+X:1
+T:The Stout and Whistle Jig (Pro Layout)
+C:Antony Leedale
+M:6/8
+L:1/8
+Q:1/4=110
+K:D
+%%abc-version 2.1
+%%score 1 2
+%%frame D_chord x,x,0,2,3,2
+%%frame G_chord 3,2,0,0,0,3
+%%frame A_chord x,0,2,2,2,0
+%
+V:1 name="Whistle" clef=treble
+%%whistle-tab on
+%%lyrics-above
+|: FDF A2 A | BAG F2 D | GFG B2 B | Adc d2 e |
+w: With a whis-tle in hand and a pint of the black, I'm play-ing a tune with no look-ing back!
+| f2 f fed | e2 e edc | d2 B AGF | GFE D3 :|
+w: The Guin-ness is flow-ing, the mu-sic is bright, we'll dance in the bar 'til the ear-ly morn' light.
+%
+V:2 name="Guitar" clef=tab
+%%whistle-tab off
+|: !frame D_chord! [DFA]3 [DFA]3 | !frame G_chord! [GBd]3 !frame D_chord! [DFA]3 | !frame G_chord! [GBd]3 [GBd]3 | !frame A_chord! [Ace]3 !frame D_chord! [DFA]3 |
+| !frame D_chord! [DFA]3 [DFA]3 | !frame A_chord! [Ace]3 [Ace]3 | !frame G_chord! [GBd]3 !frame D_chord! [DFA]3 | !frame A_chord! [Ace]3 !frame D_chord! [DFA]3 :|

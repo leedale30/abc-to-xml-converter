@@ -18,9 +18,9 @@ Designed for composers, engravers, and researchers, ABC+ goes beyond standard co
 ### ✨ Key Features
 
 - **🎯 Precision MusicXML 4.0**: Fully compatible with MuseScore 4, Sibelius, and Finale.
-- **🎹 Advanced Playback**: Native interpretation of `%%swing` and `%%mute` for professional MIDI/XML previews.
-- **📏 Pro Layout Controls**: Fine-grained vertical orchestration with `%%vskip` and custom `%%sep` separators.
-- **🎻 Orchestral Power**: Support for complex `@above`/`@below` placements, detailed ornaments, and technical notations.
+- **🎹 Advanced Playback & Tab**: Native interpretation of `%%swing`, `%%mute`, and automatic **Tin Whistle Tablature** generation.
+- **📏 Pro Layout Controls**: Fine-grained vertical orchestration with `%%vskip`, `%%lyrics-above`, and custom `%%sep` separators.
+- **🎻 Orchestral Power**: Support for complex `@above`/`@below` placements (including technical notations and fingerings).
 - **🎸 Continuo & Chords**: High-fidelity Figured Bass and Guitar Frame support.
 - **🖥️ Cross-Platform**: Native binaries for **macOS**, **Windows**, and **Linux**.
 - **🌐 Interactive Workflow**: Includes a sleek, local web interface for real-time conversion and session management.
@@ -29,7 +29,7 @@ Designed for composers, engravers, and researchers, ABC+ goes beyond standard co
 
 ### 📥 Downloads
 
-Get the latest production-ready version (**v1.2.1**):
+Get the latest production-ready version (**v1.2.2**):
 
 | Platform | Format | Link |
 | :--- | :--- | :--- |

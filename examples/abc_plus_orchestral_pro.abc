@@ -1,0 +1,39 @@
+X:2
+T:ABC+ Orchestral Enclave
+C:Antony Leedale
+M:3/4
+L:1/8
+Q:1/4=88
+K:G
+%%score [1 2] 3
+%
+V:1 name="Violin I" short="Vln.I" clef=treble
+V:2 name="Violin II" short="Vln.II" clef=treble
+V:3 name="Cello" short="Vc." clef=bass
+%
+% --- Page 1 ---
+V:1
+!marker "LEGATO"! !p! !espressivo! (1slur-start B4 d2 | g4 f2) (1slur-end |
+V:2
+!p! !tenuto! G6 | !tenuto! D6 |
+V:3
+!pp! !text("pizz.")@above! G,,2 D,2 B,,2 | G,,2 D,2 B,,2 |
+%
+%%sep 0.2cm 1cm
+%
+V:1
+!marker "TECHNICAL"! !text("sul pont.")@above! !accent! g2 !accent! f2 !accent! e2 | !staccato! d2 !staccato! c2 !staccato! B2 |
+V:2
+!text("sul pont.")@above! B2 A2 G2 | F2 E2 D2 |
+V:3
+!text("arco")@above! !wedge(start)! G,6 | !wedge(end)! !f! G,,6 |
+%
+%%vskip 2cm
+%
+% --- Advanced Spacing Demo ---
+V:1
+!marker "SPACING"! !text("Extended Vertical Space Below")@above! g6 |
+V:2
+B6 |
+V:3
+G,,6 |]

@@ -143,6 +143,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     custom_slur_end   = Regex(r'\(?\d+slur-end')
     custom_tuplet_start = Regex(r'\(?\d+(:\d+)?\s*tuplet-start')
     custom_tuplet_end   = Literal('tuplet-end')
+    custom_command      = custom_slur_start | custom_slur_end | custom_tuplet_start | custom_tuplet_end
     
     # Allow @ in long decorations
     long_decoration = Regex(r'[!+][^!+\n]+[!+]')
@@ -207,7 +208,7 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     
     errors =  ~bar_right + Optional (Word (' \n')) + CharsNotIn (':&|', exact=1)
     linebreak = Literal ('$') | ~decorations + Literal ('!')    # no need for I:linebreak !!!
-    element = fld_or_lyr | broken | decorations | stem | chord_or_text | misplaced_annotation | grace_notes | tuplet_start | linebreak | errors
+    element = fld_or_lyr | broken | decorations | custom_command | stem | chord_or_text | misplaced_annotation | grace_notes | tuplet_start | linebreak | errors
     measure      = Group (ZeroOrMore (inline_field | V_field) + Optional (bar_left) + ZeroOrMore (element | inline_field | V_field) + bar_right + Optional (linebreak) + Optional (lyr_blk))
     noBarMeasure = Group (ZeroOrMore (inline_field | V_field) + Optional (bar_left) + OneOrMore (element | inline_field | V_field) + Optional (linebreak) + Optional (lyr_blk))
     abc_voice = ZeroOrMore (measure) + Optional (noBarMeasure | Group (bar_left)) + ZeroOrMore (inline_field).suppress () + StringEnd ()
@@ -249,6 +250,10 @@ def abc_grammar ():     # header, voice and lyrics grammar for ABC
     inline_field.setParseAction (lambda t: pObj ('inline', t))
     lyr_fld.setParseAction (lambda t: pObj ('lyr_fld', t, 1))
     lyr_blk.setParseAction (lambda t: pObj ('lyr_blk', t, 1)) # 1 = keep ordered list of lyric lines
+    custom_slur_start.setParseAction (lambda t: pObj ('cslur_start', t))
+    custom_slur_end.setParseAction (lambda t: pObj ('cslur_end', t))
+    custom_tuplet_start.setParseAction (lambda t: pObj ('ctup_start', t))
+    custom_tuplet_end.setParseAction (lambda t: pObj ('ctup_end', t))
     grace_notes.setParseAction (doGrace)
     acciaccatura.setParseAction (lambda t: pObj ('accia', t))
     note.setParseAction (noteActn)
@@ -947,6 +952,10 @@ class MusicXml:
         s.percsnd = [x.split (',') for x in ch10.split (';')]   # {name -> midi number} of standard channel 10 sound names
         s.gTime = (0,0)     # (XML begin time, XML end time) in divisions
         s.tabStaff = ''     # == pid (part ID) for a tab staff
+        s.maat = None       # current measure
+        s.whistleTab = 0    # == 1 if whistle-tab is enabled
+        s.whistleKey = 'D'  # default whistle key
+        s.lyricsAbove = 0   # 1 if lyrics should be placed above the staff
 
     def mkPitch (s, acc, note, oct, lev):
         if s.percVoice: # percussion map switched off by perc=off (see doClef)
@@ -987,7 +996,7 @@ class MusicXml:
         decos = s.nextdecos             # decorations encountered so far
         ndeco = getattr (n, 'deco', 0)  # possible decorations of notes of a chord
         if ndeco:                       # add decorations, translate used defined symbols
-            decos += [s.usrSyms.get (d, d).strip ('!+') for d in ndeco.t]
+            decos += [s.usrSyms.get (d, d).strip ('!+ ') for d in ndeco.t]
         s.nextdecos = []
         if s.tabStaff == s.pid and s.fOpt and n.name != 'rest':  # force fret/string allocation if explicit string decoration is missing
             if [d for d in decos if d in '0123456789'] == []: decos.append ('0')
@@ -1019,6 +1028,7 @@ class MusicXml:
         if num == 7 and noMsrRest: ndot = 2; den = den // 4
         
         decos = s.getNoteDecos (n) # Capture decos ONCE here
+        if any('frame' in d for d in decos): info('decos: %s' % decos)
         nt = E.Element ('note')
         if isgrace:                     # a grace note (and possibly a chord note)
             grace = E.Element ('grace')
@@ -1031,13 +1041,13 @@ class MusicXml:
         if not isgrace and not ischord:
             if s.vid in s.fbDefs:
                 for fb_str in s.fbDefs[s.vid]:
-                    s.mkFiguredBass(s.maat, fb_str, lev)
+                    if s.maat is not None: s.mkFiguredBass(s.maat, fb_str, lev)
                 del s.fbDefs[s.vid]
 
             # Check for chord symbols that might have frame definitions
             for d in decos:
-                if d in s.frameDb:
-                    s.mkFrame(s.maat, d, lev)
+                if 'frame' in d or d in s.frameDb:
+                    if s.maat is not None: s.mkFrame(s.maat, d, lev)
         if s.gcue_on:                   # insert cue tag
             cue = E.Element ('cue')
             addElem (nt, cue, lev + 1)
@@ -1116,14 +1126,29 @@ class MusicXml:
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
         if gstaff: addElemT (nt, 'staff', str (gstaff), lev + 1)
         if hasStem: s.doBeams (n, nt, den, lev + 1)   # no stems -> no beams in a tab staff
-        s.doNotations (n, decos, ptup, alter, tupnotation, tstop, nt, lev + 1)
+        
+        # Calculate absolute octave for whistle tab and other notations
+        nUp = step.upper()
+        abs_oct = (4 if nUp == step else 5) + int(oct) + s.gtrans
+        s.doNotations (n, decos, (step, abs_oct), alter, tupnotation, tstop, nt, lev + 1)
         if n.objs: s.doLyr (n, nt, lev + 1)
         else: s.prevLyric = {}   # clear on note without lyrics
         return nt
 
     def mkFrame(s, parent, name, lev):
+        name = name.strip(' "')
+        if name.startswith('frame '): name = name[6:].strip(' "')
         data = s.frameDb.get(name)
-        if not data: return
+        if not data:
+            # Check if name itself contains a pattern (inline definition)
+            # e.g. "C (3) x32010" or "C(3) x32010"
+            match = re.search(r'^(\S+?)\s?(\(\d+\))?\s+(\S+)', name)
+            if match:
+                fname, first_fret, pattern = match.groups()
+                if first_fret: first_fret = first_fret.strip('()')
+                data = {'pattern': pattern, 'first-fret': first_fret}
+            else:
+                return
         pattern = data.get('pattern', '')
         first_fret = data.get('first-fret')
         if not pattern: return
@@ -1154,6 +1179,7 @@ class MusicXml:
                  addElemT(fnote, 'fret', f if f != '0' else '0', lev + 3)
 
     def mkFiguredBass(s, parent, fb_str, lev):
+        fb_str = fb_str.strip('"')
         fb = E.Element('figured-bass')
         addElem(parent, fb, lev)
         for char in fb_str.split():
@@ -1173,6 +1199,29 @@ class MusicXml:
                     addElemT(figure, 'suffix', s_val, lev + 2)
             else:
                 addElemT(figure, 'figure-number', char, lev + 2)
+
+    def mkWhistleTab(s, technical, step, alter, octave, lev):
+        pitch = step.upper() + str(octave)
+        if alter == '1': pitch = step.upper() + '#' + str(octave)
+        elif alter == '-1': pitch = step.upper() + 'b' + str(octave)
+        
+        # Mapping for D whistle (standard)
+        chart = {
+            'D4': 'XXXXXX', 'D#4': 'XXXXXH', 'Eb4': 'XXXXXH', 'E4': 'XXXXXO', 'F4': 'XXXXHO', 'F#4': 'XXXXOO',
+            'G4': 'XXXOOO', 'G#4': 'XXHOOO', 'A4': 'XXOOOO', 'A#4': 'XOXOOO', 'Bb4': 'XOXOOO', 'B4': 'XOOOOO',
+            'C5': 'OXXOOO', 'C#5': 'OOOOOO', 'D5': 'OXXXXX', 'D#5': 'XXXXXH', 'Eb5': 'XXXXXH', 'E5': 'XXXXXO',
+            'F5': 'XXXXHO', 'F#5': 'XXXXOO', 'G5': 'XXXOOO', 'G#5': 'XXHOOO', 'A5': 'XXOOOO', 'A#5': 'XOXOOO',
+            'Bb5': 'XOXOOO', 'B5': 'XOOOOO', 'C6': 'OXXOOO', 'C#6': 'OOOOOO', 'D6': 'OXXXXX'
+        }
+        
+        pattern = chart.get(pitch)
+        if not pattern: return
+        
+        for p in pattern:
+            hole = E.Element('hole')
+            addElem(technical, hole, lev)
+            closed = {'X':'yes', 'O':'no', 'H':'half'}.get(p, 'no')
+            addElemT(hole, 'hole-closed', closed, lev + 1)
 
     def cmpNormType (s, rdvs, lev): # compute the normal-type of a tuplet (only needed for Finale)
         if rdvs:    # the last real tuplet note (chord notes can still follow afterwards with rdvs == 0)
@@ -1212,7 +1261,7 @@ class MusicXml:
             if slurs: slurs.t.append (')')          # close slur on this note
             else: slurs = pObj ('slurs', [')'])
         tstart = getattr (n, 'tie', 0)  # start a new tie
-        if not (tstop or tstart or decos or slurs or s.slurbeg or tupnotation or s.trem): return
+        if not (tstop or tstart or decos or slurs or s.slurbeg or tupnotation or s.trem or s.whistleTab): return
         nots = E.Element ('notations')
         
         # Sub-containers for grouped notations
@@ -1295,7 +1344,8 @@ class MusicXml:
                     if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
                     # Skip common staff decorations to avoid redundant other-articulation elements
                     if d in ['swing', 'swing-off', 'mute', 'mute-off', '8va', '8vb', '15ma', '15mb', '22ma', '22mb',
-                             'ped', 'ped-up', 'ped-change', 'ped(', 'ped)', 'trill(', 'trill)'] or d.startswith(('vskip', 'sep', 'frame', 'fb', 'measurenb', 'measurenumbering')):
+                             'ped', 'ped-up', 'ped-change', 'ped(', 'ped)', 'trill(', 'trill)'] or \
+                       d.startswith(('vskip', 'sep', 'frame', 'fb', 'measurenb', 'measurenumbering', '(1slur', '(2slur', '(3slur', '(4slur', 'slur-start', 'slur-end')):
                         continue
                     other = E.Element ('other-articulation')
                     other.text = d
@@ -1314,10 +1364,31 @@ class MusicXml:
             if ',' in stp: slur.set ('placement', 'below')
             if "'" in stp: slur.set ('placement', 'above')
             addElem (nots, slur, lev + 1)
+        
+        # [NEW] Handle custom numbered slurs from decos
+        for d in decos:
+             if 'slur-start' in d:
+                 match = re.search(r'\(?(\d+)?slur-start', d)
+                 num = match.group(1) if match and match.group(1) else '1'
+                 addElem(nots, E.Element('slur', number=num, type='start'), lev+1)
+             elif 'slur-end' in d:
+                 match = re.search(r'\(?(\d+)?slur-end', d)
+                 num = match.group(1) if match and match.group(1) else '1'
+                 addElem(nots, E.Element('slur', number=num, type='stop'), lev+1)
 
         # Only add grouped sub-containers if they have children
         if list(arts_cnt): addElem(nots, arts_cnt, lev + 1)
         if list(orns_cnt): addElem(nots, orns_cnt, lev + 1)
+        
+        if s.whistleTab and n.name != 'rest':
+            # Create a separate notations block for whistle tab to force placement below
+            whistle_nots = E.Element('notations', placement='below')
+            whistle_tecs = E.Element('technical')
+            addElem(whistle_nots, whistle_tecs, lev + 1)
+            step, oct = ptup
+            s.mkWhistleTab(whistle_tecs, step, alter, oct, lev + 2)
+            addElem(nt, whistle_nots, lev)
+            
         if list(tecs_cnt): addElem(nots, tecs_cnt, lev + 1)
         
         if list(nots): addElem (nt, nots, lev)
@@ -1329,6 +1400,7 @@ class MusicXml:
     def doLyr (s, n, nt, lev):
         for i, lyrobj in enumerate (n.objs):
             lyrel = E.Element ('lyric', number = str (i + 1))
+            if s.lyricsAbove: lyrel.set('placement', 'above')
             if lyrobj.name == 'syl':
                 dash = len (lyrobj.t) == 2
                 if dash:
@@ -1552,10 +1624,10 @@ class MusicXml:
                 addDirection (maat, el, lev, gstaff)
             elif d in ['swing', 'swing-off']:
                 snd = E.Element('sound', swing='yes' if d == 'swing' else 'no')
-                addDirection (maat, [], lev, gstaff, [snd])
+                addDirection (maat, None, lev, gstaff, [snd])
             elif d in ['mute', 'mute-off']:
                 snd = E.Element('sound', mute='yes' if d == 'mute' else 'no')
-                addDirection (maat, [], lev, gstaff, [snd])
+                addDirection (maat, None, lev, gstaff, [snd])
             elif d in ['coda', 'segno']:
                 text, attr, val = s.capoMap [d]
                 dir = addDirection (maat, E.Element (text), lev, gstaff, placement='above')
@@ -1971,6 +2043,8 @@ class MusicXml:
                 s.tmnum, s.tmden, s.ntup = n, into, nts
             elif x.name == 'deco':
                 s.staffDecos (x.t, maat, lev + 1)   # output staff decos, postpone note decos to next note
+            elif x.name in ['cslur_start', 'cslur_end', 'ctup_start', 'ctup_end']:
+                s.nextdecos.append(x.t[0])
             elif x.name == 'text':
                 pos, text = x.t[:2]
                 place = 'above' if pos == '^' else 'below'
@@ -2173,12 +2247,20 @@ class MusicXml:
             s.measureNb = x[10:].strip()
         elif x.startswith ('measurenumbering '):
             s.measureNumbering = 'yes' if 'yes' in x else 'no'
+        elif x.startswith ('whistle-tab'):
+            s.whistleTab = 0 if 'off' in x else 1
+        elif x.startswith ('whistle-key'):
+            s.whistleKey = x[11:].strip().upper()
+        elif x.startswith ('lyrics-above'):
+            s.lyricsAbove = 1
+        elif x.startswith ('lyrics-below'):
+            s.lyricsAbove = 0
         elif x.startswith ('swing'):
-            val = 'yes' if 'on' in x else 'no'
+            val = 'no' if 'off' in x else 'yes'
             snd = E.Element('sound', swing=val)
             if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
         elif x.startswith ('mute'):
-            val = 'yes' if 'on' in x else 'no'
+            val = 'no' if 'off' in x else 'yes'
             snd = E.Element('sound', mute=val)
             if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
         elif x.startswith ('MIDI') or x.startswith ('midi'):

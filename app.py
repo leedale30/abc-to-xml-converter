@@ -5,7 +5,7 @@ import urllib.request
 import urllib.error
 
 # App version - keep in sync with setup.py CFBundleVersion
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.2.0"
 GITHUB_REPO = "leedale30/abc-to-xml-converter"
 
 # Suppress pyparsing deprecation warnings (abc2xml uses old API)

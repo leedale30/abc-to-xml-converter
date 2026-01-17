@@ -1,0 +1,48 @@
+X:1
+T:ABC+ Specification Showcase
+C:Antigravity AI
+M:4/4
+L:1/4
+K:C
+%%marker A
+%%swing
+!p!C D E F | !f!G A B c |
+%%sep
+%%marker B
+%%swing-off
+!pppppp!C !ppppp!D !pppp!E !ppp!F | !pp!G !p!A !mp!B !mf!c |
+!f!c !ff!B !fff!A !ffff!G | !fffff!F !ffffff!E !fp!D !sfzp!C |
+!sf!C !sfp!D !sfpp!E !sffz!F | !fz!G !rf!A !rfz!B !n!c |
+%%marker C
+!staccato!c !staccatissimo!B !spiccato!A !tenuto!G |
+!accent!F !marcato!E !stress!D !unstress!C |
+!soft-accent!C !detached-legato!D !scoop!E !plop!F |
+!doit!G !falloff!A !caesura!B !breath!c |
+%%marker D
+!trill!c !mordent!B !uppermordent!A !turn!G |
+!delayed-turn!F !delayed-inverted-turn!E !invertedturn!D !vertical-turn!C |
+!inverted-vertical-turn!C !shake!D !schleifer!E !haydn!F |
+!trill(!G4 | !trill)!G4 |
+%%marker E
+!fingering(1)!C !fingering(5)!D !string(6)!E !fret(5)!F |
+!upbow!G !downbow!A !open!B !thumb!c |
+!hammer-on!c !pull-off!B !bend!A !tap!G |
+!heel!F !toe!E !fingernails!D !golpe!C |
+!harmonic!C4 | !half-muted!D4 |
+%%marker F
+%%frame C (5)x32010
+"C"C D E F |
+%%fb 6 4 3
+G A B c |
+%%vskip 20
+%%newpage
+%%marker G
+K:C clef=treble-8
+C D E F |
+K:C clef=treble+15
+G A B c |
+%%marker H
+K:C clef=treble
+!8va(!c B A G | !8va)!F E D C |
+!15ma(!C D E F | !15ma)!G A B c |
+!ped!C D E F | !ped-change!G A B !ped-up!c |

@@ -1,0 +1,12 @@
+X:1
+T:Notations Test
+M:4/4
+L:1/4
+K:C
+C !staccatissimo! D !spiccato! E !detached-legato! F | !scoop! G !plop! A !doit! B !falloff! c |
+!caesura! c !stress! B !unstress! A !soft-accent! G |
+!delayed-turn! F !delayed-inverted-turn! E !vertical-turn! D !inverted-vertical-turn! C |
+!shake! C !schleifer! D !haydn! E F |
+!hammer-on! G !pull-off! A !bend! B !tap! c |
+!heel! c !toe! B !thumb! A !double-tongue! G |
+!triple-tongue! F !fingernails! E !golpe! D !half-muted! C |

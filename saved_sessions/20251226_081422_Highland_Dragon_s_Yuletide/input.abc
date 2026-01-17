@@ -1,0 +1,64 @@
+T: Highland Dragon's Yuletide
+C: Antony Leedale
+M: 4/4
+L: 1/8
+Q: 1/4=120
+K: D
+%%score (V1) (V2) (V3) (V4)
+%%midi program 1 109 % Bagpipe
+%%midi program 2 73  % Flute (Dizi)
+%%midi program 3 107 % Koto (Guzheng)
+%%midi channel 4 10  % Percussion Channel
+%
+% Custom Drum Map including provided Jazz map + Jingle Bells
+%%drummap BD   C2   36
+%%drummap SN   D2   38
+%%drummap CH   F#2  42
+%%drummap OH   A#2  46
+%%drummap CC   C#3  49
+%%drummap RC   D#3  51
+%%drummap JB   c'   83  % Jingle Bells
+%
+V:1 name="Bagpipes" snM="Bag." clef=treble
+V:2 name="Dizi (Flute)" snM="Dz." clef=treble
+V:3 name="Guzheng" snM="Gz." clef=treble
+V:4 name="Sleigh Bells/Perc" snM="Perc." clef=perc
+%
+% Intro
+[V:1] !f! D4- D4 | D4- D4 | D4- D4 | D4- D4 |
+[V:2] z8 | z8 | z8 | z8 |
+[V:3] !mf! [D,A,D]8 | [D,A,D]8 | [D,A,D]8 | [D,A,D]8 |
+[V:4] !f! c'2 c'2 c'2 c'2 | c'2 c'2 c'2 c'2 | c'2 c'2 c'2 c'2 | c'2 c'2 c'2 c'2 |
+%
+% Section A: Scottish Bagpipe Melody (Pentatonic Reel)
+[V:1] {g}d2 d>e {g}f2 d2 | {g}e2 d>B {g}A2 F2 | {g}d2 d>e {g}f2 d2 | {g}e2 {A}e2 {g}f4 |
+[V:2] z8 | z8 | z8 | z8 |
+[V:3] D,2 A,2 D2 A,2 | G,2 D2 F,2 A,2 | D,2 A,2 D2 A,2 | A,2 E2 D2 A,2 |
+[V:4] C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 |
+%
+[V:1] {g}d2 d>e {g}f2 d2 | {g}B2 d>B {g}A2 F2 | G2 B>G F2 A>F | {g}E2 D2 D4 ||
+[V:2] z8 | z8 | z8 | z8 |
+[V:3] B,2 F2 A,2 D2 | G,2 D2 F,2 D2 | E,2 B,2 D,2 A,2 | A,2 E2 [D,A,D]4 ||
+[V:4] C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 ||
+%
+% Section B: Chinese Dizi Melody (High, Ornamented, Parallel 4ths harmony)
+[V:1] D4- D4 | D4- D4 | D4- D4 | D4- D4 |
+[V:2] !mf! (3a/b/a/ f a d'2 b2 | a2 f>d e2 d2 | (3a/b/a/ f a d'2 b2 | a2 f>d e4 |
+[V:3] !mp! [F2A2] [F2A2] [G2B2] [G2B2] | [F2A2] [F2A2] [E2A2] [F2A2] | [F2A2] [F2A2] [G2B2] [G2B2] | [F2A2] [D2F2] [E4A4] |
+[V:4] !mp! ^F,,2 ^F,,2 ^F,,2 ^F,,2 | ^F,,2 ^F,,2 ^F,,2 ^F,,2 | ^F,,2 ^F,,2 ^F,,2 ^F,,2 | ^F,,2 ^F,,2 ^F,,2 ^F,,2 |
+%
+[V:1] D4- D4 | D4- D4 | D4- D4 | D4 z4 |
+[V:2] b2 a>f e2 d2 | B2 d>B A2 F2 | A2 B>d e2 f>e | d2 d2 d4 ||
+[V:3] [G2B2] [F2A2] [E2G2] [F2A2] | [G2B2] [G2B2] [F2A2] [D2F2] | [D2F2] [G2B2] [A2c2] [A2d2] | [F2A2] [E2G2] [F4A4] ||
+[V:4] ^F,,2 ^F,,2 ^F,,2 ^F,,2 | ^F,,2 ^F,,2 ^F,,2 ^F,,2 | ^F,,2 ^F,,2 ^F,,2 ^F,,2 | ^F,,2 ^F,,2 ^F,,2 ^F,,2 ||
+%
+% Section C: Fusion (Call and Response / Unison)
+[V:1] !ff! {g}d2 d>e {g}f2 d2 | {g}e2 d>B {g}A2 F2 | {g}d2 d>e {g}f2 a2 | {g}b2 a2 {g}f2 e2 |
+[V:2] !f! d'2 d'>e' f'2 d'2 | e'2 d'>b a2 f2 | d'2 d'>e' f'2 a'2 | b'2 a'2 f'2 e'2 |
+[V:3] !f! [D,A,D]2 z2 [D,A,D]2 z2 | [G,D]2 z2 [F,A,]2 z2 | [D,A,D]2 z2 [D,A,D]2 z2 | [G,D]2 [F,A,]2 [A,E]2 [A,E]2 |
+[V:4] !ff! C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 |
+%
+[V:1] {g}d2 d>e {g}f2 d2 | {g}B2 d>B {g}A2 F2 | G2 B>G F2 A>F | !staccato!E2 !staccato!D2 D4 |]
+[V:2] d'2 d'>e' f'2 d'2 | b2 d'>b a2 f2 | g2 b>g f2 a>f | !staccato!e2 !staccato!d2 d4 |]
+[V:3] [B,F]2 [B,F]2 [A,E]2 [A,E]2 | [G,D]2 [G,D]2 [F,A,]2 [F,A,]2 | [E,B,]2 [E,B,]2 [D,A,]2 [D,A,]2 | [A,E]2 [A,E]2 [D,A,D]4 |]
+[V:4] C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | C,,2 c'2 D,,2 c'2 | ^C,2 c'2 C,,4 |]

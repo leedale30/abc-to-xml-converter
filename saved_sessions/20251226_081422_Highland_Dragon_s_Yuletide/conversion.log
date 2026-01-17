@@ -1,0 +1,213 @@
+/Users/antonyleedale/Documents/ABC to xml/abc2xml/abc2xml.py:2332: SyntaxWarning: invalid escape sequence '\s'
+  fragments = re.split ('^\s*X:', abctext, flags=re.M)
+-- decoded from utf-8
+**misplaced symbol: 2
+JB2 | JB2 JB2 JB2 JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | [V:4] BD2 JB2 
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 
+----------------------------------------^
+**misplaced symbol: 2
+JB2 | BD2 JB2 SN2 JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 || [V:4] !mp! CH
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH
+----------------------------------------^
+**misplaced symbol: 2
+2 JB2 | BD2 JB2 SN2 JB2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+2 | BD2 JB2 SN2 JB2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+BD2 JB2 SN2 JB2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+JB2 SN2 JB2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | 
+----------------------------------------^
+**misplaced symbol: 2
+2 JB2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+2 || [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+ [V:4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+4] !mp! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | 
+----------------------------------------^
+**misplaced symbol: 2
+! CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 
+----------------------------------------^
+**misplaced symbol: 2
+| CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 
+----------------------------------------^
+**misplaced symbol: 2
+CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+CH2 CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+CH2 | CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+| CH2 CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | 
+----------------------------------------^
+**misplaced symbol: 2
+CH2 CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+CH2 CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+CH2 | [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH
+----------------------------------------^
+**misplaced symbol: 2
+| [V:4] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 ||
+----------------------------------------^
+**misplaced symbol: 2
+] CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4]
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff! BD
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff! BD2 JB
+----------------------------------------^
+**misplaced symbol: 2
+| CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff! BD2 JB2 SN2 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff! BD2 JB2 SN2 JB2 
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff! BD2 JB2 SN2 JB2 | BD
+----------------------------------------^
+**misplaced symbol: 2
+2 CH2 | CH2 CH2 CH2 CH2 | CH2 CH2 CH2 CH2 || [V:4] !ff! BD2 JB2 SN2 JB2 | BD2 JB
+----------------------------------------^
+**misplaced symbol: 2
+CH2 CH2 CH2 CH2 || [V:4] !ff! BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+ [V:4] !ff! BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | [V:4] BD2 JB2 
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 
+----------------------------------------^
+**misplaced symbol: 2
+JB2 | BD2 JB2 SN2 JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB
+----------------------------------------^
+**misplaced symbol: 2
+JB2 | [V:4] BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | CC2 JB2 BD4 |]
+----------------------------------------^
+**misplaced symbol: 2
+2 SN2 JB2 | BD2 JB2 SN2 JB2 | BD2 JB2 SN2 JB2 | CC2 JB2 BD4 |]
+----------------------------------------^
+-- skipped header: (field X,1)
+-- skipped I-field: drummap BD   C2   36
+-- skipped I-field: drummap SN   D2   38
+-- skipped I-field: drummap CH   F#2  42
+-- skipped I-field: drummap OH   A#2  46
+-- skipped I-field: drummap CC   C#3  49
+-- skipped I-field: drummap RC   D#3  51
+-- skipped I-field: drummap JB   c'   83
+/Users/antonyleedale/Documents/ABC to xml/abc2xml/abc2xml.py:1328: DeprecationWarning: Testing an element's truth value will always return True in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  if not s.prevNote:  pbm = None
+/Users/antonyleedale/Documents/ABC to xml/abc2xml/abc2xml.py:1345: DeprecationWarning: Testing an element's truth value will always return True in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+  if not s.prevNote: return
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- unhandled note decorations: ['N', 'J']
+-- unhandled note decorations: ['J']
+-- Measure 28 has too many beats! (Found 5.00, expected 4.00)
+-- score partname V1 does not exist
+-- score partname V2 does not exist
+-- score partname V3 does not exist
+-- score partname V4 does not exist
+-- score partname V1 does not exist
+-- score partname V2 does not exist
+-- score partname V3 does not exist
+-- score partname V4 does not exist
+-- done in 0.06 secs

@@ -479,10 +479,13 @@ def addDirection (parent, elems, lev, gstaff, subelms=[], placement='below', cue
     addElem (parent, dir, lev)
     if type (elems) != list_type: elems = [(elems, subelms)]    # ugly hack to provide for multiple direction types
     for elem, subelms in elems: # add direction types
-        typ = E.Element ('direction-type')
-        addElem (dir, typ, lev + 1)
-        addElem (typ, elem, lev + 2)
-        for subel in subelms: addElem (elem, subel, lev + 3)
+        if elem != None:
+            typ = E.Element ('direction-type')
+            addElem (dir, typ, lev + 1)
+            addElem (typ, elem, lev + 2)
+            for subel in subelms: addElem (elem, subel, lev + 3)
+        else: # sound only direction
+            for subel in subelms: addElem (dir, subel, lev + 1)
     if cue_on: addElem (dir, E.Element ('level', size='cue'), lev + 1)
     if gstaff: addElemT (dir, 'staff', str (gstaff), lev + 1)
     return dir
@@ -823,8 +826,10 @@ class stringAlloc:
 
 class MusicXml:
     typeMap = {1:'long', 2:'breve', 4:'whole', 8:'half', 16:'quarter', 32:'eighth', 64:'16th', 128:'32nd', 256:'64th'}
-    dynaMap = {'p':1,'pp':1,'ppp':1,'pppp':1,'f':1,'ff':1,'fff':1,'ffff':1,'mp':1,'mf':1,'sfz':1,
-               'subito-p':1, 'subito-f':1}
+    dynaMap = {'p':1,'pp':1,'ppp':1,'pppp':1,'ppppp':1,'pppppp':1,
+               'f':1,'ff':1,'fff':1,'ffff':1,'fffff':1,'ffffff':1,
+               'mp':1,'mf':1,'sfz':1,'sf':1,'sfp':1,'sfpp':1,'fp':1,'rf':1,'rfz':1,'sffz':1,'fz':1,'n':1,'pf':1,'sfzp':1,
+               'subito-p':1, 'subito-f':1, 'subito-pp':1, 'subito-ff':1}
     tempoMap = {'larghissimo':40, 'moderato':104, 'adagissimo':44, 'allegretto':112, 'lentissimo':48, 'allegro':120, 'largo':56,
             'vivace':168, 'adagio':59, 'vivo':180, 'lento':62, 'presto':192, 'larghetto':66, 'allegrissimo':208, 'adagietto':76,
             'vivacissimo':220, 'andante':88, 'prestissimo':240, 'andantino':96}
@@ -835,12 +840,24 @@ class MusicXml:
                 'dim':1, 'dim(':1, 'dim)':1}
     artMap = {'.':'staccato','>':'accent','accent':'accent','wedge':'staccatissimo','tenuto':'tenuto',
               'breath':'breath-mark','marcato':'strong-accent','^':'strong-accent','slide':'scoop',
-              'staccato':'staccato', 'tenuto':'tenuto', 'accent':'accent', 'marcato':'strong-accent'}
+              'staccato':'staccato', 'tenuto':'tenuto', 'accent':'accent', 'marcato':'strong-accent',
+              'staccatissimo':'staccatissimo', 'spiccato':'spiccato', 'detached-legato':'detached-legato',
+              'scoop':'scoop', 'plop':'plop', 'doit':'doit', 'falloff':'falloff',
+              'caesura':'caesura', 'stress':'stress', 'unstress':'unstress', 'soft-accent':'soft-accent',
+              'other-articulation':'other-articulation'}
     ornMap = {'trill':'trill-mark','T':'trill-mark','turn':'turn','uppermordent':'inverted-mordent','lowermordent':'mordent',
-              'pralltriller':'inverted-mordent','mordent':'mordent','turn':'turn','invertedturn':'inverted-turn',
-              'tremolo':'tremolo'}
+              'pralltriller':'inverted-mordent','mordent':'mordent', 'invertedturn':'inverted-turn',
+              'tremolo':'tremolo', 'delayed-turn':'delayed-turn', 'shake':'shake', 'schleifer':'schleifer', 'haydn':'haydn',
+              'delayed-inverted-turn':'delayed-inverted-turn', 'inverted-vertical-turn':'inverted-vertical-turn',
+              'wavy-line':'wavy-line', 'mordent':'mordent', 'inverted-mordent':'inverted-mordent', 'inverted-turn':'inverted-turn',
+              'vertical-turn':'vertical-turn'}
     tecMap = {'upbow':'up-bow', 'downbow':'down-bow', 'plus':'stopped','open':'open-string','snap':'snap-pizzicato',
-              'thumb':'thumb-position', 'pizz':'pizzicato', 'arco':'arco', 'harmonic':'harmonic', 'mute':'con-sordino'}
+              'thumb':'thumb-position', 'pizz':'pizzicato', 'arco':'arco', 'harmonic':'harmonic', 'mute':'stopped',
+              'hammer-on':'hammer-on', 'pull-off':'pull-off', 'bend':'bend', 'tap':'tap', 'heel':'heel', 'toe':'toe',
+              'fingernails':'fingernails', 'golpe':'golpe', 'double-tongue':'double-tongue', 'triple-tongue':'triple-tongue',
+              'handbell':'handbell', 'fingering':'fingering', 'fret':'fret', 'string':'string', 'hole':'hole', 'arrow':'arrow',
+              'brass-bend':'brass-bend', 'flip':'flip', 'smear':'smear', 'soft-pizzicato':'soft-pizzicato', 'scordatura':'scordatura',
+              'with-tongue':'with-tongue', 'half-muted':'half-muted'}
     capoMap = {'fine':('Fine','fine','yes'), 'D.S.':('D.S.','dalsegno','segno'), 'D.C.':('D.C.','dacapo','yes'),'dacapo':('D.C.','dacapo','yes'),
                'dacoda':('To Coda','tocoda','coda'), 'coda':('coda','coda','coda'), 'segno':('segno','segno','segno'),
                'D.S.alCoda':('D.S. al Coda','dalsegno','segno'), 'D.C.alCoda':('D.C. al Coda','dacapo','yes'),
@@ -849,7 +866,8 @@ class MusicXml:
     offTab = {'maj':8, 'm':11, 'min':11, 'mix':9, 'dor':10, 'phr':12, 'lyd':7, 'loc':13}
     modTab = {'maj':'major', 'm':'minor', 'min':'minor', 'mix':'mixolydian', 'dor':'dorian', 'phr':'phrygian', 'lyd':'lydian', 'loc':'locrian'}
     clefMap = { 'alto1':('C','1'), 'alto2':('C','2'), 'alto':('C','3'), 'alto4':('C','4'), 'tenor':('C','4'),
-                'bass3':('F','3'), 'bass':('F','4'), 'treble':('G','2'), 'perc':('percussion',''), 'none':('',''), 'tab':('TAB','5')}
+                'bass3':('F','3'), 'bass':('F','4'), 'treble':('G','2'), 'perc':('percussion',''), 'none':('',''), 'tab':('TAB','5'),
+                'sub-bass':('F','5')}
     clefLineMap = {'B':'treble', 'G':'alto1', 'E':'alto2', 'C':'alto', 'A':'tenor', 'F':'bass3', 'D':'bass'}
     alterTab = {'=':'0', '_':'-1', '__':'-2', '^':'1', '^^':'2'}
     accTab = {'=':'natural', '_':'flat', '__':'flat-flat', '^':'sharp', '^^':'sharp-sharp'}
@@ -859,8 +877,8 @@ class MusicXml:
     pageFmtDef = [0.75,297,210,18,18,10,10] # the abcm2ps page formatting defaults for A4
     metaTab = {'O':'origin', 'A':'area', 'Z':'transcription', 'N':'notes', 'G':'group', 'H':'history', 'R':'rhythm',
                 'B':'book', 'D':'discography', 'F':'fileurl', 'S':'source', 'P':'partmap', 'W':'lyrics'}
-    metaMap = {'C':'composer'}  # mapping of composer is fixed
-    metaTypes = {'composer':1,'lyricist':1,'poet':1,'arranger':1,'translator':1, 'rights':1} # valid MusicXML meta data types
+    metaMap = {'C':'composer', 'A':'arranger', 'O':'lyricist', 'Z':'translator', 'G':'rights'}
+    metaTypes = {'composer':1,'lyricist':1,'arranger':1,'translator':1, 'rights':1, 'publisher':1, 'editor':1}
     tuningDef = 'E2,A2,D3,G3,B3,E4'.split (',') # default string tuning (guitar)
 
     def __init__ (s):
@@ -920,6 +938,10 @@ class MusicXml:
         s.fOpt = fOpt       # force string/fret allocations for tab staves
         s.orderChords = 0   # order notes in a chord
         s.chordDecos = {}   # decos that should be distributed to all chord notes for xml
+        s.newpage = 0       # 1 if next measure should start with a new page
+        s.newline = 0       # 1 if next measure should start with a new system
+        s.frameDb = {}      # collected %%frame definitions
+        s.fbDefs = {}       # {voice_id -> [figured-bass elements]} for next note
         ch10 = 'acoustic-bass-drum,35;bass-drum-1,36;side-stick,37;acoustic-snare,38;hand-clap,39;electric-snare,40;low-floor-tom,41;closed-hi-hat,42;high-floor-tom,43;pedal-hi-hat,44;low-tom,45;open-hi-hat,46;low-mid-tom,47;hi-mid-tom,48;crash-cymbal-1,49;high-tom,50;ride-cymbal-1,51;chinese-cymbal,52;ride-bell,53;tambourine,54;splash-cymbal,55;cowbell,56;crash-cymbal-2,57;vibraslap,58;ride-cymbal-2,59;hi-bongo,60;low-bongo,61;mute-hi-conga,62;open-hi-conga,63;low-conga,64;high-timbale,65;low-timbale,66;high-agogo,67;low-agogo,68;cabasa,69;maracas,70;short-whistle,71;long-whistle,72;short-guiro,73;long-guiro,74;claves,75;hi-wood-block,76;low-wood-block,77;mute-cuica,78;open-cuica,79;mute-triangle,80;open-triangle,81'
         s.percsnd = [x.split (',') for x in ch10.split (';')]   # {name -> midi number} of standard channel 10 sound names
         s.gTime = (0,0)     # (XML begin time, XML end time) in divisions
@@ -994,6 +1016,8 @@ class MusicXml:
         ndot = 0
         if num == 3 and noMsrRest: ndot = 1; den = den // 2 # look for dotted notes
         if num == 7 and noMsrRest: ndot = 2; den = den // 4
+        
+        decos = s.getNoteDecos (n) # Capture decos ONCE here
         nt = E.Element ('note')
         if isgrace:                     # a grace note (and possibly a chord note)
             grace = E.Element ('grace')
@@ -1001,6 +1025,18 @@ class MusicXml:
             addElem (nt, grace, lev + 1)
             dvs = rdvs = 0              # no (real) duration for a grace note
             if den <= 16: den = 32      # not longer than 1/8 for a grace note
+        
+        # [NEW] Handle Figured Bass and Chord Frames
+        if not isgrace and not ischord:
+            if s.vid in s.fbDefs:
+                for fb_str in s.fbDefs[s.vid]:
+                    s.mkFiguredBass(s.maat, fb_str, lev)
+                del s.fbDefs[s.vid]
+
+            # Check for chord symbols that might have frame definitions
+            for d in decos:
+                if d in s.frameDb:
+                    s.mkFrame(s.maat, d, lev)
         if s.gcue_on:                   # insert cue tag
             cue = E.Element ('cue')
             addElem (nt, cue, lev + 1)
@@ -1050,7 +1086,6 @@ class MusicXml:
         for i in range (ndot):          # add dots
             dot = E.Element ('dot')
             addElem (nt, dot, lev + 1)
-        decos = s.getNoteDecos (n)      # get decorations for this note
         if acc and not tstop:           # only add accidental if note not tied
             e = E.Element ('accidental')
             if 'courtesy' in decos:
@@ -1084,6 +1119,59 @@ class MusicXml:
         if n.objs: s.doLyr (n, nt, lev + 1)
         else: s.prevLyric = {}   # clear on note without lyrics
         return nt
+
+    def mkFrame(s, parent, name, lev):
+        data = s.frameDb.get(name)
+        if not data: return
+        pattern = data.get('pattern', '')
+        first_fret = data.get('first-fret')
+        if not pattern: return
+        
+        harmony = E.Element('harmony')
+        addElem(parent, harmony, lev)
+        root = E.Element('root')
+        addElem(harmony, root, lev + 1)
+        addElemT(root, 'root-step', name[0].upper(), lev + 2)
+        kind = E.Element('kind')
+        kind.text = 'major' if 'm' not in name else 'minor'
+        addElem(harmony, kind, lev + 1)
+        
+        frame = E.Element('frame')
+        addElem(harmony, frame, lev + 1)
+        addElemT(frame, 'frame-strings', str(len(pattern)), lev + 2)
+        addElemT(frame, 'frame-frets', '4', lev + 2)
+        if first_fret:
+            addElemT(frame, 'first-fret', first_fret, lev + 2)
+        
+        for i, f in enumerate(pattern):
+            fnote = E.Element('frame-note')
+            addElem(frame, fnote, lev + 2)
+            addElemT(fnote, 'string', str(i+1), lev + 3)
+            if f in 'xX':
+                 addElemT(fnote, 'fret', '0', lev + 3) # Muted
+            else:
+                 addElemT(fnote, 'fret', f if f != '0' else '0', lev + 3)
+
+    def mkFiguredBass(s, parent, fb_str, lev):
+        fb = E.Element('figured-bass')
+        addElem(parent, fb, lev)
+        for char in fb_str.split():
+            figure = E.Element('figure')
+            addElem(fb, figure, lev + 1)
+            # Support prefix/suffix for figures (e.g. #6 or 6b)
+            # Use regex to split prefix, number, and suffix
+            match = re.match(r'([#b\+\-])?(\d+)([#b\+\-])?', char)
+            if match:
+                prefix, num, suffix = match.groups()
+                if prefix:
+                    p_val = {'#':'sharp', 'b':'flat', '+': 'plus', '-': 'minus'}.get(prefix, prefix)
+                    addElemT(figure, 'prefix', p_val, lev + 2)
+                addElemT(figure, 'figure-number', num, lev + 2)
+                if suffix:
+                    s_val = {'#':'sharp', 'b':'flat', '+': 'plus', '-': 'minus'}.get(suffix, suffix)
+                    addElemT(figure, 'suffix', s_val, lev + 2)
+            else:
+                addElemT(figure, 'figure-number', char, lev + 2)
 
     def cmpNormType (s, rdvs, lev): # compute the normal-type of a tuplet (only needed for Finale)
         if rdvs:    # the last real tuplet note (chord notes can still follow afterwards with rdvs == 0)
@@ -1123,193 +1211,117 @@ class MusicXml:
             if slurs: slurs.t.append (')')          # close slur on this note
             else: slurs = pObj ('slurs', [')'])
         tstart = getattr (n, 'tie', 0)  # start a new tie
-        if not (tstop or tstart or decos or slurs or s.slurbeg or tupnotation or s.trem): return nt
-        nots = E.Element ('notations')  # notation element needed
-        if s.trem:  # +/- => tuple tremolo sequence / single note tremolo
+        if not (tstop or tstart or decos or slurs or s.slurbeg or tupnotation or s.trem): return
+        nots = E.Element ('notations')
+        
+        # Sub-containers for grouped notations
+        arts_cnt = E.Element('articulations')
+        orns_cnt = E.Element('ornaments')
+        tecs_cnt = E.Element('technical')
+        
+        if s.trem:
             if s.trem < 0: tupnotation = 'single'; s.trem = -s.trem
-            if not tupnotation: return  # only add notation at first or last note of a tremolo sequence
-            orn = E.Element ('ornaments')
-            trm = E.Element ('tremolo', type=tupnotation)   # type = start, stop or single
-            trm.text = str (s.trem)     # the number of bars in a tremolo note
-            addElem (nots, orn, lev + 1)
-            addElem (orn, trm, lev + 2)
-            if tupnotation == 'stop' or tupnotation == 'single': s.trem = 0
-        elif tupnotation:       # add tuplet type
-            tup = E.Element ('tuplet', type=tupnotation)
-            if tupnotation == 'start': tup.set ('bracket', 'yes')
-            addElem (nots, tup, lev + 1)
-        if tstop:               # stop tie
-            del s.ties[ptup]    # remove flag
-            tie = E.Element ('tied', type='stop')
-            addElem (nots, tie, lev + 1)
-        if tstart:              # start a tie
-            s.ties[ptup] = (alter, nots, s.overlayVnum, nt) # remember pitch tuple to stop tie and apply same alteration
+            if tupnotation:
+                trm = E.Element ('tremolo', type=tupnotation)
+                trm.text = str (s.trem)
+                addElem (orns_cnt, trm, lev + 2)
+                if tupnotation in ['stop', 'single']: s.trem = 0
+
+        elif tupnotation:
+            addElem (nots, E.Element ('tuplet', type=tupnotation, bracket='yes' if tupnotation == 'start' else None), lev + 1)
+
+        if tstop:  addElem (nots, E.Element ('tied', type='stop'), lev + 1)
+        if tstart:
+            s.ties[ptup] = (alter, nots, s.overlayVnum, nt)
             tie = E.Element ('tied', type='start')
             if tstart.t[0] == '.-': tie.set ('line-type', 'dotted')
             addElem (nots, tie, lev + 1)
-        if decos:               # look for slurs and decorations
+
+        if decos:
             slurMap = { '(':1, '.(':1, '(,':1, "('":1, '.(,':1, ".('":1 }
-            arts = []           # collect articulations
-            for d in decos:     # do all slurs and decos
-                ntn = None  # Initialize to avoid UnboundLocalError
-                if d in slurMap: s.slurbeg.append (d); continue # slurs made in while loop at the end
-                elif d == 'fermata' or d == 'H':
-                    ntn = E.Element ('fermata', type='upright')
-                elif d == 'longfermata':
-                    ntn = E.Element ('fermata', type='upright')
-                    ntn.set('shape', 'long')
-                elif d == 'shortfermata':
-                    ntn = E.Element ('fermata', type='upright')
-                    ntn.set('shape', 'short')
-                elif d == 'legato':
-                    # Legato is typically rendered as a slur
-                    ntn = E.Element ('slur', type='start', number='1')
-                elif d == 'div':
-                    # Divisi marking - use other-articulation
-                    ntn = E.Element ('other-articulation')
-                    ntn.text = 'divisi'
-                elif d == 'arpeggio':
-                    ntn = E.Element ('arpeggiate', number='1')
+            for d in decos:
+                d_clean = d.split('(')[0]
+                if d in slurMap: s.slurbeg.append (d)
+                elif d in ['fermata', 'H']: addElem (nots, E.Element ('fermata', type='upright'), lev + 1)
+                elif d == 'longfermata':    addElem (nots, E.Element ('fermata', type='upright', shape='long'), lev + 1)
+                elif d == 'shortfermata':   addElem (nots, E.Element ('fermata', type='upright', shape='short'), lev + 1)
+                elif d == 'arpeggio':       addElem (nots, E.Element ('arpeggiate', number='1'), lev + 1)
                 elif d in ['~(', '~)', 'gliss(', 'gliss)']:
-                    if d.endswith('('): tp = 'start'; s.glisnum += 1; gn = s.glisnum
-                    else:               tp = 'stop'; gn = s.glisnum; s.glisnum -= 1
-                    if s.glisnum < 0: s.glisnum = 0; continue   # stop without previous start
-                    ntn = E.Element ('glissando', {'line-type':'wavy', 'number':'%d' % gn, 'type':tp})
+                    if d.endswith('('): tp, s.glisnum = 'start', s.glisnum + 1; gn = s.glisnum
+                    else:               tp, gn, s.glisnum = 'stop', s.glisnum, max(0, s.glisnum - 1)
+                    addElem (nots, E.Element ('glissando', {'line-type':'wavy', 'number':'%d' % gn, 'type':tp}), lev + 1)
                 elif d in ['-(', '-)', 'slide(', 'slide)']:
-                    if d.endswith('('): tp = 'start'; s.slidenum += 1; gn = s.slidenum
-                    else:               tp = 'stop'; gn = s.slidenum; s.slidenum -= 1
-                    if s.slidenum < 0: s.slidenum = 0; continue   # stop without previous start
-                    ntn = E.Element ('slide', {'line-type':'solid', 'number':'%d' % gn, 'type':tp})
-
-                # Custom Slurs: (1slur-start / (1slur-end
-                elif 'slur-start' in d or 'slur-end' in d:
-                    import re
-                    numMatch = re.search(r'(\d+)slur', d)
-                    slurNum = '1'
-                    if numMatch: slurNum = numMatch.group(1)
-                    
-                    slurType = 'start' if 'start' in d else 'stop'
-                    ntn = E.Element('slur', number=slurNum, type=slurType)
-                    
-                # Custom Tuplets: (3:2 tuplet-start / tuplet-end
-                elif 'tuplet-start' in d:
-                    ntn = E.Element('tuplet', type='start', bracket='yes')
-                    
-                elif 'tuplet-end' in d:
-                    ntn = E.Element('tuplet', type='stop')
-
-                elif d == 'roll':
-                    # Map roll to wavy-line/trill or tremolo
-                    ntn = E.Element('ornaments')
-                    addElem(ntn, E.Element('trill-mark'), lev + 1)
-                elif d == 'open':
-                    ntn = E.Element('technical')
-                    addElem(ntn, E.Element('open-string'), lev + 1)
-                elif d == 'espressivo':
-                    ntn = E.Element('other-direction')
-                    ntn.text = 'espressivo'
-                elif d == 'tenuto':
-                    ntn = E.Element('articulations')
-                    addElem(ntn, E.Element('tenuto'), lev + 1)
-                elif d == 'text("col legno")':
-                    ntn = E.Element('other-direction')
-                    ntn.text = 'col legno'
-                elif d == 'mute':
-                    ntn = E.Element('technical')
-                    addElem(ntn, E.Element('stopped'), lev + 1)
+                    if d.endswith('('): tp, s.slidenum = 'start', s.slidenum + 1; gn = s.slidenum
+                    else:               tp, gn, s.slidenum = 'stop', s.slidenum, max(0, s.slidenum - 1)
+                    addElem (nots, E.Element ('slide', {'line-type':'solid', 'number':'%d' % gn, 'type':tp}), lev + 1)
+                elif d == 'staccato' or d == '.':           addElem (arts_cnt, E.Element ('staccato'), lev + 2)
+                elif d == 'staccatissimo' or d == 'wedge':  addElem (arts_cnt, E.Element ('staccatissimo'), lev + 2)
+                elif d == 'accent' or d == '>':             addElem (arts_cnt, E.Element ('accent'), lev + 2)
+                elif d == 'marcato' or d == '^':            addElem (arts_cnt, E.Element ('strong-accent'), lev + 2)
+                elif d == 'tenuto':                         addElem (arts_cnt, E.Element ('tenuto'), lev + 2)
                 elif d == 'sfz':
-                    ntn = E.Element('dynamics')
-                    addElem(ntn, E.Element('sfz'), lev + 1)
+                    dyn = E.Element('dynamics')
+                    addElem(dyn, E.Element('sfz'), lev + 2)
+                    addElem (nots, dyn, lev + 1)
+                elif d in ['crescendo(', 'cresc(', '<(']: addElem (nots, E.Element ('wedge', type='crescendo', number='1'), lev + 1)
+                elif d in ['crescendo)', 'cresc)', '<)']: addElem (nots, E.Element ('wedge', type='stop', number='1'), lev + 1)
+                elif d in ['decrescendo(', 'decresc(', '>(', 'diminuendo(', 'dim(']: addElem (nots, E.Element ('wedge', type='diminuendo', number='1'), lev + 1)
+                elif d in ['decrescendo)', 'decresc)', '>)', 'diminuendo)', 'dim)']: addElem (nots, E.Element ('wedge', type='stop', number='1'), lev + 1)
+                elif d_clean in s.artMap:                   addElem (arts_cnt, E.Element (s.artMap[d_clean]), lev + 2)
+                elif d_clean in s.ornMap:
+                    el = E.Element(s.ornMap[d_clean])
+                    if '(' in d and not d.endswith(')'): el.set('type', 'start')
+                    elif d.endswith(')') and '(' not in d: el.set('type', 'stop')
+                    content = re.search(r'\((.*?)\)', d)
+                    if content: el.text = content.group(1)
+                    addElem (orns_cnt, el, lev + 2)
+                elif d_clean == 'harmonic':
+                    el = E.Element('harmonic')
+                    addElem(el, E.Element('natural'), lev + 3)
+                    addElem (tecs_cnt, el, lev + 2)
+                elif d_clean in s.tecMap:
+                    el = E.Element(s.tecMap[d_clean])
+                    if '(' in d and not d.endswith(')'): el.set('type', 'start')
+                    elif d.endswith(')') and '(' not in d: el.set('type', 'stop')
+                    content = re.search(r'\((.*?)\)', d)
+                    if content: el.text = content.group(1)
+                    addElem (tecs_cnt, el, lev + 2)
+                elif d.startswith('text(') or d.startswith('marker ') or d.startswith('fret(') or d.startswith('string(') or d in s.dynaMap or d in s.wedgeMap or '@' in d:
+                    if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
+                else:
+                    if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
+                    # Skip common staff decorations to avoid redundant other-articulation elements
+                    if d in ['swing', 'swing-off', 'mute', 'mute-off', '8va', '8vb', '15ma', '15mb', '22ma', '22mb',
+                             'ped', 'ped-up', 'ped-change', 'ped(', 'ped)', 'trill(', 'trill)'] or d.startswith(('vskip', 'sep', 'frame', 'fb', 'measurenb', 'measurenumbering')):
+                        continue
+                    other = E.Element ('other-articulation')
+                    other.text = d
+                    addElem (arts_cnt, other, lev + 2)
 
-                else: arts.append (d); continue
-                
-                if ntn is not None:
-                    addElem (nots, ntn, lev + 1)
-            if arts:        # do only note articulations and collect staff annotations in xmldecos
-                rest = s.doArticulations (nt, nots, arts, lev + 1)
-                if rest: info ('unhandled note decorations: %s' % rest)
-        if slurs:           # these are only slur endings
-            for d in slurs.t:           # slurs to be closed on this note
-                if not s.slurstack.get (ov, 0): break    # no more open old slurs for this (overlay) voice
+        if slurs:
+            for d in slurs.t:
+                if not s.slurstack.get (ov, 0): break
                 slurnum = s.slurstack [ov].pop ()
-                slur = E.Element ('slur', number='%d' % slurnum, type='stop')
-                addElem (nots, slur, lev + 1)
-        while s.slurbeg:    # create slurs beginning on this note
+                addElem (nots, E.Element ('slur', number='%d' % slurnum, type='stop'), lev + 1)
+        while s.slurbeg:
             stp = s.slurbeg.pop (0)
             slurnum = pushSlur (s.slurstack, ov)
-            ntn = E.Element ('slur', number='%d' % slurnum, type='start')
-            if '.' in stp: ntn.set ('line-type', 'dotted')
-            if ',' in stp: ntn.set ('placement', 'below')
-            if "'" in stp: ntn.set ('placement', 'above')
-            addElem (nots, ntn, lev + 1)            
-        if list (nots) != []:    # only add notations if not empty
-            addElem (nt, nots, lev)
+            slur = E.Element ('slur', number='%d' % slurnum, type='start')
+            if '.' in stp: slur.set ('line-type', 'dotted')
+            if ',' in stp: slur.set ('placement', 'below')
+            if "'" in stp: slur.set ('placement', 'above')
+            addElem (nots, slur, lev + 1)
+
+        # Only add grouped sub-containers if they have children
+        if list(arts_cnt): addElem(nots, arts_cnt, lev + 1)
+        if list(orns_cnt): addElem(nots, orns_cnt, lev + 1)
+        if list(tecs_cnt): addElem(nots, tecs_cnt, lev + 1)
+        
+        if list(nots): addElem (nt, nots, lev)
+        return
 
     def doArticulations (s, nt, nots, arts, lev):
-        decos = []
-        for a in arts:
-            if a in s.artMap:
-                art = E.Element ('articulations')
-                addElem (nots, art, lev)
-                addElem (art, E.Element (s.artMap[a]), lev + 1)
-            elif a in s.ornMap:
-                orn = E.Element ('ornaments')
-                addElem (nots, orn, lev)
-                addElem (orn, E.Element (s.ornMap[a]), lev + 1)
-            elif a in ['trill(','trill)']:
-                orn = E.Element ('ornaments')
-                addElem (nots, orn, lev)
-                type = 'start' if a.endswith ('(') else 'stop'
-                if type == 'start': addElem (orn, E.Element ('trill-mark'), lev + 1)                
-                addElem (orn, E.Element ('wavy-line', type=type), lev + 1)                
-            
-            # Delegate staff directions (text, dynamics that ended up here) to staffDecos
-            # Note: s.maat must be available (it should be set in mkMeasure)
-            # We assume 'a' is a single decoration string.
-            elif a.startswith('text(') or a in s.dynaMap or a in s.wedgeMap or '@' in a:
-                if hasattr(s, 'maat'):
-                     # staffDecos expects a list of decorations
-                     s.staffDecos([a], s.maat, lev)
-                else:
-                     decos.append(a)
-
-            elif a in s.tecMap:
-                tec = E.Element ('technical')
-                addElem (nots, tec, lev)
-                addElem (tec, E.Element (s.tecMap[a]), lev + 1)
-            elif a in '0123456':
-                tec = E.Element ('technical')
-                addElem (nots, tec, lev)
-                if s.tabStaff == s.pid:             # current voice belongs to a tabStaff
-                    alt = int (nt.findtext ('pitch/alter') or 0)    # find midi number of current note
-                    step = nt.findtext ('pitch/step')
-                    oct = int (nt.findtext ('pitch/octave'))
-                    midi = oct * 12 + [0,2,4,5,7,9,11]['CDEFGAB'.index (step)] + alt + 12
-                    if a == '0':                    # no string annotation: find one
-                        firstFit = ''
-                        for smid, istr in s.tunTup: # midi numbers of open strings from high to low
-                            if midi >= smid:        # highest open string where this note can be played
-                                isvrij = s.strAlloc.isVrij (istr - 1, s.gTime [0], s.gTime [1])
-                                a = str (istr)      # string number
-                                if not firstFit: firstFit = a
-                                if isvrij: break
-                        if not isvrij:              # no free string, take the first fit (lowest fret)
-                            a = firstFit
-                            s.strAlloc.bezet (int (a) - 1, s.gTime [0], s.gTime [1])
-                    else:                           # force annotated string number 
-                        s.strAlloc.bezet (int (a) - 1, s.gTime [0], s.gTime [1])
-                    bmidi = s.tunmid [int (a) - 1]  # midi number of allocated string (with capodastro)
-                    fret =  midi - bmidi            # fret position (respecting capodastro)
-                    if fret < 25 and fret >= 0:
-                        addElemT (tec, 'fret', str (fret), lev + 1)
-                    else:
-                        altp = 'b' if alt == -1 else '#' if alt == 1 else ''
-                        info ('fret %d out of range, note %s%d on string %s' % (fret, step+altp, oct, a))
-                    addElemT (tec, 'string', a, lev + 1)
-                else:
-                    addElemT (tec, 'fingering', a, lev + 1)
-            else: decos.append (a)  # return staff annotations
-        return decos
+        pass # Obsolete, replaced by doNotations
 
     def doLyr (s, n, nt, lev):
         for i, lyrobj in enumerate (n.objs):
@@ -1425,49 +1437,70 @@ class MusicXml:
         s.prevNote = None
 
     def staffDecos (s, decos, maat, lev):
-        gstaff = s.gStaffNums.get (s.vid, 0)        # staff number of the current voice        
         for d in decos:
-            d = s.usrSyms.get (d, d).strip ('!+')   # try to replace user defined symbol
+            d = s.usrSyms.get (d, d).strip ('!+')
+            
+            # State-setting directives (don't need maat)
+            if d.startswith('measurenb '):
+                s.measureNb = d[10:].strip()
+                continue
+            if d.startswith('measurenumbering '):
+                s.measureNumbering = 'yes' if 'yes' in d else 'no'
+                continue
+            if d.startswith('frame '):
+                remaining = d[6:].strip()
+                match = re.search(r'^(\S+)\s+(\(\d+\))?(\S+)', remaining)
+                if match:
+                    name, first_fret, pattern = match.groups()
+                    if first_fret: first_fret = first_fret.strip('()')
+                    s.frameDb[name] = {'pattern': pattern, 'first-fret': first_fret}
+                continue
+            if d.startswith('fb '):
+                s.fbDefs[s.vid] = s.fbDefs.get(s.vid, []) + [d[3:]]
+                continue
+            if d == 'newpage':
+                s.newpage = 1; continue
+            if d == 'newline':
+                s.newline = 1; continue
+            
+            # Directives that require an active measure (maat)
+            if maat is None: continue
+            
+            gstaff = s.gStaffNums.get (s.vid, 0)
+            placement = None
             
             # Handle placement: @above, @below, @x=...,y=...
-            placement = ''
-            
-            # [FIX] Handle @ splitting even for text(), but be careful
-            # If it's text("..."), we only look for @ AFTER the closing quote/paren
             split_at = -1
             if '@' in d:
                 if d.startswith('text('):
-                     # Find last )
                      rpar = d.rfind(')')
                      at_sign = d.rfind('@')
-                     if at_sign > rpar: # @ is after the text content
-                         split_at = at_sign
+                     if at_sign > rpar: split_at = at_sign
                 else:
-                     split_at = d.find('@') # Standard deco, split at first @
-            
-            if split_at != -1:
-                 parts = [d[:split_at], d[split_at+1:]]
-                 d = parts[0]
-                 if 'above' in parts[1]: placement = 'above'
-                 elif 'below' in parts[1]: placement = 'below'
-            
-            # Handle text("...")
+                     split_at = d.find('@')
+                
+                if split_at != -1:
+                     parts = [d[:split_at], d[split_at+1:]]
+                     d = parts[0]
+                     if 'above' in parts[1]: placement = 'above'
+                     elif 'below' in parts[1]: placement = 'below'
+
             if d.startswith('text(') and d.endswith(')'):
                 content = d[5:-1].strip('"')
                 words = E.Element('words')
                 words.text = content
                 addDirection (maat, words, lev, gstaff, placement=placement if placement else 'above')
                 continue
-
+            
             if d in s.dynaMap:
                 dynel = E.Element ('dynamics')
                 if d.startswith('subito-'):
                      od = E.Element('other-dynamics')
                      od.text = d.replace('-', ' ')
-                     addDirection (maat, dynel, lev, gstaff, [od], placement if placement else 'below', s.gcue_on)
+                     addDirection (maat, dynel, lev, gstaff, subelms=[od], placement=placement if placement else 'below', cue_on=s.gcue_on)
                 else:
-                     addDirection (maat, dynel, lev, gstaff, [E.Element (d)], placement if placement else 'below', s.gcue_on)
-            elif d in s.wedgeMap:  # wedge
+                     addDirection (maat, dynel, lev, gstaff, subelms=[E.Element (d)], placement=placement if placement else 'below', cue_on=s.gcue_on)
+            elif d in s.wedgeMap:
                 if ')' in d or 'end' in d: type = 'stop'
                 elif d in ['w', 'crescendo', 'cresc', 'cresc('] or '<' in d or 'crescendo(' in d:
                     type = 'crescendo'
@@ -1475,20 +1508,51 @@ class MusicXml:
                     type = 'diminuendo'
                 else:
                     type = 'crescendo' if '<' in d or 'cresc' in d else 'diminuendo'
-                # Handle start/end markers from request: cresc(start), cresc(end)
                 if 'start' in d: type = 'crescendo' if 'cresc' in d else 'diminuendo'
                 if 'end' in d: type = 'stop'
-                
                 addDirection (maat, E.Element ('wedge', type=type), lev, gstaff, placement=placement)
-            elif d.startswith ('8v') or d.startswith('8va'):
-                # Handle 8va(, 8va), 8vb(, 8vb), old 8va/8vb forms
-                if 'a' in d or d == '8va(' or d == '8va)': type, plce = 'down', 'above'
-                else:        type, plce = 'up', 'below'
+            elif d.startswith('marker '):
+                words = E.Element('rehearsal')
+                words.text = d[7:].strip()
+                addDirection (maat, words, lev, gstaff, placement=placement if placement else 'above')
+            elif d.startswith('vskip'):
+                val = d[5:].strip() or '10'
+                prt = maat.find('print')
+                if prt is None:
+                    prt = E.Element('print')
+                    addElem(maat, prt, lev)
+                sl = prt.find('system-layout')
+                if sl is None:
+                    sl = E.Element('system-layout')
+                    addElem(prt, sl, lev + 1)
+                addElemT(sl, 'system-distance', val, lev + 2)
+            elif d.startswith('sep'):
+                words = E.Element('other-direction')
+                words.text = 'separator'
+                words.set('print-object', 'no')
+                addDirection (maat, words, lev, gstaff, placement='above')
+            elif d.startswith (('8v', '15m', '22m')):
+                size = '8'
+                if '15' in d: size = '15'
+                elif '22' in d: size = '22'
+                if 'a' in d or 'v' in d or d.startswith('8v') or d.startswith('15m') or d.startswith('22m'):
+                     if 'b' in d or 'sub' in d: type, plce = 'up', 'below'
+                     else:                     type, plce = 'down', 'above'
+                else: type, plce = 'down', 'above' # default
                 if ')' in d: type = 'stop'
-                addDirection (maat, E.Element ('octave-shift', type=type, size='8'), lev, gstaff, placement=plce)
-            elif d in ['ped', 'ped-up', 'ped(', 'ped)']:
-                type = 'stop' if d.endswith('up') or d.endswith(')') else 'start'
-                addDirection (maat, E.Element ('pedal', type=type), lev, gstaff)
+                addDirection (maat, E.Element ('octave-shift', type=type, size=size), lev, gstaff, placement=plce)
+            elif d in ['ped', 'ped-up', 'ped(', 'ped)', 'ped-change']:
+                type = 'start'
+                if d.endswith('up') or d.endswith(')'): type = 'stop'
+                elif d == 'ped-change': type = 'change'
+                el = E.Element ('pedal', type=type, line='yes')
+                addDirection (maat, el, lev, gstaff)
+            elif d in ['swing', 'swing-off']:
+                snd = E.Element('sound', swing='yes' if d == 'swing' else 'no')
+                addDirection (maat, [], lev, gstaff, [snd])
+            elif d in ['mute', 'mute-off']:
+                snd = E.Element('sound', mute='yes' if d == 'mute' else 'no')
+                addDirection (maat, [], lev, gstaff, [snd])
             elif d in ['coda', 'segno']:
                 text, attr, val = s.capoMap [d]
                 dir = addDirection (maat, E.Element (text), lev, gstaff, placement='above')
@@ -1537,7 +1601,7 @@ class MusicXml:
             clefm = re.search (r"(?:^m=| m=|middle=)([A-Ga-g])([,']*)", field)
             trans_oct2 = re.search (r'octave=([-+]?\d)', field)
             trans = re.search (r'(?:^t=| t=|transpose=)(-?[\d]+)', field)
-            trans_oct = re.search (r'([+-^_])(8|15)', field)
+            trans_oct = re.search (r'([+-^_]?)(8|15|22)', field)
             cue_onoff = re.search (r'cue=(on|off)', field)
             strings = re.search (r"strings=(\S+)", field)
             stafflines = re.search (r'stafflines=\s*(\d)', field)
@@ -1560,10 +1624,12 @@ class MusicXml:
                 addElemT (c, 'sign', sign, lev + 2)
                 if line: addElemT (c, 'line', line, lev + 2)
                 if trans_oct:
-                    n = trans_oct.group (1) in '-_' and -1 or 1
-                    if trans_oct.group (2) == '15': n *= 2  # 8 => 1 octave, 15 => 2 octaves
-                    addElemT (c, 'clef-octave-change', str (n), lev + 2) # transpose print out
-                    if trans_oct.group (1) in '+-': s.gtrans += n   # also transpose all pitches with one octave
+                    pref, num = trans_oct.groups()
+                    n = pref in ['-', '_'] and -1 or 1
+                    if num == '15': n *= 2
+                    elif num == '22': n *= 3
+                    addElemT (c, 'clef-octave-change', str (n), lev + 2)
+                    if pref in ['+', '-']: s.gtrans += n
                 atts.append ((7, c))
             if trans_oct2:  # octave= can also be in a K: field
                 n = int (trans_oct2.group (1))
@@ -1573,6 +1639,14 @@ class MusicXml:
                 addElemT (e, 'chromatic', str (trans.group (1)), lev + 3)
                 atts.append ((9, e))
             if cue_onoff: s.gcue_on = cue_onoff.group (1) == 'on'
+            swing_onoff = re.search(r'swing=(on|off)', field)
+            if swing_onoff:
+                snd = E.Element('sound', swing='yes' if swing_onoff.group(1) == 'on' else 'no')
+                addDirection(maat, None, lev, gstaff, [snd])
+            mute_onoff = re.search(r'mute=(on|off)', field)
+            if mute_onoff:
+                snd = E.Element('sound', mute='yes' if mute_onoff.group(1) == 'on' else 'no')
+                addDirection(maat, None, lev, gstaff, [snd])
             nlines = 0
             if clef == 'tab':
                 s.tabStaff = s.pid
@@ -1691,7 +1765,7 @@ class MusicXml:
                 elif field.startswith('beam'):
                      pass # handled (ignored) to avoid warnings
                 else:
-                     s.doField_I (ftype, field, instDir, addTrans)
+                     s.doField_I (ftype, field, instDir, addTrans, lev)
             elif ftype == 'Q':
                 s.doTempo (maat, field, lev)
             elif ftype == 'P':  # ad hoc translation of P: into a staff text direction
@@ -1793,8 +1867,24 @@ class MusicXml:
         addElem (chord, root, lev + 1)
         addElemT (root, 'root-step', rnt[0], lev + 2)
         if len (rnt) == 2: addElemT (root, 'root-alter', alterMap [rnt[1]], lev + 2)
-        kind = s.chordTab.get (sym.kind.t[0], 'major') if sym.kind.t else 'major'
+        kind_str = sym.kind.t[0] if sym.kind.t else ''
+        kind = s.chordTab.get (kind_str, 'major') if kind_str else 'major'
         addElemT (chord, 'kind', kind, lev + 1)
+        
+        # [NEW] Check for frame definition
+        chord_name = ''.join(rnt) + kind_str
+        if chord_name in s.frameDb:
+             pattern = s.frameDb[chord_name]['pattern']
+             frame = E.Element('frame')
+             addElem (chord, frame, lev + 1)
+             addElemT (frame, 'frame-strings', str(len(pattern)), lev + 2)
+             addElemT (frame, 'frame-frets', '4', lev + 2)
+             for i, f in enumerate(pattern):
+                 fnote = E.Element('frame-note')
+                 addElem (frame, fnote, lev + 2)
+                 addElemT (fnote, 'string', str(i+1), lev + 3)
+                 if f in 'xX': addElemT (fnote, 'fret', '0', lev + 3)
+                 else:         addElemT (fnote, 'fret', f if f != '0' else '0', lev + 3)
         if hasattr (sym, 'bass'):
             bnt = sym.bass.t
             bass = E.Element ('bass')
@@ -1824,12 +1914,22 @@ class MusicXml:
         # [NEW] Capture start ticks for beat validation
         start_ticks = s.gTime[1]
         
-        maat = E.Element ('measure', number = str(i))
+        m_num = s.measureNb if hasattr(s, 'measureNb') and s.measureNb else str(i)
+        maat = E.Element ('measure', number = m_num)
+        if hasattr(s, 'measureNb'): s.measureNb = None
         s.maat = maat
         if fieldmap: s.doFields (maat, fieldmap, lev + 1)
-        if s.linebrk:   # there was a line break in the previous measure
+        if s.linebrk or s.newline or s.newpage or (hasattr(s, 'measureNumbering') and s.measureNumbering):
             e = E.Element ('print')
-            e.set ('new-system', 'yes')
+            if s.newpage:
+                e.set('new-page', 'yes')
+                s.newpage = 0
+                s.newline = 0 # page implies system
+            elif s.newline or s.linebrk:
+                e.set ('new-system', 'yes')
+                s.newline = 0
+            if hasattr(s, 'measureNumbering') and s.measureNumbering:
+                 addElemT(e, 'measure-numbering', 'yes' if s.measureNumbering in ['yes', 'system'] else 'none', lev + 2)
             addElem (maat, e, lev + 1)
             s.linebrk = 0
         for it, x in enumerate (t):
@@ -1986,7 +2086,7 @@ class MusicXml:
                 addElem (partlist, sp, lev + 1)
         return partlist
 
-    def doField_I (s, type, x, instDir, addTrans):
+    def doField_I (s, type, x, instDir, addTrans, lev=1):
         def instChange (midchan, midprog):  # instDir -> doFields
             if midchan and midchan != s.midprg [0]: instDir ('midi-channel', midchan, 'chan: %s')
             if midprog and midprog != s.midprg [1]: instDir ('midi-program', str (int (midprog) + 1), 'prog: %s')
@@ -2046,6 +2146,38 @@ class MusicXml:
         elif x.startswith ('rightmargin'): readPfmt (x, 4)
         elif x.startswith ('topmargin'): readPfmt (x, 5)
         elif x.startswith ('botmargin'): readPfmt (x, 6)
+        elif x.startswith ('newpage'): s.newpage = 1
+        elif x.startswith ('newline'): s.newline = 1
+        elif x.startswith ('frame '):
+            remaining = x[6:].strip()
+            # %%frame C (5)x32010
+            match = re.search(r'^(\S+)\s+(\(\d+\))?(\S+)', remaining)
+            if match:
+                name, first_fret, pattern = match.groups()
+                if first_fret: first_fret = first_fret.strip('()')
+                s.frameDb[name] = {'pattern': pattern, 'first-fret': first_fret}
+        elif x.startswith ('fb '):
+            s.fbDefs[s.vid] = s.fbDefs.get(s.vid, []) + [x[3:]]
+        elif x in ['swing', 'swing-off', 'mute', 'mute-off']:
+            s.nextdecos.append (x)
+        elif x.startswith ('measurenumbering '):
+            s.measureNumbering = x[17:].strip()
+        elif x.startswith (('vskip', 'sep')):
+            s.nextdecos.append(x)
+        elif x.startswith ('marker '):
+            s.nextdecos.append(x)
+        elif x.startswith ('measurenb '):
+            s.measureNb = x[10:].strip()
+        elif x.startswith ('measurenumbering '):
+            s.measureNumbering = 'yes' if 'yes' in x else 'no'
+        elif x.startswith ('swing'):
+            val = 'yes' if 'on' in x else 'no'
+            snd = E.Element('sound', swing=val)
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('mute'):
+            val = 'yes' if 'on' in x else 'no'
+            snd = E.Element('sound', mute=val)
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
         elif x.startswith ('MIDI') or x.startswith ('midi'):
             r1 = re.search (r'program *(\d*) +(\d+)', x)
             r2 = re.search (r'channel *(\d+)', x)
@@ -2076,6 +2208,8 @@ class MusicXml:
                 oct = -len (oct) if ',' in oct else len (oct)
                 notehead = 'x' if acc == '^' else 'circle-x' if acc == '_' else 'normal'
                 s.percMap [(s.pid, acc + step, oct)] = (step, oct, midi, notehead)
+            if 'swing' in x: s.nextdecos.append ('swing' if 'off' not in x else 'swing-off')
+            if 'mute' in x:  s.nextdecos.append ('mute' if 'off' not in x else 'mute-off')
             r = re.search (r'transpose[^-\d]*(-?\d+)', x)
             if r: addTrans (r.group (1))        # addTrans -> doFields
         elif x.startswith ('percmap'): readPercMap (x); s.pMapFound = 1
@@ -2163,7 +2297,7 @@ class MusicXml:
             sym = fld.t[2].strip ('!+')
             s.usrSyms [value] = sym
         elif type == 'I':
-            s.doField_I (type, value, lambda x,y,z:0, lambda x:0)
+            s.doField_I (type, value, lambda x,y,z:0, lambda x:0, 1)
         elif type == 'Q':
             attrmap[type] = value
         elif type in 'CRZNOAGHBDFSP':           # part maps are treated as meta data
@@ -2226,6 +2360,17 @@ class MusicXml:
         addElemT (margins, 'right-margin', '%g' % (r * scale), lev + 3)
         addElemT (margins, 'top-margin', '%g' % (t * scale), lev + 3)
         addElemT (margins, 'bottom-margin', '%g' % (b * scale), lev + 3)
+        
+        appearance = E.Element ('appearance')
+        addElem (dflts, appearance, lev + 1)
+        addElemT (appearance, 'line-width', '0.1', lev + 2).set ('type', 'beam')
+        addElemT (appearance, 'line-width', '0.1', lev + 2).set ('type', 'heavy barline')
+        addElemT (appearance, 'line-width', '0.1', lev + 2).set ('type', 'staff')
+        
+        if hasattr(s, 'measureNumbering') and s.measureNumbering == 'yes':
+             # Measure numbering is technically per-staff/system in MusicXML 
+             # but we can set a default here or in system-layout
+             pass
 
     def addMeta (s, parent, lev):
         misc = E.Element ('miscellaneous')

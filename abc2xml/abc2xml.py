@@ -1028,7 +1028,6 @@ class MusicXml:
         if num == 7 and noMsrRest: ndot = 2; den = den // 4
         
         decos = s.getNoteDecos (n) # Capture decos ONCE here
-        if any('frame' in d for d in decos): info('decos: %s' % decos)
         nt = E.Element ('note')
         if isgrace:                     # a grace note (and possibly a chord note)
             grace = E.Element ('grace')
@@ -1046,8 +1045,10 @@ class MusicXml:
 
             # Check for chord symbols that might have frame definitions
             for d in decos:
-                if 'frame' in d or d in s.frameDb:
-                    if s.maat is not None: s.mkFrame(s.maat, d, lev)
+                frame_name = d.strip('!+ ')
+                if frame_name.startswith('frame '): frame_name = frame_name[6:].strip()
+                if frame_name in s.frameDb:
+                    if s.maat is not None: s.mkFrame(s.maat, frame_name, lev)
         if s.gcue_on:                   # insert cue tag
             cue = E.Element ('cue')
             addElem (nt, cue, lev + 1)
@@ -1151,6 +1152,9 @@ class MusicXml:
                 return
         pattern = data.get('pattern', '')
         first_fret = data.get('first-fret')
+        # Parse comma-separated patterns like x,x,0,2,3,2
+        if ',' in pattern:
+            pattern = pattern.replace(',', '')
         if not pattern: return
         
         harmony = E.Element('harmony')
@@ -1524,12 +1528,18 @@ class MusicXml:
                 continue
             if d.startswith('frame '):
                 remaining = d[6:].strip()
+                # Check if this is a definition (has a pattern) or a reference (just a name)
                 match = re.search(r'^(\S+)\s+(\(\d+\))?(\S+)', remaining)
                 if match:
+                    # This is a definition like "frame D x,x,0,2,3,2"
                     name, first_fret, pattern = match.groups()
                     if first_fret: first_fret = first_fret.strip('()')
                     s.frameDb[name] = {'pattern': pattern, 'first-fret': first_fret}
-                continue
+                    continue
+                else:
+                    # This is a reference like "frame D_chord" - keep for next note
+                    s.nextdecos.append(d)
+                    continue
             if d.startswith('fb '):
                 s.fbDefs[s.vid] = s.fbDefs.get(s.vid, []) + [d[3:]]
                 continue

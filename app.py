@@ -15,15 +15,24 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# Path to the abc2xml converter script
-CONVERTER_SCRIPT = os.path.join(os.path.dirname(__file__), 'abc2xml', 'abc2xml.py')
-
 import sys
 import json
 import re
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
+
+# Path to the abc2xml converter script
+CONVERTER_SCRIPT = resource_path(os.path.join('abc2xml', 'abc2xml.py'))
+
 # Load annotation guide
-GUIDE_PATH = os.path.join(os.path.dirname(__file__), 'annotationguide.json')
+GUIDE_PATH = resource_path('annotationguide.json')
 try:
     with open(GUIDE_PATH, 'r', encoding='utf-8') as f:
         ANNOTATION_GUIDE = json.load(f)
@@ -189,7 +198,10 @@ def save_session():
         folder_name = f"{timestamp}_{safe_title}"
         
         # Base save directory
-        save_base = os.path.join(os.path.dirname(__file__), 'saved_sessions')
+        # For saved sessions, we want to stay outside the temp bundle directory if possible,
+        # but for simplicity in a portable app, we'll use the user's home directory or the app path.
+        # Let's use current working directory or a 'saved_sessions' folder next to the app.
+        save_base = os.path.join(os.getcwd(), 'saved_sessions')
         if not os.path.exists(save_base):
             os.makedirs(save_base)
             

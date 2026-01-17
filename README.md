@@ -29,7 +29,7 @@ Designed for composers, engravers, and researchers, ABC+ goes beyond standard co
 
 ### 📥 Downloads
 
-Get the latest production-ready version (+1.2.0):
+Get the latest production-ready version (**v1.2.1**):
 
 | Platform | Format | Link |
 | :--- | :--- | :--- |

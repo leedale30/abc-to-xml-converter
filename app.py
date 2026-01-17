@@ -25,7 +25,7 @@ import re
 # Load annotation guide
 GUIDE_PATH = os.path.join(os.path.dirname(__file__), 'annotationguide.json')
 try:
-    with open(GUIDE_PATH, 'r') as f:
+    with open(GUIDE_PATH, 'r', encoding='utf-8') as f:
         ANNOTATION_GUIDE = json.load(f)
     print(f"Loaded annotation guide with {len(ANNOTATION_GUIDE.get('directives', {}))} directives", file=sys.stderr)
 except Exception as e:
@@ -130,7 +130,7 @@ def convert():
         # Let's write to a temporary file.
         import tempfile
         
-        with tempfile.NamedTemporaryFile(mode='w+', suffix='.abc', delete=False) as temp_abc:
+        with tempfile.NamedTemporaryFile(mode='w+', suffix='.abc', delete=False, encoding='utf-8') as temp_abc:
             temp_abc.write(abc_content)
             temp_abc_path = temp_abc.name
 
@@ -145,6 +145,7 @@ def convert():
                 [sys.executable, CONVERTER_SCRIPT, temp_abc_path],
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
                 check=False # Don't raise exception immediately, we want to capture stderr
             )
             
@@ -196,13 +197,13 @@ def save_session():
         os.makedirs(session_dir)
         
         # Write files
-        with open(os.path.join(session_dir, 'input.abc'), 'w') as f:
+        with open(os.path.join(session_dir, 'input.abc'), 'w', encoding='utf-8') as f:
             f.write(abc_content)
         
-        with open(os.path.join(session_dir, 'output.musicxml'), 'w') as f:
+        with open(os.path.join(session_dir, 'output.musicxml'), 'w', encoding='utf-8') as f:
             f.write(xml_content)
             
-        with open(os.path.join(session_dir, 'conversion.log'), 'w') as f:
+        with open(os.path.join(session_dir, 'conversion.log'), 'w', encoding='utf-8') as f:
             f.write(logs)
             
         return jsonify({'message': 'Session saved successfully', 'path': session_dir})

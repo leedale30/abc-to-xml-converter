@@ -475,6 +475,7 @@ def mkTmod (tmnum, tmden, lev):
     return tmod
 
 def addDirection (parent, elems, lev, gstaff, subelms=[], placement='below', cue_on=0):
+    if not placement: placement = 'below'
     dir = E.Element ('direction', placement=placement)
     addElem (parent, dir, lev)
     if type (elems) != list_type: elems = [(elems, subelms)]    # ugly hack to provide for multiple direction types
@@ -1228,7 +1229,9 @@ class MusicXml:
                 if tupnotation in ['stop', 'single']: s.trem = 0
 
         elif tupnotation:
-            addElem (nots, E.Element ('tuplet', type=tupnotation, bracket='yes' if tupnotation == 'start' else None), lev + 1)
+            tup_attr = {'type': tupnotation}
+            if tupnotation == 'start': tup_attr['bracket'] = 'yes'
+            addElem (nots, E.Element ('tuplet', **tup_attr), lev + 1)
 
         if tstop:  addElem (nots, E.Element ('tied', type='stop'), lev + 1)
         if tstart:

@@ -1,0 +1,11 @@
+X:1
+T:Simple Guitar Chords Demo
+M:4/4
+L:1/4
+K:C
+%%frame C x32010
+%%frame G 320003
+%%frame Am x02210
+%%frame F 133211
+%
+"C"C2 E2 | "G"G2 B2 | "Am"A2 c2 | "F"F2 A2 |]

@@ -1167,14 +1167,17 @@ class MusicXml:
         if first_fret:
             addElemT(frame, 'first-fret', first_fret, lev + 2)
         
+        # String numbering: MusicXML string 1 = highest pitch (thinnest string, high E)
+        # Pattern is typically written low-to-high (E A D G B e), so we reverse
+        num_strings = len(pattern)
         for i, f in enumerate(pattern):
+            if f in 'xX':
+                continue  # Skip muted strings entirely
             fnote = E.Element('frame-note')
             addElem(frame, fnote, lev + 2)
-            addElemT(fnote, 'string', str(i+1), lev + 3)
-            if f in 'xX':
-                 addElemT(fnote, 'fret', '0', lev + 3) # Muted
-            else:
-                 addElemT(fnote, 'fret', f if f != '0' else '0', lev + 3)
+            # Reverse the string number: pattern[0] = string 6 (low E), pattern[5] = string 1 (high e)
+            addElemT(fnote, 'string', str(num_strings - i), lev + 3)
+            addElemT(fnote, 'fret', f, lev + 3)
 
     def mkFiguredBass(s, parent, fb_str, lev):
         fb_str = fb_str.strip('"')
@@ -1926,12 +1929,15 @@ class MusicXml:
              addElem (chord, frame, lev + 1)
              addElemT (frame, 'frame-strings', str(len(pattern)), lev + 2)
              addElemT (frame, 'frame-frets', '4', lev + 2)
+             # String numbering: MusicXML string 1 = highest pitch
+             num_strings = len(pattern)
              for i, f in enumerate(pattern):
+                 if f in 'xX':
+                     continue  # Skip muted strings
                  fnote = E.Element('frame-note')
                  addElem (frame, fnote, lev + 2)
-                 addElemT (fnote, 'string', str(i+1), lev + 3)
-                 if f in 'xX': addElemT (fnote, 'fret', '0', lev + 3)
-                 else:         addElemT (fnote, 'fret', f if f != '0' else '0', lev + 3)
+                 addElemT (fnote, 'string', str(num_strings - i), lev + 3)
+                 addElemT (fnote, 'fret', f, lev + 3)
         if hasattr (sym, 'bass'):
             bnt = sym.bass.t
             bass = E.Element ('bass')

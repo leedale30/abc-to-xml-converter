@@ -6,7 +6,7 @@ L:1/8
 Q:1/4=140
 K:Bb
 %%swing 67
-%%score (1 2) 3
+%%score 1 2 3
 %
 V:1 name="Trumpet" short="Tpt." clef=treble
 V:2 name="Piano" short="Pno." clef=treble

@@ -1,0 +1,59 @@
+X:1
+T:God Save the Queen - ABC+ Extreme Demo
+C:Traditional
+A:User Arrangement
+M:3/4
+L:1/4
+Q:1/4=80
+K:C
+%%linked-tab Guitar
+%%score {Guitar Guitar_tab}
+V:Guitar clef=treble name="Guitar" snm="Gtr"
+%
+% "God save our gracious Queen"
+% User: G G A | F# - G A
+!mf!"G"G G "D"A | "D7"({E}^F) "G"G "D7"A |
+%
+% "Long live our noble Queen"
+% User: B B ^C B - A G
+"G"B B "A"^c | "G"B > "D"A "G"G |
+%
+% "God save the Queen"
+% User: A G F# G
+"D"A "G"G "D"({E}^F) | !fermata!"G"G3 ||
+%
+% "(La la la la!)" - Showcase Run
+% User: (G A B^C)
+M:4/4
+L:1/8
+"Showcase Run" (G A B ^c) !trill!d4 |
+M:3/4
+L:1/4
+%
+% "Send her victorious"
+% User: ^D ^D ^D-^D-^C-B
+% Interpretation: D# D# D#>C B ? (Usually "Send her" starts high)
+% Let's fit user's notes:
+"B"^d "B"^d "B"^d > "F#"^c | "B"B3 |
+%
+% "Happy and glorious"
+% User: ^C-^C ^C ^C - B - A
+"A"^c > "A"^c "A"^c > "E/G#"B | "A"A3 |
+%
+% "Long to reign over us"
+% User: B ^C-B A-G B-^C ^D
+"G"B "A"^c > B "D"A > G | "G"B > "A"^c "D"^d |
+%
+% "God save the Queen"
+% User: ^E ^C B A G
+% ^E is F natural? Or E#? Let's assume F (F natural/E#).
+"F"^f "A"^c "G"B | "D"A "D7"({B}A) "G"G |]
+%
+w: God save our gra-cious Queen! 
+w: Long live our no-ble Queen!
+w: God save the Queen!
+w: La la la la!
+w: Send her vic-to-ri-ous,
+w: Hap-py and glo-ri-ous,
+w: Long to reign o-ver us,
+w: God save the Queen!

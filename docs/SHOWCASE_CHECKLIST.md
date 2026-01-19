@@ -4,7 +4,7 @@
 
 - [x] `%%swing` (Swing feel interpretation)
 - [x] `%%mute` (Voice/Part muting)
-- [x] **[NEW]** `%%whistle-tab on` (Tin Whistle Fingering Diagrams)
+- [x] **[NEW]** `%%linked-tab <voice>` (Auto-generated mirror TAB staff)
 - [ ] `%%dir` (Directional metadata)
 - [ ] `%%mood` / `%%style` (Mood and Style metadata)
 

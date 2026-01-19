@@ -1,0 +1,8 @@
+X:1
+T:Tab Heuristic Test
+%%linked-tab 1
+M:4/4
+L:1/8
+K:C
+V:1 name="Guitar" clef=treble
+C D E F G A B c | d e f g a b c' d' | e' f' g' c'' |

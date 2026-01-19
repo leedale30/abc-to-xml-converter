@@ -11,9 +11,17 @@ GITHUB_REPO = "leedale30/abc-to-xml-converter"
 # Suppress pyparsing deprecation warnings (abc2xml uses old API)
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='pyparsing')
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response
 
 app = Flask(__name__)
+
+# Disable caching for all responses
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 import sys
 import json
@@ -122,7 +130,7 @@ def preprocess_abc(content):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', version=APP_VERSION)
 
 @app.route('/convert', methods=['POST'])
 def convert():
@@ -259,9 +267,9 @@ if __name__ == '__main__':
     
     # Auto-open browser after a short delay
     def open_browser():
-        webbrowser.open('http://127.0.0.1:5000')
+        webbrowser.open('http://127.0.0.1:5001')
     
     threading.Timer(1.5, open_browser).start()
     
     # Run Flask (debug=False for production app)
-    app.run(debug=False, port=5000, host='127.0.0.1')
+    app.run(debug=False, port=5001, host='127.0.0.1')

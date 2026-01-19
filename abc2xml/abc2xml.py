@@ -687,10 +687,13 @@ def mergePartList (parts, rOpt, is_grand=0):    # merge parts, make grand staff 
 def mergeParts (parts, vids, staves, rOpt, is_grand=0):
     if not staves: return parts, vids   # no voice mapping
     partsnew, vidsnew = [], []
+    used_vids = set()
     for voice_ids in staves:
         pixs = []
         for vid in voice_ids:
-            if vid in vids: pixs.append (vids.index (vid))
+            if vid in vids: 
+                pixs.append (vids.index (vid))
+                used_vids.add(vid)
             else: info ('score partname %s does not exist' % vid)
         if pixs:
             xparts = [parts[pix] for pix in pixs]
@@ -698,6 +701,13 @@ def mergeParts (parts, vids, staves, rOpt, is_grand=0):
             else:                mergedpart = xparts [0]
             partsnew.append (mergedpart)
             vidsnew.append (vids [pixs[0]])
+    
+    # [FIX] Append orphaned parts (valid voices not in %%score)
+    for i, vid in enumerate(vids):
+        if vid not in used_vids:
+            partsnew.append(parts[i])
+            vidsnew.append(vid)
+            
     return partsnew, vidsnew
 
 def mergePartMeasure (part, msre, ovrlaynum, rOpt): # merge msre into last measure of part, only for overlays
@@ -830,6 +840,57 @@ class stringAlloc:
             return
         xs.append ((t1,t2))
 
+class TabEngine:
+    def __init__(self, tuning):
+        self.tuning = tuning
+        self.capo = 0
+        self.current_hand_pos = 0 # Track hand position (fret)
+        
+    def calculate_tab(self, note_midi, duration=0, current_string_alloc=None):
+        """
+        Calculate the best (string, fret) for a given MIDI pitch.
+        Heuristic favors:
+        1. Open strings (cost 0)
+        2. Lower frets (cost proportional to fret number)
+        3. Proximity to current hand position (minimize movement)
+        """
+        candidates = []
+        for string_idx, open_pitch in enumerate(self.tuning):
+            fret = note_midi - open_pitch
+            if fret >= 0 and fret <= 24: # basic range check
+                candidates.append((string_idx + 1, fret)) # 1-based string index
+        
+        if not candidates:
+            return 0, 0 # Fallback/Error
+            
+        best_candidate = None
+        min_cost = float('inf')
+        
+        for string, fret in candidates:
+            cost = 0
+            
+            # Base cost for fret height
+            cost += fret * 1.0
+            
+            # Bonus for open string
+            if fret == 0:
+                cost -= 10 # Strong preference for open strings
+            
+            # Penalty for hand movement (if implemented state tracking)
+            dist = abs(fret - self.current_hand_pos)
+            if fret != 0: # Don't penalize open strings for position "distance" as they don't move hand
+                cost += dist * 0.5
+                
+            if cost < min_cost:
+                min_cost = cost
+                best_candidate = (string, fret)
+        
+        # Update state (simple version)
+        if best_candidate and best_candidate[1] != 0:
+             self.current_hand_pos = best_candidate[1]
+             
+        return best_candidate if best_candidate else (0,0)
+
 class MusicXml:
     typeMap = {1:'long', 2:'breve', 4:'whole', 8:'half', 16:'quarter', 32:'eighth', 64:'16th', 128:'32nd', 256:'64th'}
     dynaMap = {'p':1,'pp':1,'ppp':1,'pppp':1,'ppppp':1,'pppppp':1,
@@ -954,6 +1015,9 @@ class MusicXml:
         s.tabStaff = ''     # == pid (part ID) for a tab staff
         s.maat = None       # current measure
         s.lyricsAbove = 0   # 1 if lyrics should be placed above the staff
+        s.lyricsAbove = 0   # 1 if lyrics should be placed above the staff
+        s.linkedTabs = []   # list of voice IDs to automatically duplicate with TAB
+        s.tabEngine = None  # Instance of TabEngine for current TAB staff
 
     def mkPitch (s, acc, note, oct, lev):
         if s.percVoice: # percussion map switched off by perc=off (see doClef)
@@ -996,8 +1060,7 @@ class MusicXml:
         if ndeco:                       # add decorations, translate used defined symbols
             decos += [s.usrSyms.get (d, d).strip ('!+ ') for d in ndeco.t]
         s.nextdecos = []
-        if s.tabStaff == s.pid and s.fOpt and n.name != 'rest':  # force fret/string allocation if explicit string decoration is missing
-            if [d for d in decos if d in '0123456789'] == []: decos.append ('0')
+        # Legacy auto-tab logic removed - handled in mkNote via TabEngine
         return decos
 
     def mkNote (s, n, lev):
@@ -1072,6 +1135,68 @@ class MusicXml:
             pitch, alter, midi, notehead = s.mkPitch (acc, step, oct, lev + 1)
             if midi: acc = ''       # erase accidental for percussion notes
             addElem (nt, pitch, lev + 1)
+            
+            # [NEW] Tablature Generation using TabEngine
+            if s.tabStaff == s.pid and s.fOpt and n.name != 'rest':
+                # Check for existing technical info
+                # Decos are usually strings, check if any look like string/fret info?
+                # Ideally we rely on decorations being parsed.
+                # Here we assume if no explicit digit deco, we generate.
+                # (Note: getNoteDecos logic removed, so '0' isn't there)
+                # We need to know if manual override exists.
+                digits = [d for d in decos if d in '0123456789']
+                # But '3' could be a finger? Standard ABC decoration digits:
+                # 0-5 are fingerings usually.
+                # In TAB context, maybe different.
+                # Let's assume for now we generate if NO explicit string/fret data found (simplified).
+                # Actually, standard abc2xml relies on decorations mapping to <technical>.
+                # If we want to inject string/fret, we add <notations><technical>...
+                
+                # Calculate MIDI pitch for the note
+                # pitch elements: step (A-G), oct (int)
+                # s.divisions... no
+                # step 'C' -> 0, 'C#' -> 1 etc.
+                # Midi calc: 
+                # (octnum + 1) * 12 + semitone_offset
+                p_step = step.upper()
+                p_oct = int(oct) + (4 if p_step == step else 5) # Matches mkPitch logic before gtrans
+                # mkPitch added gtrans to octnum.
+                # We should use the final octnum used in XML?
+                # Yes, but mkPitch doesn't return it for non-perc.
+                # Let's recalculate octnum as in mkPitch:
+                octnum_final = (4 if step.upper() == step else 5) + int(oct) + s.gtrans
+                
+                step_val = {'C':0, 'D':2, 'E':4, 'F':5, 'G':7, 'A':9, 'B':11}.get(step.upper(), 0)
+                alter_val = 0
+                if alter: alter_val = int(alter) # explicitly generated alteration
+                elif acc: alter_val = {'_':-1, '__':-2, '^':1, '^^':2, '=':0}.get(acc, 0)
+                
+                midi_pitch = (octnum_final + 1) * 12 + step_val + alter_val
+                
+                if s.tabEngine:
+                    string, fret = s.tabEngine.calculate_tab(midi_pitch)
+                    
+                    # Inject into XML
+                    # Need <notations><technical><string>S</string><fret>F</fret>...
+                    # Notes container usually created in doNotations.
+                    # We can create a standalone one or merge.
+                    # doNotations expects 'decos'.
+                    # It's cleaner to add it via decorations list IF we could, but we need values.
+                    # So we construct elements manually here.
+                    
+                    nots = nt.find('notations')
+                    if nots is None:
+                        nots = E.Element('notations')
+                        addElem(nt, nots, lev+1)
+                    
+                    tec = nots.find('technical')
+                    if tec is None:
+                        tec = E.Element('technical')
+                        addElem(nots, tec, lev+2)
+                        
+                    addElemT(tec, 'string', str(string), lev+3)
+                    addElemT(tec, 'fret', str(fret), lev+3)
+
         if s.ntup >= 0:                 # modify duration for tuplet notes
             dvs = dvs * s.tmden // s.tmnum
         if dvs:
@@ -1706,7 +1831,7 @@ class MusicXml:
                 s.tunTup = sorted (zip (s.tunmid, range (len (s.tunmid), 0, -1)), reverse=1)
                 s.tunmid.reverse ()
                 nlines = str (len (s.tuning))
-                s.strAlloc.setlines (len (s.tuning), s.pid)
+                s.tabEngine = TabEngine(s.tunmid)
                 s.nostems = 'nostems' in field  # tab clef without stems
                 s.diafret = 'diafret' in field  # tab with diatonic fretting
             if stafflines or nlines:
@@ -2229,6 +2354,11 @@ class MusicXml:
             s.lyricsAbove = 1
         elif x.startswith ('lyrics-below'):
             s.lyricsAbove = 0
+        elif x.startswith ('linked-tab '):
+            v_id = x[11:].strip()
+            if v_id not in s.linkedTabs: s.linkedTabs.append(v_id)
+        elif x.startswith (('score', 'staves')):
+            s.staveDefs.append(x)
         elif x.startswith ('swing'):
             val = 'no' if 'off' in x else 'yes'
             snd = E.Element('sound', swing=val)
@@ -2321,15 +2451,28 @@ class MusicXml:
         for vid, vcedef, vce in ps: # vcedef == emtpy or first pObj == voice definition
             pname, psubnm = '', ''  # part name and abbreviation
             if not vcedef:          # simple abc without voice definitions
-                vdefs [vid] =  pname, psubnm, ''
+                vcedef_text = ''
+                if vid.endswith('_tab'):
+                    vcedef_text = 'clef=tab'
+                    pname = ''
+                vdefs [vid] =  pname, psubnm, vcedef_text
             else:                   # abc with voice definitions
-                if vid != vcedef.t[1]: info ('voice ids unequal: %s (reg-ex) != %s (grammar)' % (vid, vcedef.t[1]))
+                if vid != vcedef.t[1]:
+                    # Shadow voices won't match their original vcedef.t[1]
+                    if not vid.endswith('_tab'):
+                        info ('voice ids unequal: %s (reg-ex) != %s (grammar)' % (vid, vcedef.t[1]))
                 rn = re.search (r'(?:name|nm)="([^"]*)"', vcedef.t[2])
                 if rn: pname = rn.group (1)
                 rn = re.search (r'(?:subname|snm|sname)="([^"]*)"', vcedef.t[2])
                 if rn: psubnm = rn.group (1)
-                vcedef.t[2] = vcedef.t[2].replace ('"%s"' % pname, '""').replace ('"%s"' % psubnm, '""')   # clear voice name to avoid false clef matches later on
-                vdefs [vid] =  pname, psubnm, vcedef.t[2]
+                
+                vcedef_text = vcedef.t[2].replace ('"%s"' % pname, '""').replace ('"%s"' % psubnm, '""')
+                if vid.endswith('_tab'):
+                    pname = '' # Don't label the TAB staff with the same name
+                    vcedef_text = re.sub(r'clef=\S+', '', vcedef_text)
+                    vcedef_text += ' clef=tab'
+                    
+                vdefs [vid] =  pname, psubnm, vcedef_text
             xs = [pObj.t[1] for maat in vce for pObj in maat if pObj.name == 'inline']  # all inline statements in vce
             s.staveDefs += [x.replace ('%5d',']') for x in xs if x.startswith ('score') or x.startswith ('staves')] # filter %%score and %%staves
         return vdefs
@@ -2510,11 +2653,41 @@ class MusicXml:
                 info ('unexpected header item: %s' % res)
 
         vdefs = s.voiceNamesAndMaps (ps)
+        
+        # [NEW] Handle Linked Tablature duplication
+        if s.linkedTabs:
+            # Ensure we have a score definition to modify
+            if not s.staveDefs:
+                # Build a simple score containing all current voice IDs
+                v_ids = [v[0] for v in ps]
+                s.staveDefs = ["score " + " ".join(v_ids)]
+
+            # Update score definition string
+            if s.staveDefs:
+                score_str = s.staveDefs[0]
+                for v_id in s.linkedTabs:
+                    # Replace voice ID with a grouped grand staff {V V_tab}
+                    # We use a regex to ensure we only match whole voice IDs
+                    score_str = re.sub(r'\b' + re.escape(v_id) + r'\b', f'{{{v_id} {v_id}_tab}}', score_str)
+                s.staveDefs[0] = score_str
+
+            # Duplicate voice content in ps list
+            new_ps = []
+            for vid, vcedef, vce in ps:
+                new_ps.append((vid, vcedef, vce))
+                if vid in s.linkedTabs:
+                    tab_vid = vid + "_tab"
+                    # Add shadow voice
+                    new_ps.append((tab_vid, vcedef, vce))
+            ps = new_ps
+            # Refresh vdefs after duplication
+            vdefs = s.voiceNamesAndMaps (ps)
+
         vdefs = s.parseStaveDef (vdefs)
 
         lev = 0
         vids, parts, partAttr = [], [], {}
-        s.strAlloc = stringAlloc ()
+        s.vid = s.pid = ''
         for vid, _, vce in ps:          # voice id, voice parse tree
             pname, psubnm, voicedef = vdefs [vid]   # part name
             attrmap ['V'] = voicedef    # abc text of first voice definition (after V:vid) or empty
@@ -2522,7 +2695,6 @@ class MusicXml:
             s.vid = vid                 # avoid parameter passing, needed in mkNote for instrument id
             s.pid = s.vcepid [s.vid]    # xml part-id for the current voice
             s.gTime = (0, 0)            # reset time
-            s.strAlloc.beginZoek ()     # reset search index
             part = s.mkPart (vce, pid, lev + 1, attrmap, s.gNstaves.get (vid, 0), rOpt)
             if 'Q' in attrmap: del attrmap ['Q']    # header tempo only in first part
             parts.append (part)

@@ -1,0 +1,136 @@
+X: 1
+T: Come Out, Ye Black And Tans
+C: Traditional
+N: Arranged with Lyrics and Full Instrumentation
+M: 2/4
+L: 1/8
+K: Ddor
+Q: 1/4=100
+%%score (1 2 3 7 6) (4) (5)
+%%tempo 100
+%
+% JAZZ/FOLK DRUM MAP
+%%drummap BD   C2   36   % Bass Drum
+%%drummap SN   D2   38   % Snare
+%%drummap CH   ^F2  42   % Closed Hi-Hat
+%%drummap OH   ^A2  46   % Open Hi-Hat
+%%drummap CC   ^C3  49   % Crash Cymbal
+%%drummap RC   ^D3  51   % Ride Cymbal
+%%drummap TM   D3   47   % High Tom
+%%drummap FT   F2   41   % Floor Tom
+%%drummap PH   ^G2  44   % Pedal Hi-Hat
+%%drummap CS   ^C2  37   % Cross-stick
+%%drummap RB   F3   53   % Ride Bell
+%%drummap SB   A6   91   % Snare Brush
+%%drummap ST   ^G6  92   % Snare Brush Stir
+%
+% Voice 1: Melody with Lyrics
+V: 1 name="Melody" snm="Mel." clef=treble
+%%MIDI program 68 % Oboe
+P: A
+!f! Ac |: "Dm"dd/d/ de | d2 cA | "C"GG GA | G2 Ac |
+w: 1.~I was born on a Dub- lin street where the Roy- al drums the beat And the
+w: 2.~Come tell us how you slew them old A- rabs two by two Like the
+"Dm"dd de | dc de | "Dm"d2 "C"c2 | "Dm"A2 (AB) |
+w: lov- ing Eng- lish feet they walked all o- ver us. And *
+w: Zu- lus they had spears and bows and ar- rows. * How *
+"C"cc cd | c2 BA | GE DE/D/ | C2 DE |
+w: ev- 'ry sin- gle night when me dad would come home tight He'd in-
+w: brave- ly you faced one with your six- teen pound- er gun And you
+"Dm"FF ED | AG FE | "Dm"D2 "C"C2 |1 "Dm"D2 Ac :|2 "Dm"D2 A2 ||
+w: vite the neigh- bors out with this cho- rus. Come tell
+w: fright- ened them na- tives to their mar- row. Come *
+P: B (Chorus)
+|: "Dm"d2 de | f2 ed | "C"c2 cd | e2 cA |
+w: out ye Black and Tans, come out and fight me like a
+"Dm"d2 de | f2 ed | "Am"c2 (3BcB | "Dm"A2 AB |
+w: man Show your wife how you won med- als down in Flan- ders. Tell
+"C"c2 cd | c2 BA | "C"GE cE | "Am"ED CE |
+w: her how the I- R- A made you run like hell a- way From
+"Dm"D2 (3EFG | Ad cA | "C"GE CE |1 "Dm"D2 A2 :|2 "Dm"D4 ||
+w: the green and love- ly lanes of Kil- la- shan- dra. Come dra.
+%
+% Voice 2: Violin 1 (Fiddle Style)
+V: 2 name="Violin 1" snm="Vln.1" clef=treble
+%%MIDI program 40 % Violin
+P: A
+!mf! z2 |: !downbow!D2 F2 | !upbow!A2 !downbow!A2 | !downbow!c2 G2 | !upbow!E2 G2 |
+!downbow!F2 A2 | !upbow!F2 A2 | !downbow!F2 !upbow!E2 | !downbow!D2 E2 |
+!downbow!E2 G2 | !upbow!c2 G2 | !downbow!c2 G2 | !upbow!E2 G2 |
+!downbow!A2 F2 | !upbow!E2 D2 | !downbow!A,2 C2 |1 !upbow!D2 z2 :|2 !upbow!D2 z2 ||
+P: B
+|: !downbow![D2A2] [D2A2] | !upbow![D2A2] !downbow![D2A2] | !downbow![C2G2] [C2G2] | !upbow![C2G2] !downbow![C2G2] |
+!downbow![D2A2] [F2d2] | !upbow![A2f2] !downbow![F2d2] | !downbow![E2c2] [E2c2] | !upbow![C2A2] z2 |
+!downbow!E2 G2 | !upbow!c2 G2 | !downbow!c2 G2 | !upbow!E2 G2 |
+!downbow!A,2 D2 | !upbow!F2 A2 | !downbow!E2 C2 |1 !upbow!D2 z2 :|2 !upbow!D4 ||
+%
+% Voice 3: Flute (Tin Whistle)
+V: 3 name="Flute" snm="Fl." clef=treble
+%%MIDI program 73 % Flute
+P: A
+!f! ac' |: d'd'/d'/ d'e' | d'2 c'a | gg ga | g2 ac' |
+d'd' d'e' | d'c' d'e' | d'2 c'2 | a2 (ab) |
+c'c' c'd' | c'2 ba | ge de/d/ | c2 de |
+ff ed | ag fe | d2 c2 |1 d2 ac' :|2 d2 a2 ||
+P: B
+|: !f! d'2 d'e' | f'2 e'd' | c'2 c'd' | e'2 c'a |
+d'2 d'e' | f'2 e'd' | c'2 (3bc'b | a2 ab |
+c'2 c'd' | c'2 ba | ge c'e | ed ce |
+d2 (3efg | ad' c'a | ge ce |1 d2 a2 :|2 d4 ||
+%
+% Voice 7: Piccolo (Octave higher)
+V: 7 name="Piccolo" snm="Picc." clef=treble
+%%MIDI program 72 % Piccolo
+P: A
+!f! ac' |: !staccato!d'd'/d'/ !staccato!d'e' | !trill!d'2 c'a | !staccato!g!staccato!g !staccato!g!staccato!a | g2 ac' |
+!staccato!d'd' !staccato!d'e' | !staccato!d'c' !staccato!d'e' | !accent!d'2 !accent!c'2 | a2 (ab) |
+!staccato!c'!staccato!c' !staccato!c'd' | c'2 ba | ge de/d/ | c2 de |
+!staccato!f!staccato!f ed | ag fe | !trill!d2 c2 |1 d2 ac' :|2 d2 z2 ||
+P: B
+|: !staccato!d'2 !staccato!d'e' | !trill!f'2 e'd' | !staccato!c'2 !staccato!c'd' | !staccato!e'2 !staccato!c'a |
+!accent!d'2 !staccato!d'e' | !staccato!f'2 !staccato!e'd' | !staccato!e'2 !staccato!e'2 | !trill!a2 ab |
+!staccato!c'2 !staccato!c'd' | c'2 ba | ge c'e | ed ce |
+!accent!d2 (3efg | !staccato!a!staccato!d' c'a | !staccato!g!staccato!e ce |1 d2 z2 :|2 d4 ||
+%
+% Voice 6: Accordion
+V: 6 name="Accordion" snm="Acc." clef=treble
+%%MIDI program 21 % Accordion
+P: A
+!mf! z2 |: !staccato![FAd]2 !staccato![FAd]2 | !tenuto![FAd]2 !tenuto![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 | !tenuto![EGc]2 !tenuto![FAd]2 |
+!staccato![FAd]2 !staccato![FAd]2 | !staccato![FAd]2 !staccato![FAd]2 | !tenuto![FAd]2 !tenuto![EGc]2 | !tenuto![DFA]2 z2 |
+!staccato![EGc]2 !staccato![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 |
+!staccato![FAd]2 !staccato![FAd]2 | !staccato![FAd]2 !staccato![FAd]2 | !tenuto![FAd]2 !tenuto![EGc]2 |1 !tenuto![DFA]2 z2 :|2 !tenuto![DFA]2 z2 ||
+P: B
+|: !staccato![FAd]2 !staccato![FAd]2 | !staccato![FAd]2 !staccato![FAd]2 | !staccato![EGc]2 !staccato![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 |
+!staccato![FAd]2 !staccato![FAd]2 | !staccato![FAd]2 !staccato![FAd]2 | !tenuto![Ace]2 !tenuto![Ace]2 | !tenuto![DFA]2 z2 |
+!staccato![EGc]2 !staccato![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 | !staccato![EGc]2 !staccato![EGc]2 | !staccato![Ace]2 !staccato![Ace]2 |
+!staccato![FAd]2 !staccato![FAd]2 | !staccato![FAd]2 !staccato![FAd]2 | !tenuto![Ace]2 !tenuto![EGc]2 |1 !tenuto![DFA]2 z2 :|2 !tenuto![DFA]4 ||
+%
+% Voice 4: Acoustic Guitar (Drop D / Folk)
+V: 4 name="Acoustic Gtr." snm="Gtr." clef=treble
+%%MIDI program 25 % Acoustic Guitar (Steel)
+P: A
+!mp! z2 |: [D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [D,A,D] z [C,G,C] z | [D,A,D] z [D,A,D] z |
+[C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [D,A,D] z [C,G,C] z |1 [D,A,D] z z2 :|2 [D,A,D] z z2 ||
+P: B
+|: [D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [A,E,A] z [C,E,c] z | [D,A,D] z [D,A,D] z |
+[C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [A,E,A] z [C,E,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [C,G,C] z [E,G,c] z |1 [D,A,D] z z2 :|2 [D,A,D]4 ||
+%
+% Voice 5: Percussion (Bodhran Pattern)
+V: 5 name="Percussion" snm="Perc." clef=perc
+%%MIDI channel 10
+P: A
+!mf! z2 |: F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 |1 F2 z2 :|2 F2 z2 ||
+P: B
+|: F2 ^C2 | F ^C F ^C | F2 ^C2 | F ^C F ^C |
+F2 ^C2 | F ^C F ^C | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F ^C F ^C | F2 ^C2 |1 F2 z2 :|2 !accent!F4 ||
+%

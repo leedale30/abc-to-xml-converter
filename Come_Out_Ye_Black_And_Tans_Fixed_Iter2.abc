@@ -1,0 +1,479 @@
+X: 1
+T: Come Out, Ye Black And Tans
+C: Traditional
+N: Professional Arrangement - Iteration 2
+N: Improvements: Uilleann Regulator Chords, Accordion Rhythmic Comping
+N: Part I: "Smokey Battlefield" Intro (Slow build)
+N: Part A: Verse (Marching "Boom-Chick" feel)
+N: Part B: Chorus (Sustained Power & Regulators)
+N: Part C: Jig Variation (6/8 Fiddle Texture)
+N: Part D: Grand Finale (2/4 Military Power)
+N: Part E: Reel Variation (Encore - Driving Syncopation)
+M: 2/4
+L: 1/8
+K: Ddor
+Q: 1/4=100
+%%score (1) (7) (3) (12) (6) (2) (4) (13) (14) (5) (15) (8) (9) (10) (11)
+%%tempo 100
+%
+% JAZZ/FOLK DRUM MAP
+%%drummap BD   C2   36   % Bass Drum
+%%drummap SN   D2   38   % Snare
+%%drummap CH   ^F2  42   % Closed Hi-Hat
+%%drummap OH   ^A2  46   % Open Hi-Hat
+%%drummap CC   ^C3  49   % Crash Cymbal
+%%drummap RC   ^D3  51   % Ride Cymbal
+%%drummap TM   D3   47   % High Tom
+%%drummap FT   F2   41   % Floor Tom
+%%drummap PH   ^G2  44   % Pedal Hi-Hat
+%%drummap CS   ^C2  37   % Cross-stick
+%%drummap RB   F3   53   % Ride Bell
+%%drummap SB   A6   91   % Snare Brush
+%%drummap ST   ^G6  92   % Snare Brush Stir
+%%drummap c  ^F3  54   % Tambourine
+%
+% Voice 1: Melody
+V: 1 name="Melody" snm="Mel." clef=treble
+%%MIDI program 68 % Oboe
+P: I (Intro - The Smokey Battlefield)
+[Q:1/4=60] !p! z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+w: (The smoke clears...)
+z2 | z2 | z2 | z2 | !mp! !cresc(start)! A2 | d2 | c2 | A2 !cresc(end)! ||
+w: We rise a- gain.
+P: A
+[Q:1/4=100] !f! Ac |: "Dm"dd/d/ de | d2 cA | "C"GG GA | G2 Ac |
+"Dm"dd de | dc de | "Dm"d2 "C"c2 | "Dm"A2 (AB) |
+"C"cc cd | c2 BA | GE DE/D/ | C2 DE |
+"Dm"FF ED | AG FE | "Dm"D2 "C"C2 |1 "Dm"D2 Ac :|2 "Dm"D2 A2 ||
+P: B (Chorus)
+|: "Dm"d2 de | f2 ed | "C"c2 cd | e2 cA |
+"Dm"d2 de | f2 ed | "Am"c2 (3BcB | "Dm"A2 AB |
+"C"c2 cd | c2 BA | "C"GE cE | "Am"ED CE |
+"Dm"D2 (3EFG | Ad cA | "C"GE CE |1 "Dm"D2 A2 :|2 "Dm"D4 ||
+P: C (Jig Variation)
+[M:6/8] [Q:3/8=100] !f! !marcato!A |: "Dm"d2e f2e | d2c A2B | "C"c2d c2B | G3 G2A |
+"Dm"d2e f2e | d2c A2B | "C"c2A G2E |1 "Dm"D3 D2A :|2 "Dm"D3 D3 ||
+P: D (Grand Finale)
+[M:2/4] [Q:1/4=100] !ff! A2 |: "Dm"d2 de | f2 ed | "C"c2 cd | e2 cA |
+"Dm"d2 de | f2 ed | "Am"c2 (3BcB | "Dm"A2 AB |
+"C"c2 cd | c2 BA | "C"GE cE | "Am"ED CE |
+"Dm"D2 (3EFG | Ad cA | "C"GE CE |1 "Dm"D2 A2 :|2 "Dm"D2 z2 ||
+P: E (Reel Variation - Encore)
+[M:C|] [Q:1/2=105] !ff! z2 |: "Dm"Addc d2de | f2ed "C"cAGc | "C"EccB c2cd | e2dc "Am"ABcA |
+"Dm"d2de f2ed | "Am"cAGE EDCE | "Dm"DEFG AdcA |1 "C"GECE "Dm"D2FG :|2 "C"GECE "Dm"D4 |]
+%
+% Voice 2: Violin 1 (Fiddle Style)
+V: 2 name="Violin 1" snm="Vln.1" clef=treble
+%%MIDI program 40 % Violin
+P: I
+!pp! !downbow!D4- | !tenuto!D2 z2 | !downbow!A,4- | !tenuto!A,2 z2 |
+!mp! !downbow!D2 F2 | A2 G2 | F2 E2 | !tenuto!D2 C2 |
+!mf! !downbow!D2 F2 | A2 d2 | c2 A2 | G2 E2 |
+!cresc(start)! D2 F2 | A2 c2 | d2 e2 | f2 e2 !cresc(end)! ||
+P: A
+!mf! z2 |: !downbow!D2 F2 | !upbow!A2 !downbow!A2 | !downbow!c2 G2 | !upbow!E2 G2 |
+!downbow!F2 A2 | !upbow!F2 A2 | !downbow!F2 !upbow!E2 | !downbow!D2 E2 |
+!downbow!E2 G2 | !upbow!c2 G2 | !downbow!c2 G2 | !upbow!E2 G2 |
+!downbow!A2 F2 | !upbow!E2 D2 | !downbow!A,2 C2 |1 !upbow!D2 z2 :|2 !upbow!D2 z2 ||
+P: B
+|: !downbow![D2A2] [D2A2] | !upbow![D2A2] !downbow![D2A2] | !downbow![C2G2] [C2G2] | !upbow![C2G2] !downbow![C2G2] |
+!downbow![D2A2] [F2d2] | !upbow![A2f2] !downbow![F2d2] | !downbow![E2c2] [E2c2] | !upbow![C2A2] z2 |
+!downbow!E2 G2 | !upbow!c2 G2 | !downbow!c2 G2 | !upbow!E2 G2 |
+!downbow!A,2 D2 | !upbow!F2 A2 | !downbow!E2 C2 |1 !upbow!D2 z2 :|2 !upbow!D4 ||
+P: C
+[M:6/8] !f! z |: !downbow![D,A,]FA d2e | f2d [D2A2]B | !downbow![C,G,]2e g2e | c3 c2A |
+!downbow![D,A,]2f a2g | f2d [D2A2]B | !downbow![C,G,]2A G2E |1 !upbow!D3 D3 :|2 !upbow!D3 D3 ||
+P: D
+[M:2/4] !ff! z2 |: !downbow!D/F/A/d/ f/e/d/c/ | d/e/f/g/ a/g/f/e/ | !downbow!c/d/e/f/ g/f/e/d/ | c/d/e/d/ c/A/G/E/ |
+!downbow!D/F/A/d/ f/e/d/c/ | d/e/f/g/ a/g/f/e/ | !downbow!c/B/A/G/ A/B/c/d/ | e/A/c/e/ a2 |
+!downbow!c'/b/a/g/ f/e/d/c/ | c/d/e/f/ g/f/e/d/ | !downbow!c/d/e/d/ c/A/G/E/ | A/B/c/A/ G/E/C/E/ |
+!downbow!D/E/F/G/ A/B/c/A/ | d/e/f/g/ a/g/f/e/ | !downbow!d/c/A/F/ G/E/C/E/ |1 !upbow!D/A,/D/E/ F/G/A/F/ :|2 !downbow!D2 z2 ||
+P: E
+[M:C|] !ff! z2 |: !downbow![D,A,]ddc d2de | f2ed cAGc | !downbow![C,G,]ccB c2cd | e2dc ABcA |
+!downbow![D,A,]dde f2ed | cAGE EDCE | !downbow!DEFG AdcA |1 GECE [D,A,]2FG :|2 GECE [D,A,]4 |]
+%
+% Voice 3: Flute
+V: 3 name="Flute" snm="Fl." clef=treble
+%%MIDI program 73 % Flute
+P: I
+z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 |
+!mp! d4- | d2 c2 | A4 | G2 E2 |
+!cresc(start)! F2 A2 | c2 e2 | f2 g2 | a2 c'2 !cresc(end)! ||
+P: A
+!f! ac' |: d'd'/d'/ d'e' | d'2 c'a | gg ga | g2 ac' |
+d'd' d'e' | d'c' d'e' | d'2 c'2 | a2 (ab) |
+c'c' c'd' | c'2 ba | ge de/d/ | c2 de |
+ff ed | ag fe | d2 c2 |1 d2 ac' :|2 d2 a2 ||
+P: B
+|: !ff! f'2 f'g' | a'2 g'f' | e'2 e'f' | g'2 e'c' |
+f'2 f'g' | a'2 g'f' | e'2 (3d'e'd' | c'2 c'd' |
+e'2 e'f' | e'2 d'c' | b g e' g | c'b ac' |
+d'2 (3efg | ad' c'a | ge ce |1 d'2 a2 :|2 d'4 ||
+P: C
+[M:6/8] !f! z |: d'2e' f'2e' | !trill!d'2c' a2b | c'2d' c'2b | g3 g2a |
+d'2e' f'2e' | d'2c' a2b | c'2a g2e |1 d'3 d'2a :|2 d'3 d'3 ||
+P: D
+[M:2/4] !ff! z2 |: f'2 f'g' | a'2 g'f' | e'2 e'f' | g'2 e'c' |
+f'2 f'g' | a'2 g'f' | e'2 (3d'e'd' | c'2 c'd' |
+e'2 e'f' | e'2 d'c' | b g e' g | c'b ac' |
+d'2 (3efg | ad' c'a | ge ce |1 d'2 a2 :|2 d'2 z2 ||
+P: E
+[M:C|] !ff! z2 |: !staccato!d'2d'e' f'2e'd' | c'2c'd' e'2c'a | !staccato!c'2c'd' e'2d'c' | a2ag abc'a |
+!staccato!d'2d'e' f'2e'd' | c'age edce | defg adc'a |1 gece d2ac' :|2 gece d4 |]
+%
+% Voice 7: Piccolo
+V: 7 name="Piccolo" snm="Picc." clef=treble
+%%MIDI program 72 % Piccolo
+P: I
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 ||
+P: A
+!f! ac' |: !staccato!d'd'/d'/ !staccato!d'e' | !trill!d'2 c'a | !staccato!g!staccato!g !staccato!g!staccato!a | g2 ac' |
+!staccato!d'd' !staccato!d'e' | !staccato!d'c' !staccato!d'e' | !accent!d'2 !accent!c'2 | a2 (ab) |
+!staccato!c'!staccato!c' !staccato!c'd' | c'2 ba | ge de/d/ | c2 de |
+!staccato!f!staccato!f ed | ag fe | !trill!d2 c2 |1 d2 ac' :|2 d2 z2 ||
+P: B
+|: !staccato!f''2 !staccato!f''g'' | !trill!a''2 g''f'' | !staccato!e''2 !staccato!e''f'' | !staccato!g''2 !staccato!e''c'' |
+!accent!f''2 !staccato!f''g'' | !staccato!a''2 !staccato!g''f'' | !staccato!e''2 !staccato!e''2 | !trill!c''2 c''d'' |
+!staccato!e''2 !staccato!e''f'' | e''2 d''c'' | b'g' e''g' | c''b' a'c'' |
+!accent!d''2 (3e''f''g'' | !staccato!a''!staccato!d''' c'''a'' | !staccato!g''!staccato!e'' c''e'' |1 d''2 z2 :|2 d''4 ||
+P: C
+[M:6/8] !ff! z |: !staccato!d'2e' !accent!f'2e' | !staccato!d'2c' !staccato!a2b | !trill!c'2d' c'2b | !staccato!g3 !staccato!g2a |
+!accent!d'2e' !staccato!f'2e' | !staccato!d'2c' !staccato!a2b | c'2a g2e |1 !accent!d'3 d'2a :|2 !accent!d'3 d'3 ||
+P: D
+[M:2/4] !ff! z2 |: f''2 f''g'' | a''2 g''f'' | e''2 e''f'' | g''2 e''c'' |
+f''2 f''g'' | a''2 g''f'' | e''2 (3d''e''d'' | c''2 c''d'' |
+e''2 e''f'' | e''2 d''c'' | b' g' e' g' | c''b' ac' |
+d'2 (3efg | ad' c'a | ge ce |1 d'2 z2 :|2 !accent!d'2 z2 ||
+P: E
+[M:C|] !fff! z2 |: !staccato!d''2d''e'' f''2e''d'' | c''2c''d'' e''2c''a' | !trill!c''2c''d'' e''2d''c'' | a'2a'g' a'b'c''a' |
+!accent!d''2d''e'' f''2e''d'' | c''age' e'd'c'e' | d'e'f'g' a'd''c''a' |1 g'e'c'e' d''2a'c'' :|2 g'e'c'e' !accent!d''4 |]
+%
+% Voice 12: Uilleann Pipes
+V: 12 name="Uilleann Pipes" snm="U.P." clef=treble
+%%MIDI program 109 % Bagpipe
+P: I
+!pp! !tenuto!D4- | D4- | D4- | D4- |
+D4- | D4- | D4- | D4- |
+!mp! D4- | D4- | D4- | D4- |
+!cresc(start)! D2 F2 | A2 c2 | d2 e2 | f2 g2 !cresc(end)! ||
+P: A
+!f! Ac |: {G}d2 {e}de | d2 cA | {A}G2 GA | G2 Ac |
+{G}d2 {e}de | dc de | d2 c2 | A2 (AB) |
+c2 cd | c2 BA | GE DE/D/ | C2 DE |
+F2 ED | AG FE | D2 C2 |1 D2 Ac :|2 D2 A2 ||
+P: B
+% UPGRADE: Added "Regulator" double stops for harmonic punch
+|: !ff! [D2A2d2] de | {g}f2 ed | [c2e2] cd | e2 cA |
+[D2A2d2] de | {g}f2 ed | [c2e2] (3BcB | A2 AB |
+[c2e2] cd | [c2e2] BA | [C2G2c2] cE | ED CE |
+[D2A2] (3EFG | Ad cA | [C2G2] CE |1 D2 A2 :|2 D4 ||
+P: C
+[M:6/8] !f! A |: D2e {g}f2e | d2c A2B | c2d c2B | G3 G2A |
+D2e {g}f2e | d2c A2B | c2A G2E |1 D3 D2A :|2 D3 D3 ||
+P: D
+% UPGRADE: Heavy regulator use in Finale
+[M:2/4] !ff! A2 |: [D2A2d2] de | {g}f2 ed | [c2e2] cd | e2 cA |
+[D2A2d2] de | {g}f2 ed | [c2e2] (3BcB | A2 AB |
+[c2e2] cd | [c2e2] BA | [C2G2] cE | [A,2E2] CE |
+[D2A2] (3EFG | Ad cA | [C2G2] CE |1 D2 A2 :|2 D2 z2 ||
+P: E
+[M:C|] !ff! z2 |: {G}[D2A2]dc d2de | {g}f2ed cAGc | {G}[C2G2]cB c2cd | {g}e2dc ABcA |
+{G}d2de {g}f2ed | cAGE {G}EDcE | {G}D2 (3EFG AdcA |1 {g}GEcE D2FG :|2 {g}GEcE D4 |]
+%
+% Voice 6: Accordion
+V: 6 name="Accordion" snm="Acc." clef=treble
+%%MIDI program 21 % Accordion
+P: I
+!mp! !tenuto![D,A,D]4- | [D,A,D]2 z2 | !tenuto![C,G,C]4- | [C,G,C]2 z2 |
+[D,A,D]4 | z2 z2 | [C,G,C]4 | z2 z2 |
+[D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 | [C,G,C]2 [E,G,c]2 | [A,E,A]2 [C,E,c]2 |
+!cresc(start)! [D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 | [A,E,A]2 [C,E,c]2 !cresc(end)! ||
+P: A
+% UPGRADE: Off-beat "Chick" rhythm to lock with Bass
+!mf! z2 |: z2 !staccato![FAd]2 | z2 !staccato![EGc]2 | z2 !staccato![EGc]2 | z2 !staccato![EGc]2 |
+z2 !staccato![FAd]2 | z2 !staccato![FAd]2 | z2 !staccato![FAd]2 | !tenuto![DFA]2 z2 |
+z2 !staccato![EGc]2 | z2 !staccato![EGc]2 | z2 !staccato![EGc]2 | z2 !staccato![EGc]2 |
+z2 !staccato![FAd]2 | z2 !staccato![FAd]2 | z2 !staccato![EGc]2 |1 !tenuto![DFA]2 z2 :|2 !tenuto![DFA]2 z2 ||
+P: B
+% UPGRADE: Sustained "Wall of Sound" pads
+|: !ff! !tenuto![FAd]4 | !tenuto![FAd]4 | !tenuto![EGc]4 | !tenuto![EGc]4 |
+!tenuto![FAd]4 | !tenuto![FAd]4 | !tenuto![Ace]4 | !tenuto![DFA]4 |
+!tenuto![EGc]4 | !tenuto![EGc]4 | !tenuto![EGc]4 | !tenuto![Ace]4 |
+!tenuto![FAd]4 | !tenuto![FAd]4 | !tenuto![Ace]2 !tenuto![EGc]2 |1 !tenuto![DFA]2 z2 :|2 !tenuto![DFA]4 ||
+P: C
+% UPGRADE: Rhythmic Swing for Jig
+[M:6/8] !f! z |: [FAd]3 [FAd]3 | [FAd]3 [EGc]3 | [EGc]3 [EGc]3 | [EGc]3 [EGc]3 |
+[FAd]3 [FAd]3 | [FAd]3 [EGc]3 | [EGc]3 [EGc]3 |1 [DFA]3 z3 :|2 [DFA]3 [DFA]3 ||
+P: D
+[M:2/4] !ff! z2 |: !accent![FAd]2 !staccato![FAd]2 | !accent![FAd]2 !staccato![FAd]2 | !accent![EGc]2 !staccato![EGc]2 | !accent![EGc]2 !staccato![Ace]2 |
+!accent![FAd]2 !staccato![FAd]2 | !accent![FAd]2 !staccato![FAd]2 | !accent![Ace]2 !staccato![Ace]2 | !accent![DFA]2 z2 |
+!accent![EGc]2 !staccato![EGc]2 | !accent![EGc]2 !staccato![EGc]2 | !accent![EGc]2 !staccato![EGc]2 | !accent![Ace]2 !staccato![Ace]2 |
+!accent![FAd]2 !staccato![FAd]2 | !accent![FAd]2 !staccato![FAd]2 | !accent![Ace]2 !staccato![EGc]2 |1 !accent![DFA]2 z2 :|2 !accent![DFA]2 z2 ||
+P: E
+% UPGRADE: Syncopated Stabs for Reel
+[M:C|] !ff! z2 |: z "Dm"[FAd] z [FAd] | z [FAd] z "C"[EGc] | z [EGc] z [EGc] | z [EGc] z "Am"[Ace] |
+z "Dm"[FAd] z [FAd] | z "Am"[Ace] z "C"[EGc] | z "Dm"[FAd] z [FAd] |1 "C"[EGc]4 "Dm"[FAd]4 :|2 "C"[EGc]4 "Dm"[FAd]4 |]
+%
+% Voice 4: Acoustic Guitar (Drop D / Folk)
+V: 4 name="Acoustic Gtr." snm="Gtr." clef=treble
+%%MIDI program 25 % Acoustic Guitar (Steel)
+P: I
+!mp! [D,A,D]4 | z2 z2 | [D,A,D]4 | z2 z2 |
+[D,A,D]4 | z2 z2 | [D,A,D]4 | z2 z2 |
+[D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 | [C,G,C]2 [E,G,c]2 | [C,G,C]2 [E,G,c]2 |
+!cresc(start)! [D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 | [D,A,D]2 [F,A,d]2 !cresc(end)! ||
+P: A
+!mp! z2 |: [D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [D,A,D] z [C,G,C] z | [D,A,D] z [D,A,D] z |
+[C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [D,A,D] z [C,G,C] z |1 [D,A,D] z z2 :|2 [D,A,D] z z2 ||
+P: B
+|: [D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [A,E,A] z [C,E,c] z | [D,A,D] z [D,A,D] z |
+[C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [C,G,C] z [E,G,c] z | [A,E,A] z [C,E,c] z |
+[D,A,D] z [F,A,d] z | [D,A,D] z [F,A,d] z | [C,G,C] z [E,G,c] z |1 [D,A,D] z z2 :|2 [D,A,D]4 ||
+P: C
+[M:6/8] !mf! z |: [D,A,D]3 [F,A,d]3 | [D,A,D]3 [C,G,C]3 | [C,G,C]3 [E,G,c]3 | [C,G,C]3 [C,G,C]3 |
+[D,A,D]3 [F,A,d]3 | [D,A,D]3 [C,G,C]3 | [C,G,C]3 [A,E,A]3 |1 [D,A,D]3 z3 :|2 [D,A,D]3 [D,A,D]3 ||
+P: D
+[M:2/4] !ff! z2 |: [D,A,D] [F,A,d] [D,A,D] [F,A,d] | [D,A,D] [F,A,d] [D,A,D] [F,A,d] | [C,G,C] [E,G,c] [C,G,C] [E,G,c] | [C,G,C] [E,G,c] [C,G,C] [E,G,c] |
+[D,A,D] [F,A,d] [D,A,D] [F,A,d] | [D,A,D] [F,A,d] [D,A,D] [F,A,d] | [A,E,A] [C,E,c] [A,E,A] [C,E,c] | [D,A,D] z z2 |
+[C,G,C] [E,G,c] [C,G,C] [E,G,c] | [C,G,C] [E,G,c] [C,G,C] [E,G,c] | [C,G,C] [E,G,c] [C,G,C] [E,G,c] | [A,E,A] [C,E,c] [A,E,A] [C,E,c] |
+[D,A,D] [F,A,d] [D,A,D] [F,A,d] | [D,A,D] [F,A,d] [D,A,D] [F,A,d] | [C,G,C] [E,G,c] [C,G,C] [E,G,c] |1 [D,A,D] z z2 :|2 !accent![D,A,D]2 z2 ||
+P: E
+[M:C|] !ff! z2 |: [D,A,D]2 [D,A,D]2 [F,A,d]2 [F,A,d]2 | [D,A,D]2 [D,A,D]2 [C,G,C]2 [C,G,C]2 | [C,G,C]2 [C,G,C]2 [C,G,C]2 [C,G,C]2 | [C,G,C]2 [C,G,C]2 [A,E,A]2 [A,E,A]2 |
+[D,A,D]2 [D,A,D]2 [F,A,d]2 [F,A,d]2 | [A,E,A]2 [A,E,A]2 [C,G,C]2 [C,G,C]2 | [D,A,D]2 [D,A,D]2 [F,A,d]2 [F,A,d]2 |1 [C,G,C]2 [C,G,C]2 [D,A,D]4 :|2 [C,G,C]2 [C,G,C]2 [D,A,D]4 |]
+%
+% Voice 13: Acoustic Guitar 2 (Fast Finger Picking)
+V: 13 name="Acoustic Guitar" snm="Gtr.2" clef=treble
+%%MIDI program 25 % Acoustic Guitar (Steel)
+P: I
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 | !mp! !cresc(start)! D/A/F/A/ d/A/F/A/ | D/A/F/A/ d/A/F/A/ | C/G/E/G/ c/G/E/G/ | C/G/E/G/ c/G/E/G/ !cresc(end)! ||
+P: A
+!mf! z2 |: D/A/d/A/ F/A/d/A/ | D/A/d/A/ c/G/E/G/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ |
+D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | D/A/d/A/ C/G/c/G/ | D/A/d/A/ F/A/d/A/ |
+C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ |
+D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | D/A/d/A/ C/G/c/G/ |1 D/F/A/d/ z2 :|2 D/F/A/d/ z2 ||
+P: B
+|: D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ |
+D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | A,/E/A/E/ C/E/A/E/ | D/A/d/A/ F/A/d/A/ |
+C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ | A,/E/A/E/ C/E/A/E/ |
+D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | C/G/c/G/ E/G/c/G/ |1 D/F/A/d/ z2 :|2 D/F/A/d/ f/d/A/F/ ||
+P: C
+[M:6/8] !f! z |: D/A/F/ D/F/A/ d/A/F/ | D/A/F/ D/F/A/ C/G/E/ | C/G/E/ C/E/G/ c/G/E/ | C/G/E/ C/E/G/ c/G/E/ |
+D/A/F/ D/F/A/ d/A/F/ | D/A/F/ D/F/A/ C/G/E/ | C/G/E/ C/E/G/ A,/E/C/ |1 D/A/F/ D3 z3 :|2 D/A/F/ D3 D/F/A/ ||
+P: D
+[M:2/4] !ff! z2 |: D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ |
+D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | A,/E/A/E/ C/E/A/E/ | D/A/d/A/ z2 |
+C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ | C/G/c/G/ E/G/c/G/ | A,/E/A/E/ C/E/A/E/ |
+D/A/d/A/ F/A/d/A/ | D/A/d/A/ F/A/d/A/ | C/G/c/G/ E/G/c/G/ |1 D/F/A/d/ z2 :|2 !accent!D2 z2 ||
+P: E
+[M:C|] !ff! z2 |: D2 A2 d2 A2 | D2 A2 C2 G2 | C2 G2 c2 G2 | C2 G2 A,2 E2 |
+D2 A2 d2 A2 | A,2 E2 C2 G2 | D2 A2 d2 A2 |1 C2 G2 D2 z2 :|2 C2 G2 !accent!D4 |]
+%
+% Voice 14: Electric Bass
+V: 14 name="Electric Bass" snm="Bass" clef=bass
+%%MIDI program 33 % Electric Bass (Finger)
+P: I
+!mp! !tenuto!D,,4 | z2 z2 | D,,4 | z2 z2 |
+D,,4 | z2 z2 | D,,4 | z2 z2 |
+D,,4 | D,,4 | C,,4 | C,,4 |
+!cresc(start)! D,,2 D,2 | D,,2 D,2 | D,,2 D,2 | D,,2 D,2 !cresc(end)! ||
+P: A
+!mf! z2 |: D,,2 z2 | D,,2 A,,2 | C,,2 z2 | C,,2 G,,2 |
+D,,2 z2 | D,,2 A,,2 | D,,2 C,,2 | D,,2 A,,2 |
+C,,2 z2 | C,,2 G,,2 | C,,2 z2 | C,,2 G,,2 |
+D,,2 z2 | D,,2 A,,2 | D,,2 C,,2 |1 D,,2 z2 :|2 D,,2 z2 ||
+P: B
+|: D,,2 A,,2 | D,,2 A,,2 | C,,2 G,,2 | C,,2 G,,2 |
+D,,2 A,,2 | D,,2 A,,2 | A,,2 E,,2 | D,,2 A,,2 |
+C,,2 G,,2 | C,,2 G,,2 | C,,2 G,,2 | A,,2 E,,2 |
+D,,2 A,,2 | D,,2 A,,2 | C,,2 G,,2 |1 D,,2 z2 :|2 D,,4 ||
+P: C
+[M:6/8] !f! z |: !tenuto!D,,3 A,,3 | D,,3 C,,3 | !tenuto!C,,3 G,,3 | C,,3 E,,3 |
+!tenuto!D,,3 A,,3 | D,,3 C,,3 | A,,3 E,,3 |1 !tenuto!D,,3 z3 :|2 !tenuto!D,,3 !tenuto!D,,3 ||
+P: D
+[M:2/4] !ff! z2 |: !accent!D,,2 !staccato!D,,2 | !accent!D,,2 !staccato!D,,2 | !accent!C,,2 !staccato!C,,2 | !accent!C,,2 !staccato!C,,2 |
+!accent!D,,2 !staccato!D,,2 | !accent!D,,2 !staccato!D,,2 | !accent!A,,2 !staccato!A,,2 | !accent!D,,2 z2 |
+!accent!C,,2 !staccato!C,,2 | !accent!C,,2 !staccato!C,,2 | !accent!C,,2 !staccato!C,,2 | !accent!A,,2 !staccato!A,,2 |
+!accent!D,,2 !staccato!D,,2 | !accent!D,,2 !staccato!D,,2 | !accent!C,,2 !staccato!C,,2 |1 !accent!D,,2 z2 :|2 !accent!D,,2 z2 ||
+P: E
+[M:C|] !ff! z2 |: D,,2A,,2 F,,2A,,2 | D,,2F,,2 G,,2A,,2 | C,,2G,,2 E,,2G,,2 | C,,2E,,2 A,,2G,,2 |
+D,,2A,,2 F,,2A,,2 | A,,2E,,2 C,,2E,,2 | D,,2F,,2 G,,2A,,2 |1 C,,2G,,2 D,,4 :|2 C,,2G,,2 !accent!D,,4 |]
+%
+% Voice 5: Percussion (Bodhran Pattern)
+V: 5 name="Percussion" snm="Perc." clef=perc
+%%MIDI channel 10
+P: I
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 ||
+P: A
+!mf! z2 |: F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 |1 F2 z2 :|2 F2 z2 ||
+P: B
+|: F2 ^C2 | F ^C F ^C | F2 ^C2 | F ^C F ^C |
+F2 ^C2 | F ^C F ^C | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F2 ^C2 | F2 ^C2 | F2 ^C2 |
+F2 ^C2 | F ^C F ^C | F2 ^C2 |1 F2 z2 :|2 !accent!F4 ||
+P: C
+[M:6/8] !f! z |: !accent!F3 ^C3 | F2^C F3 | F3 ^C3 | F3 ^C3 |
+F3 ^C3 | F2^C F3 | F3 ^C3 |1 !accent!F3 z3 :|2 !accent!F3 F3 ||
+P: D
+[M:2/4] !ff! z2 |: !accent!C2 D2 | F2 D2 | !accent!C2 D2 | F2 D2 |
+!accent!C2 D2 | F2 D2 | !accent!C2 !accent!C2 | !accent!F2 z2 |
+!accent!C2 D2 | F2 D2 | !accent!C2 D2 | F2 D2 |
+!accent!C2 D2 | F2 D2 | !accent!C2 !accent!C2 |1 !accent!F2 z2 :|2 !accent!F2 z2 ||
+P: E
+[M:C|] !ff! z2 |: !accent!F4 ^C4 | F4 ^C4 | F4 ^C4 | F4 ^C4 |
+!accent!F4 ^C4 | F4 ^C4 | F4 ^C4 |1 ^C4 !accent!F4 :|2 ^C4 !accent!F4 |]
+%
+% Voice 15: Tambourine
+V: 15 name="Tambourine" snm="Tam." clef=perc
+%%MIDI channel 10
+P: I
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 ||
+P: A
+!mp! z2 |: z c | z c | z c | z c |
+z c | z c | z c | z c |
+z c | z c | z c | z c |
+z c | z c | z c |1 c z :|2 c z ||
+P: B
+|: !f! c c | c c | c c | c c |
+c c | c c | c c | c c |
+c c | c c | c c | c c |
+c c | c c | c c |1 c z :|2 !accent!c2 ||
+P: C
+[M:6/8] !f! z |: !accent!c3 c3 | c2c c3 | !accent!c3 c3 | c3 c3 |
+!accent!c3 c3 | c2c c3 | c3 c3 |1 !accent!c3 z3 :|2 !accent!c3 !accent!c3 ||
+P: D
+[M:2/4] !ff! z2 |: !accent!c2 !staccato!c2 | !staccato!c2 !staccato!c2 | !accent!c2 !staccato!c2 | !staccato!c2 !staccato!c2 |
+!accent!c2 !staccato!c2 | !staccato!c2 !staccato!c2 | !accent!c2 !staccato!c2 | !accent!c2 z2 |
+!accent!c2 !staccato!c2 | !staccato!c2 !staccato!c2 | !accent!c2 !staccato!c2 | !staccato!c2 !staccato!c2 |
+!accent!c2 !staccato!c2 | !staccato!c2 !staccato!c2 | !accent!c2 !staccato!c2 |1 !accent!c2 z2 :|2 !accent!c2 z2 ||
+P: E
+[M:C|] !ff! z2 |: !trill!c4 c4 | c4 c4 | !trill!c4 c4 | c4 c4 |
+!trill!c4 c4 | c4 c4 | !trill!c4 c4 |1 c4 c4 :|2 c4 !accent!c4 |]
+%
+% Voice 8: Marching Snare
+V: 8 name="Marching Snare" snm="M.S." clef=perc stafflines=1 middle=D,,
+%%MIDI channel 10
+P: I
+!pp! !trill!D,,4 | D,,2 z2 | !trill!D,,4 | D,,2 z2 |
+!trill!D,,4 | D,,2 z2 | !trill!D,,4 | z2 z2 |
+!mp! D,,2 z2 | D,,2 z2 | D,,2 z2 | D,,2 z2 |
+!cresc(start)! D,,/D,,/D,,/D,,/ D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,/D,,/D,,/D,,/ D,,/D,,/D,,/D,,/ | !staccato!D,,2 !staccato!D,,2 !cresc(end)! ||
+P: A
+!mp! z2 |: "^2nd time only" !staccato!D,,2 !staccato!D,,2 | D,,/D,,/D,,/D,,/ D,,2 | !staccato!D,,2 !staccato!D,,2 | D,,/D,,/D,,/D,,/ D,,2 |
+!staccato!D,,2 !staccato!D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,2 D,,2 | D,,2 z2 |
+D,,2 D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,2 D,,2 | D,,2 D,,2 |
+D,,2 D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,2 D,,2 |1 D,,2 z2 :|2 !trill!D,,2 z2 ||
+P: B
+|: !f! D,,/D,,/D,,/D,,/ D,,2 | !accent!D,,2 D,,2 | D,,/D,,/D,,/D,,/ D,,2 | !accent!D,,2 D,,2 |
+D,,/D,,/D,,/D,,/ D,,2 | !accent!D,,2 D,,2 | D,,/D,,/D,,/D,,/ D,,/D,,/D,,/D,,/ | !trill!D,,2 z2 |
+D,,/D,,/D,,/D,,/ D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,/D,,/D,,/D,,/ D,,2 |
+D,,/D,,/D,,/D,,/ D,,2 | D,,/D,,/D,,/D,,/ D,,2 | D,,2 D,,2 |1 !trill!D,,2 z2 :|2 !accent!D,,4 ||
+P: C
+[M:6/8] !ff! z |: !accent!D,,2 D,, D,,2 D,, | !trill!D,,3 !accent!D,,3 | D,,/D,,/D,,/D,,/D,,/D,,/ D,,2 D,, | !accent!D,,3 D,,3 |
+D,,2 D,, D,,2 D,, | D,,/D,,/D,,/D,,/D,,/D,,/ D,,3 | !accent!D,,2 D,, !accent!D,,2 D,, |1 !trill!D,,3 z3 :|2 !accent!D,,3 !accent!D,,3 ||
+P: D
+[M:2/4] !ff! !trill!D,,2 |: !accent!D,,2 !accent!D,,2 | D,,/D,,/D,,/D,,/ !accent!D,,2 | !accent!D,,2 !accent!D,,2 | D,,/D,,/D,,/D,,/ !accent!D,,2 |
+!accent!D,,2 !accent!D,,2 | D,,/D,,/D,,/D,,/ !accent!D,,2 | !trill!D,,2 !trill!D,,2 | !accent!D,,2 z2 |
+D,,/D,,/D,,/D,,/ !accent!D,,2 | D,,/D,,/D,,/D,,/ !accent!D,,2 | D,,/D,,/D,,/D,,/ !accent!D,,2 | D,,/D,,/D,,/D,,/ !accent!D,,2 |
+!accent!D,,2 !accent!D,,2 | !accent!D,,2 !accent!D,,2 | !trill!D,,2 !trill!D,,2 |1 !accent!D,,2 z2 :|2 !accent!D,,2 z2 ||
+P: E
+[M:C|] !ff! !trill!D,,4 |: !accent!D,,2 D,,2 D,,2 D,,2 | D,,4 !trill!D,,4 | !accent!D,,2 D,,2 D,,2 D,,2 | D,,4 !trill!D,,4 |
+!accent!D,,2 D,,2 D,,2 D,,2 | D,,4 !trill!D,,4 | !accent!D,,2 D,,2 D,,2 D,,2 |1 D,,4 !trill!D,,4 :|2 D,,4 !accent!D,,4 |]
+%
+% Voice 9: Marching Bass
+V: 9 name="Marching Bass" snm="M.B." clef=perc stafflines=1 middle=C,,
+%%MIDI channel 10
+P: I
+z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 |
+!p! C,,2 z2 | C,,2 z2 | C,,2 z2 | C,,2 z2 |
+!cresc(start)! C,,2 C,,2 | C,,2 C,,2 | C,,2 C,,2 | C,,2 z2 !cresc(end)! ||
+P: A
+!mp! z2 |: "^2nd time only" C,,2 z2 | C,,2 z2 | C,,2 z2 | C,,2 z2 |
+C,,2 z2 | C,,2 z2 | C,,2 C,,2 | C,,2 z2 |
+C,,2 z2 | C,,2 z2 | C,,2 z2 | C,,2 z2 |
+C,,2 C,,2 | C,,2 C,,2 | C,,2 z2 |1 C,,2 z2 :|2 C,,2 z2 ||
+P: B
+|: !f! C,,2 C,,2 | C,,2 z2 | C,,2 C,,2 | C,,2 z2 |
+C,,2 C,,2 | C,,2 z2 | C,,2 C,,2 | C,,2 z2 |
+C,,2 z2 | C,,2 z2 | C,,2 z2 | C,,2 z2 |
+C,,2 C,,2 | C,,2 C,,2 | C,,2 C,,2 |1 C,,2 z2 :|2 !accent!C,,4 ||
+P: C
+[M:6/8] !f! z |: !accent!C,,3 z3 | C,,2 C,, C,,2 z | C,,3 z3 | C,,2 C,, C,,2 z |
+C,,3 z3 | C,,2 C,, C,,2 z | C,,3 C,,3 |1 !accent!C,,3 z3 :|2 !accent!C,,3 !accent!C,,3 ||
+P: D
+[M:2/4] !ff! z2 |: !accent!C,,2 z2 | !accent!C,,2 z2 | !accent!C,,2 z2 | !accent!C,,2 z2 |
+!accent!C,,2 z2 | !accent!C,,2 z2 | !accent!C,,2 !accent!C,,2 | !accent!C,,2 z2 |
+!accent!C,,2 z2 | !accent!C,,2 z2 | !accent!C,,2 z2 | !accent!C,,2 z2 |
+!accent!C,,2 !accent!C,,2 | !accent!C,,2 !accent!C,,2 | !accent!C,,2 !accent!C,,2 |1 !accent!C,,2 z2 :|2 !accent!C,,2 z2 ||
+P: E
+[M:C|] !ff! z2 |: C,,2 z2 C,,2 z2 | C,,4 z4 | C,,2 z2 C,,2 z2 | C,,4 z4 |
+C,,2 z2 C,,2 z2 | C,,4 z4 | C,,2 z2 C,,2 z2 |1 C,,4 z4 :|2 !accent!C,,4 !accent!C,,4 |]
+%
+% Voice 10: Marching Tenors
+V: 10 name="Marching Tenors" snm="M.T." clef=perc
+%%MIDI channel 10
+P: I
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 ||
+P: A
+!mp! z2 |: "^2nd time only" z2 D,/D,/D,/D,/ | F,,2 z2 | z2 D,/D,/D,/D,/ | F,,2 z2 |
+F,,2 F,,2 | D,/D,/D,/D,/ D,/D,/D,/D,/ | F,,2 F,,2 | z2 z2 |
+F,,2 z2 | D,/D,/D,/D,/ D,/D,/D,/D,/ | F,,2 z2 | z2 z2 |
+F,,2 F,,2 | D,/D,/D,/D,/ F,,2 | F,,2 F,,2 |1 F,,2 z2 :|2 F,,2 z2 ||
+P: B
+|: !f! F,,2 F,,2 | D,/D,/D,/D,/ F,,2 | F,,2 F,,2 | D,/D,/D,/D,/ F,,2 |
+F,,2 F,,2 | D,/D,/D,/D,/ D,/D,/D,/D,/ | D,/D,/D,/D,/ D,/D,/D,/D,/ | F,,2 F,,2 |
+D,/D,/D,/D,/ D,/D,/D,/D,/ | D,/D,/D,/D,/ D,/D,/D,/D,/ | D,/D,/D,/D,/ D,/D,/D,/D,/ | F,,2 F,,2 |
+D,/D,/D,/D,/ F,,2 | D,/D,/D,/D,/ F,,2 | F,,2 F,,2 |1 F,,2 z2 :|2 !accent!F,,4 ||
+P: C
+[M:6/8] !f! z |: F,,2 F,, F,,2 F,, | D,3 D,3 | F,,2 F,, F,,2 F,, | D,3 D,3 |
+F,,2 F,, F,,2 F,, | D,3 D,3 | D,3 D,3 |1 F,,3 z3 :|2 !accent!F,,3 !accent!F,,3 ||
+P: D
+[M:2/4] !ff! z2 |: !accent!F,,2 !accent!F,,2 | D,/D,/D,/D,/ F,,2 | !accent!F,,2 !accent!F,,2 | D,/D,/D,/D,/ F,,2 |
+!accent!F,,2 !accent!F,,2 | D,/D,/D,/D,/ F,,2 | D,/D,/D,/D,/ D,/D,/D,/D,/ | !accent!F,,2 z2 |
+D,/D,/D,/D,/ D,/D,/D,/D,/ | D,/D,/D,/D,/ D,/D,/D,/D,/ | D,/D,/D,/D,/ D,/D,/D,/D,/ | F,,2 F,,2 |
+D,/D,/D,/D,/ F,,2 | D,/D,/D,/D,/ F,,2 | !accent!F,,2 !accent!F,,2 |1 !accent!F,,2 z2 :|2 !accent!F,,2 z2 ||
+P: E
+[M:C|] !ff! z2 |: !accent!F,,4 !accent!F,,4 | (3D,D,D, (3D,D,D, (3D,D,D, (3D,D,D, | !accent!F,,4 !accent!F,,4 | (3D,D,D, (3D,D,D, (3D,D,D, (3D,D,D, |
+!accent!F,,4 !accent!F,,4 | (3D,D,D, (3D,D,D, (3D,D,D, (3D,D,D, | !accent!F,,4 !accent!F,,4 |1 (3D,D,D, (3D,D,D, (3D,D,D, (3D,D,D, :|2 !accent!F,,4 !accent!F,,4 |]
+%
+% Voice 11: Marching Cymbals
+V: 11 name="Marching Cymbals" snm="Cym." clef=perc stafflines=1 middle=^C,
+%%MIDI channel 10
+P: I
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 |
+z2 | z2 | z2 | z2 | z2 | z2 | z2 | z2 ||
+P: A
+!mp! z2 |: "^2nd time only" z2 z2 | z2 z2 | z2 z2 | z2 z2 |
+z2 z2 | z2 z2 | !accent!^C,2 z2 | z2 z2 |
+z2 z2 | z2 z2 | z2 z2 | z2 z2 |
+z2 z2 | z2 z2 | !accent!^C,2 z2 |1 z2 z2 :|2 !accent!^C,2 z2 ||
+P: B
+|: !f! !accent!^C,2 z2 | z2 z2 | !accent!^C,2 z2 | z2 z2 |
+!accent!^C,2 z2 | z2 z2 | !accent!^C,2 !accent!^C,2 | z2 z2 |
+z2 z2 | z2 z2 | z2 z2 | z2 z2 |
+!accent!^C,2 z2 | z2 z2 | !accent!^C,2 !accent!^C,2 |1 z2 z2 :|2 !accent!^C,4 ||
+P: C
+[M:6/8] !f! z |: !accent!^C,3 z3 | z3 z3 | !accent!^C,3 z3 | z3 z3 |
+!accent!^C,3 z3 | z3 z3 | !accent!^C,3 !accent!^C,3 |1 z3 z3 :|2 !accent!^C,3 !accent!^C,3 ||
+P: D
+[M:2/4] !ff! !trill!^C,2 |: !accent!^C,2 !accent!^C,2 | z2 z2 | !accent!^C,2 !accent!^C,2 | z2 z2 |
+!accent!^C,2 !accent!^C,2 | z2 z2 | !accent!^C,2 !accent!^C,2 | !accent!^C,2 z2 |
+z2 z2 | z2 z2 | z2 z2 | !accent!^C,2 !accent!^C,2 |
+!accent!^C,2 z2 | z2 z2 | !accent!^C,2 !accent!^C,2 |1 !accent!^C,2 z2 :|2 !accent!^C,2 z2 ||
+P: E
+[M:C|] !ff! !trill!^C,4 |: !accent!^C,4 z4 | z8 | !accent!^C,4 z4 | z8 |
+!accent!^C,4 z4 | z8 | !accent!^C,4 !accent!^C,4 |1 z8 :|2 !accent!^C,4 !accent!^C,4 |]
+%
+%

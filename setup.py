@@ -36,8 +36,8 @@ OPTIONS = {
         'CFBundleName': APP_NAME,
         'CFBundleDisplayName': APP_NAME,
         'CFBundleIdentifier': 'com.abcplus.converter',
-        'CFBundleVersion': '1.5.0',  # Keep in sync with APP_VERSION in app.py
-        'CFBundleShortVersionString': '1.5.0',  # Keep in sync with APP_VERSION in app.py
+        'CFBundleVersion': '1.5.1',  # Keep in sync with APP_VERSION in app.py
+        'CFBundleShortVersionString': '1.5.1',  # Keep in sync with APP_VERSION in app.py
         'LSMinimumSystemVersion': '10.13',
         'NSHighResolutionCapable': True,
     },

@@ -5,7 +5,7 @@ import urllib.request
 import urllib.error
 
 # App version - keep in sync with setup.py CFBundleVersion
-APP_VERSION = "1.5.0"
+APP_VERSION = "1.5.1"
 GITHUB_REPO = "leedale30/abc-to-xml-converter"
 
 # Suppress pyparsing deprecation warnings (abc2xml uses old API)
@@ -261,6 +261,35 @@ def check_update():
             'error': str(e)
         })
 
+def kill_stale_process(port):
+    """Attempt to find and kill any process already using the specified port."""
+    try:
+        if sys.platform == 'win32':
+            # Windows: use netstat to find PID and taskkill to terminate
+            cmd = f'netstat -ano | findstr : {port}'
+            output = subprocess.check_output(cmd, shell=True).decode()
+            for line in output.splitlines():
+                if f':{port}' in line and 'LISTENING' in line:
+                    pid = line.strip().split()[-1]
+                    if pid != '0':
+                        print(f"Cleaning up stale process on port {port} (PID: {pid})...", file=sys.stderr)
+                        subprocess.run(['taskkill', '/F', '/PID', pid], check=False)
+        else:
+            # macOS / Linux: use lsof and kill
+            try:
+                output = subprocess.check_output(['lsof', '-ti', f':{port}'], text=True).strip()
+                if output:
+                    pids = output.split('\n')
+                    for pid in pids:
+                        if pid and int(pid) != os.getpid():
+                            print(f"Cleaning up stale process on port {port} (PID: {pid})...", file=sys.stderr)
+                            subprocess.run(['kill', '-9', pid], check=False)
+            except subprocess.CalledProcessError:
+                # lsof returns exit code 1 if no process is found
+                pass
+    except Exception as e:
+        print(f"Warning: Could not check/kill stale process: {e}", file=sys.stderr)
+
 if __name__ == '__main__':
     import webbrowser
     import threading
@@ -268,6 +297,9 @@ if __name__ == '__main__':
     # Auto-open browser after a short delay
     def open_browser():
         webbrowser.open('http://127.0.0.1:5001')
+    
+    # Clean up any existing process on port 5001
+    kill_stale_process(5001)
     
     threading.Timer(1.5, open_browser).start()
     

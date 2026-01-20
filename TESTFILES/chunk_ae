@@ -1,0 +1,200 @@
+			return [1, 'staccato'];
+		case 'u': return [1, 'upbow'];
+		case 'v': return [1, 'downbow'];
+		case '~': return [1, 'irishroll'];
+		case '!':
+		case '+':
+			var ret = tokenizer.getBrackettedSubstring(line, i, 5);
+			// Be sure that the accent is recognizable.
+			if (ret[1].length > 1 && (ret[1][0] === '^' || ret[1][0] === '_'))
+				ret[1] = ret[1].substring(1);	// TODO-PER: The test files have indicators forcing the ornament to the top or bottom, but that isn't in the standard. We'll just ignore them.
+			if (legalAccents.includes(ret[1]))
+				return ret;
+			if (volumeDecorations.includes(ret[1])) {
+				if (multilineVars.volumePosition === 'hidden')
+					ret[1] = '';
+				return ret;
+			}
+			if (dynamicDecorations.includes(ret[1])) {
+				if (multilineVars.dynamicPosition === 'hidden')
+					ret[1] = '';
+				return ret;
+			}
+
+			var ind = accentPseudonyms.findIndex(function (acc) { return ret[1] === acc[0] })
+			if (ind >= 0) {
+				ret[1] = accentPseudonyms[ind][1];
+				return ret;
+			}
+
+			ind = accentDynamicPseudonyms.findIndex(function (acc) { return ret[1] === acc[0] })
+			if (ind >= 0) {
+				ret[1] = accentDynamicPseudonyms[ind][1];
+				if (multilineVars.dynamicPosition === 'hidden')
+					ret[1] = '';
+				return ret;
+			}
+
+			// We didn't find the accent in the list, so consume the space, but don't return an accent.
+			// Although it is possible that ! was used as a line break, so accept that.
+			if (line[i] === '!' && (ret[0] === 1 || line[i + ret[0] - 1] !== '!'))
+				return [1, null];
+			warn("Unknown decoration: " + ret[1], line, i);
+			ret[1] = "";
+			return ret;
+		case 'H': return [1, 'fermata'];
+		case 'J': return [1, 'slide'];
+		case 'L': return [1, 'accent'];
+		case 'M': return [1, 'mordent'];
+		case 'O': return [1, 'coda'];
+		case 'P': return [1, 'pralltriller'];
+		case 'R': return [1, 'roll'];
+		case 'S': return [1, 'segno'];
+		case 'T': return [1, 'trill'];
+		case 't': return [1, 'trillh'];
+
+	}
+	return [0, 0];
+};
+
+var letter_to_spacer = function (line, i) {
+	var start = i;
+	while (tokenizer.isWhiteSpace(line[i]))
+		i++;
+	return [i - start];
+};
+
+// returns the class of the bar line
+// the number of the repeat
+// and the number of characters used up
+// if 0 is returned, then the next element was not a bar line
+var letter_to_bar = function (line, curr_pos) {
+	var ret = tokenizer.getBarLine(line, curr_pos);
+	if (ret.len === 0)
+		return [0, ""];
+	if (ret.warn) {
+		warn(ret.warn, line, curr_pos);
+		return [ret.len, ""];
+	}
+
+	// Now see if this is a repeated ending
+	// A repeated ending is all of the characters 1,2,3,4,5,6,7,8,9,0,-, and comma
+	// It can also optionally start with '[', which is ignored.
+	// Also, it can have white space before the '['.
+	for (var ws = 0; ws < line.length; ws++)
+		if (line[curr_pos + ret.len + ws] !== ' ')
+			break;
+	var orig_bar_len = ret.len;
+	if (line[curr_pos + ret.len + ws] === '[') {
+		ret.len += ws + 1;
+	}
+
+	// It can also be a quoted string. It is unclear whether that construct requires '[', but it seems like it would. otherwise it would be confused with a regular chord.
+	if (line[curr_pos + ret.len] === '"' && line[curr_pos + ret.len - 1] === '[') {
+		var ending = tokenizer.getBrackettedSubstring(line, curr_pos + ret.len, 5);
+		return [ret.len + ending[0], ret.token, ending[1]];
+	}
+	var retRep = tokenizer.getTokenOf(line.substring(curr_pos + ret.len), "1234567890-,");
+	if (retRep.len === 0 || retRep.token[0] === '-')
+		return [orig_bar_len, ret.token];
+
+	return [ret.len + retRep.len, ret.token, retRep.token];
+};
+
+var letter_to_open_slurs_and_triplets = function (line, i) {
+	// consume spaces, and look for all the open parens. If there is a number after the open paren,
+	// that is a triplet. Otherwise that is a slur. Collect all the slurs and the first triplet.
+	var ret = {};
+	var start = i;
+	if (line[i] === '.' && line[i + 1] === '(') {
+		ret.dottedSlur = true;
+		i++;
+	}
+	while (line[i] === '(' || tokenizer.isWhiteSpace(line[i])) {
+		if (line[i] === '(') {
+			if (i + 1 < line.length && (line[i + 1] >= '2' && line[i + 1] <= '9')) {
+				if (ret.triplet !== undefined)
+					warn("Can't nest triplets", line, i);
+				else {
+					ret.triplet = line[i + 1] - '0';
+					ret.tripletQ = tripletQ[ret.triplet];
+					ret.num_notes = ret.triplet;
+					if (i + 2 < line.length && line[i + 2] === ':') {
+						// We are expecting "(p:q:r" or "(p:q" or "(p::r"
+						// That is: "put p notes into the time of q for the next r notes"
+						// if r is missing, then it is equal to p.
+						// if q is missing, it is determined from this table:
+						// (2 notes in the time of 3
+						// (3 notes in the time of 2
+						// (4 notes in the time of 3
+						// (5 notes in the time of n | if time sig is (6/8, 9/8, 12/8), n=3, else n=2
+						// (6 notes in the time of 2
+						// (7 notes in the time of n
+						// (8 notes in the time of 3
+						// (9 notes in the time of n
+						if (i + 3 < line.length && line[i + 3] === ':') {
+							// The second number, 'q', is not present.
+							if (i + 4 < line.length && (line[i + 4] >= '1' && line[i + 4] <= '9')) {
+								ret.num_notes = line[i + 4] - '0';
+								i += 3;
+							} else
+								warn("expected number after the two colons after the triplet to mark the duration", line, i);
+						} else if (i + 3 < line.length && (line[i + 3] >= '1' && line[i + 3] <= '9')) {
+							ret.tripletQ = line[i + 3] - '0';
+							if (i + 4 < line.length && line[i + 4] === ':') {
+								if (i + 5 < line.length && (line[i + 5] >= '1' && line[i + 5] <= '9')) {
+									ret.num_notes = line[i + 5] - '0';
+									i += 4;
+								}
+							} else {
+								i += 2;
+							}
+						} else
+							warn("expected number after the triplet to mark the duration", line, i);
+					}
+				}
+				i++;
+			}
+			else {
+				if (ret.startSlur === undefined)
+					ret.startSlur = 1;
+				else
+					ret.startSlur++;
+			}
+		}
+		i++;
+	}
+	ret.consumed = i - start;
+	return ret;
+};
+
+MusicParser.prototype.startNewLine = function () {
+	var params = { startChar: -1, endChar: -1 };
+	if (multilineVars.partForNextLine.title)
+		params.part = multilineVars.partForNextLine;
+	params.clef = multilineVars.currentVoice && multilineVars.staves[multilineVars.currentVoice.staffNum].clef !== undefined ? Object.assign({}, multilineVars.staves[multilineVars.currentVoice.staffNum].clef) : Object.assign({}, multilineVars.clef);
+	var scoreTranspose = multilineVars.currentVoice ? multilineVars.currentVoice.scoreTranspose : 0;
+	params.key = parseKeyVoice.standardKey(multilineVars.key.root + multilineVars.key.acc + multilineVars.key.mode, multilineVars.key.root, multilineVars.key.acc, scoreTranspose);
+	params.key.mode = multilineVars.key.mode;
+	if (multilineVars.key.impliedNaturals)
+		params.key.impliedNaturals = multilineVars.key.impliedNaturals;
+	if (multilineVars.key.explicitAccidentals) {
+		for (var i = 0; i < multilineVars.key.explicitAccidentals.length; i++) {
+			var found = false;
+			for (var j = 0; j < params.key.accidentals.length; j++) {
+				if (params.key.accidentals[j].note === multilineVars.key.explicitAccidentals[i].note) {
+					// If the note is already in the list, override it with the new value
+					params.key.accidentals[j].acc = multilineVars.key.explicitAccidentals[i].acc;
+					found = true;
+				}
+			}
+			if (!found)
+				params.key.accidentals.push(multilineVars.key.explicitAccidentals[i]);
+		}
+	}
+	multilineVars.targetKey = params.key;
+	if (params.key.explicitAccidentals)
+		delete params.key.explicitAccidentals;
+	parseKeyVoice.addPosToKey(params.clef, params.key);
+	if (multilineVars.meter !== null) {
+		if (multilineVars.currentVoice) {

@@ -1,0 +1,200 @@
+							addedChord = true;
+							el.chord[ci].name += "\n" + chordName;
+						}
+					}
+					if (addedChord === false) {
+						if (ret[2] === null && ret[3])
+							el.chord.push({ name: chordName, rel_position: ret[3] });
+						else
+							el.chord.push({ name: chordName, position: ret[2] });
+					}
+
+					i += ret[0];
+					var ii = tokenizer.skipWhiteSpace(line.substring(i));
+					if (ii > 0)
+						el.force_end_beam_last = true;
+					i += ii;
+				} else {
+					if (nonDecorations.indexOf(line[i]) === -1)
+						ret = letter_to_accent(line, i);
+					else ret = [0];
+					if (ret[0] > 0) {
+						if (ret[1] === null) {
+							if (i + 1 < line.length)
+								this.startNewLine();	// There was a ! in the middle of the line. Start a new line if there is anything after it.
+						} else if (ret[1].length > 0) {
+							if (ret[1].indexOf("style=") === 0) {
+								el.style = ret[1].substr(6);
+							} else {
+								if (el.decoration === undefined)
+									el.decoration = [];
+								if (ret[1] === 'beambr1')
+									el.beambr = 1;
+								else if (ret[1] === "beambr2")
+									el.beambr = 2;
+								else el.decoration.push(ret[1]);
+							}
+						}
+						i += ret[0];
+					} else {
+						ret = letter_to_grace(line, i);
+						// TODO-PER: Be sure there aren't already grace notes defined. That is an error.
+						if (ret[0] > 0) {
+							el.gracenotes = ret[1];
+							i += ret[0];
+						} else {
+							ret = letter_to_open_slurs_and_triplets(line, i);
+							if (ret.consumed > 0) {
+								if (ret.startSlur !== undefined)
+									el.startSlur = (el.startSlur || 0) + ret.startSlur;
+								if (ret.dottedSlur)
+									el.dottedSlur = true;
+								if (ret.triplet !== undefined) {
+									if (tripletNotesLeft > 0)
+										warn("Can't nest triplets", line, i);
+									else {
+										el.startTriplet = ret.triplet;
+										el.tripletMultiplier = ret.tripletQ / ret.triplet;
+										el.tripletR = ret.num_notes;
+										tripletNotesLeft = ret.num_notes === undefined ? ret.triplet : ret.num_notes;
+									}
+								}
+								i += ret.consumed;
+							} else
+								break;
+						}
+					}
+				}
+			}
+
+			ret = letter_to_bar(line, i);
+			if (ret[0] > 0) {
+				// This is definitely a bar
+				overlayLevel = 0;
+				if (el.gracenotes !== undefined) {
+					// Attach the grace note to an invisible note
+					el.rest = { type: 'spacer' };
+					el.duration = 0.125; // TODO-PER: I don't think the duration of this matters much, but figure out if it does.
+					multilineVars.addFormattingOptions(el, tune.formatting, 'note');
+					tuneBuilder.appendElement('note', startOfLine + i, startOfLine + i + ret[0], el);
+					multilineVars.measureNotEmpty = true;
+					el = {};
+				}
+				var bar = { type: ret[1] };
+				if (bar.type.length === 0)
+					warn("Unknown bar type", line, i);
+				else {
+					if (multilineVars.inEnding && bar.type !== 'bar_thin') {
+						bar.endEnding = true;
+						multilineVars.inEnding = false;
+					}
+					if (ret[2]) {
+						bar.startEnding = ret[2];
+						if (multilineVars.inEnding)
+							bar.endEnding = true;
+						multilineVars.inEnding = true;
+						if (ret[1] === "bar_right_repeat") {
+							// restore the tie and slur state from the start repeat
+							multilineVars.restoreStartEndingHoldOvers();
+						} else {
+							// save inTie, inTieChord
+							multilineVars.duplicateStartEndingHoldOvers();
+						}
+					}
+					if (el.decoration !== undefined)
+						bar.decoration = el.decoration;
+					if (el.chord !== undefined)
+						bar.chord = el.chord;
+					if (bar.startEnding && multilineVars.barFirstEndingNum === undefined)
+						multilineVars.barFirstEndingNum = multilineVars.currBarNumber;
+					else if (bar.startEnding && bar.endEnding && multilineVars.barFirstEndingNum)
+						multilineVars.currBarNumber = multilineVars.barFirstEndingNum;
+					else if (bar.endEnding)
+						multilineVars.barFirstEndingNum = undefined;
+					if (bar.type !== 'bar_invisible' && multilineVars.measureNotEmpty) {
+						if (isFirstVoice()) {
+							multilineVars.currBarNumber++;
+							if (multilineVars.barNumbers && multilineVars.currBarNumber % multilineVars.barNumbers === 0)
+								bar.barNumber = multilineVars.currBarNumber;
+						}
+					}
+					multilineVars.addFormattingOptions(el, tune.formatting, 'bar');
+					tuneBuilder.appendElement('bar', startOfLine + startI, startOfLine + i + ret[0], bar);
+					multilineVars.measureNotEmpty = false;
+					el = {};
+				}
+				i += ret[0];
+			} else if (line[i] === '&') {	// backtrack to beginning of measure
+				ret = letter_to_overlay(line, i);
+				if (ret[0] > 0) {
+					tuneBuilder.appendElement('overlay', startOfLine, startOfLine + 1, {});
+					i += 1;
+					overlayLevel++;
+				}
+
+			} else {
+				// This is definitely a note group
+				//
+				// Look for as many open slurs and triplets as there are. (Note: only the first triplet is valid.)
+				ret = letter_to_open_slurs_and_triplets(line, i);
+				if (ret.consumed > 0) {
+					if (ret.startSlur !== undefined)
+						el.startSlur = ret.startSlur;
+					if (ret.dottedSlur)
+						el.dottedSlur = true;
+					if (ret.triplet !== undefined) {
+						if (tripletNotesLeft > 0)
+							warn("Can't nest triplets", line, i);
+						else {
+							el.startTriplet = ret.triplet;
+							el.tripletMultiplier = ret.tripletQ / ret.triplet;
+							el.tripletR = ret.num_notes;
+							tripletNotesLeft = ret.num_notes === undefined ? ret.triplet : ret.num_notes;
+						}
+					}
+					i += ret.consumed;
+				}
+
+				// handle chords.
+				if (line[i] === '[') {
+					var chordStartChar = i;
+					i++;
+					var chordDuration = null;
+					var rememberEndBeam = false;
+
+					var done = false;
+					while (!done) {
+						var accent = letter_to_accent(line, i);
+						if (accent[0] > 0) {
+							i += accent[0];
+						}
+
+						var chordNote = getCoreNote(line, i, {}, false);
+						if (chordNote !== null && chordNote.pitch !== undefined) {
+							if (accent[0] > 0) { // If we found a decoration above, it modifies the entire chord. "style" is handled below.
+								if (accent[1].indexOf("style=") !== 0) {
+									if (el.decoration === undefined)
+										el.decoration = [];
+									el.decoration.push(accent[1]);
+								}
+							}
+							if (chordNote.end_beam) {
+								el.end_beam = true;
+								delete chordNote.end_beam;
+							}
+							if (el.pitches === undefined) {
+								el.duration = chordNote.duration;
+								el.pitches = [chordNote];
+							} else	// Just ignore the note lengths of all but the first note. The standard isn't clear here, but this seems less confusing.
+								el.pitches.push(chordNote);
+							delete chordNote.duration;
+							if (accent[0] > 0) { // If we found a style above, it modifies the individual pitch, not the entire chord.
+								if (accent[1].indexOf("style=") === 0) {
+									el.pitches[el.pitches.length - 1].style = accent[1].substr(6);
+								}
+							}
+
+							if (multilineVars.inTieChord[el.pitches.length]) {
+								chordNote.endTie = true;
+								multilineVars.inTieChord[el.pitches.length] = undefined;
+							}

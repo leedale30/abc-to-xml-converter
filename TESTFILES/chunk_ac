@@ -1,0 +1,200 @@
+							if (chordNote.startTie)
+								multilineVars.inTieChord[el.pitches.length] = true;
+
+							i = chordNote.endChar;
+							delete chordNote.endChar;
+						} else if (line[i] === ' ') {
+							// Spaces are not allowed in chords, but we can recover from it by ignoring it.
+							warn("Spaces are not allowed in chords", line, i);
+							i++;
+						} else {
+							if (i < line.length && line[i] === ']') {
+								// consume the close bracket
+								i++;
+
+								if (multilineVars.next_note_duration !== 0) {
+									el.duration = el.duration * multilineVars.next_note_duration;
+									multilineVars.next_note_duration = 0;
+								}
+
+								if (isInTie(multilineVars, overlayLevel, el)) {
+									el.pitches.forEach(function (pitch) { pitch.endTie = true; });
+									setIsInTie(multilineVars, overlayLevel, false);
+								}
+
+								if (tripletNotesLeft > 0 && !(el.rest && el.rest.type === "spacer")) {
+									tripletNotesLeft--;
+									if (tripletNotesLeft === 0) {
+										el.endTriplet = true;
+									}
+								}
+
+								var postChordDone = false;
+								while (i < line.length && !postChordDone) {
+									switch (line[i]) {
+										case ' ':
+										case '\t':
+											addEndBeam(el);
+											break;
+										case ')':
+											if (el.endSlur === undefined) el.endSlur = 1; else el.endSlur++;
+											break;
+										case '-':
+											el.pitches.forEach(function (pitch) { pitch.startTie = {}; });
+											setIsInTie(multilineVars, overlayLevel, true);
+											break;
+										case '>':
+										case '<':
+											var br2 = getBrokenRhythm(line, i);
+											i += br2[0] - 1;	// index gets incremented below, so we'll let that happen
+											multilineVars.next_note_duration = br2[2];
+											if (chordDuration)
+												chordDuration = chordDuration * br2[1];
+											else
+												chordDuration = br2[1];
+											break;
+										case '1':
+										case '2':
+										case '3':
+										case '4':
+										case '5':
+										case '6':
+										case '7':
+										case '8':
+										case '9':
+										case '/':
+											var fraction = tokenizer.getFraction(line, i);
+											chordDuration = fraction.value;
+											i = fraction.index;
+											var ch = line[i]
+											if (ch === ' ')
+												rememberEndBeam = true;
+											if (ch === '-' || ch === ')' || ch === ' ' || ch === '<' || ch === '>')
+												i--; // Subtracting one because one is automatically added below
+											else
+												postChordDone = true;
+											break;
+										case '0':
+											chordDuration = 0;
+											break;
+										default:
+											postChordDone = true;
+											break;
+									}
+									if (!postChordDone) {
+										i++;
+									}
+								}
+							} else
+								warn("Expected ']' to end the chords", line, i);
+
+							if (el.pitches !== undefined) {
+								if (chordDuration !== null) {
+									el.duration = el.duration * chordDuration;
+									if (rememberEndBeam)
+										addEndBeam(el);
+								}
+
+								multilineVars.addFormattingOptions(el, tune.formatting, 'note');
+								tuneBuilder.appendElement('note', startOfLine + startI, startOfLine + i, el);
+								multilineVars.measureNotEmpty = true;
+								el = {};
+							}
+							done = true;
+						}
+					}
+
+				} else {
+					// Single pitch
+					var el2 = {};
+					var core = getCoreNote(line, i, el2, true);
+					if (el2.endTie !== undefined) setIsInTie(multilineVars, overlayLevel, true);
+					if (core !== null) {
+						if (core.pitch !== undefined) {
+							el.pitches = [{}];
+							// TODO-PER: straighten this out so there is not so much copying: getCoreNote shouldn't change e'
+							if (core.accidental !== undefined) el.pitches[0].accidental = core.accidental;
+							el.pitches[0].pitch = core.pitch;
+							el.pitches[0].name = core.name;
+							if (core.midipitch || core.midipitch === 0)
+								el.pitches[0].midipitch = core.midipitch;
+							if (core.endSlur !== undefined) el.pitches[0].endSlur = core.endSlur;
+							if (core.endTie !== undefined) el.pitches[0].endTie = core.endTie;
+							if (core.startSlur !== undefined) el.pitches[0].startSlur = core.startSlur;
+							if (el.startSlur !== undefined) el.pitches[0].startSlur = el.startSlur;
+							if (el.dottedSlur !== undefined) el.pitches[0].dottedSlur = true;
+							if (core.startTie !== undefined) el.pitches[0].startTie = core.startTie;
+							if (el.startTie !== undefined) el.pitches[0].startTie = el.startTie;
+						} else {
+							el.rest = core.rest;
+							if (core.rest.type === 'multimeasure' && isFirstVoice())
+								multilineVars.currBarNumber += core.rest.text - 1 // The minus one is because the measure with the rest is already counted once normally.
+							if (core.endSlur !== undefined) el.endSlur = core.endSlur;
+							if (core.endTie !== undefined) el.rest.endTie = core.endTie;
+							if (core.startSlur !== undefined) el.startSlur = core.startSlur;
+							if (core.startTie !== undefined) el.rest.startTie = core.startTie;
+							if (el.startTie !== undefined) el.rest.startTie = el.startTie;
+						}
+
+						if (core.chord !== undefined) el.chord = core.chord;
+						if (core.duration !== undefined) el.duration = core.duration;
+						if (core.decoration !== undefined) el.decoration = core.decoration;
+						if (core.graceNotes !== undefined) el.graceNotes = core.graceNotes;
+						delete el.startSlur;
+						delete el.dottedSlur;
+						if (isInTie(multilineVars, overlayLevel, el)) {
+							if (el.pitches !== undefined) {
+								el.pitches[0].endTie = true;
+							} else if (el.rest.type !== 'spacer') {
+								el.rest.endTie = true;
+							}
+							setIsInTie(multilineVars, overlayLevel, false);
+						}
+						if (core.startTie || el.startTie)
+							setIsInTie(multilineVars, overlayLevel, true);
+						i = core.endChar;
+
+						if (tripletNotesLeft > 0 && !(core.rest && core.rest.type === "spacer")) {
+							tripletNotesLeft--;
+							if (tripletNotesLeft === 0) {
+								el.endTriplet = true;
+							}
+						}
+
+						if (core.end_beam)
+							addEndBeam(el);
+
+						// If there is a whole rest, then it should be the duration of the measure, not it's own duration. We need to special case it.
+						// If the time signature length is greater than 4/4, though, then a whole rest has no special treatment.
+						if (el.rest && el.rest.type === 'rest' && el.duration === 1 && durationOfMeasure(multilineVars) <= 1) {
+							el.rest.type = 'whole';
+
+							el.duration = durationOfMeasure(multilineVars);
+						}
+
+						// Create a warning if this is not a displayable duration.
+						// The first item on a line is a regular note value, each item after that represents a dot placed after the previous note.
+						// Only durations less than a whole note are tested because whole note durations have some tricky rules.
+
+						if (el.duration < 1 && durations.indexOf(el.duration) === -1 && el.duration !== 0) {
+							if (!el.rest || el.rest.type !== 'spacer')
+								warn("Duration not representable: " + line.substring(startI, i), line, i);
+						}
+
+						multilineVars.addFormattingOptions(el, tune.formatting, 'note');
+						var succeeded = tuneBuilder.appendElement('note', startOfLine + startI, startOfLine + i, el);
+						if (!succeeded) {
+							this.startNewLine()
+							tuneBuilder.appendElement('note', startOfLine + startI, startOfLine + i, el);
+						}
+						multilineVars.measureNotEmpty = true;
+						el = {};
+					}
+				}
+
+				if (i === startI) {	// don't know what this is, so ignore it.
+					if (line[i] !== ' ' && line[i] !== '`')
+						warn("Unknown character ignored", line, i);
+					i++;
+				}
+			}

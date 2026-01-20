@@ -1,0 +1,200 @@
+			multilineVars.staves.forEach(function (st) {
+				st.meter = multilineVars.meter;
+			});
+			params.meter = multilineVars.staves[multilineVars.currentVoice.staffNum].meter;
+			multilineVars.staves[multilineVars.currentVoice.staffNum].meter = null;
+		} else
+			params.meter = multilineVars.meter;
+		multilineVars.meter = null;
+	} else if (multilineVars.currentVoice && multilineVars.staves[multilineVars.currentVoice.staffNum].meter) {
+		// Make sure that each voice gets the meter marking.
+		params.meter = multilineVars.staves[multilineVars.currentVoice.staffNum].meter;
+		multilineVars.staves[multilineVars.currentVoice.staffNum].meter = null;
+	}
+	if (multilineVars.currentVoice && multilineVars.currentVoice.name)
+		params.name = multilineVars.currentVoice.name;
+	if (multilineVars.vocalfont)
+		params.vocalfont = multilineVars.vocalfont;
+	if (multilineVars.tripletfont)
+		params.tripletfont = multilineVars.tripletfont;
+	if (multilineVars.gchordfont)
+		params.gchordfont = multilineVars.gchordfont;
+	if (multilineVars.style)
+		params.style = multilineVars.style;
+	if (multilineVars.currentVoice) {
+		var staff = multilineVars.staves[multilineVars.currentVoice.staffNum];
+		if (staff.brace) params.brace = staff.brace;
+		if (staff.bracket) params.bracket = staff.bracket;
+		if (staff.connectBarLines) params.connectBarLines = staff.connectBarLines;
+		if (staff.name) params.name = staff.name[multilineVars.currentVoice.index];
+		if (staff.subname) params.subname = staff.subname[multilineVars.currentVoice.index];
+		if (multilineVars.currentVoice.stem)
+			params.stem = multilineVars.currentVoice.stem;
+		if (multilineVars.currentVoice.stafflines)
+			params.stafflines = multilineVars.currentVoice.stafflines;
+		if (multilineVars.currentVoice.staffscale)
+			params.staffscale = multilineVars.currentVoice.staffscale;
+		if (multilineVars.currentVoice.scale)
+			params.scale = multilineVars.currentVoice.scale;
+		if (multilineVars.currentVoice.color)
+			params.color = multilineVars.currentVoice.color;
+		if (multilineVars.currentVoice.style)
+			params.style = multilineVars.currentVoice.style;
+		if (multilineVars.currentVoice.transpose)
+			params.clef.transpose = multilineVars.currentVoice.transpose;
+		params.currentVoice = multilineVars.currentVoice
+		var voices = Object.keys(multilineVars.voices)
+		for (var mv = 0; mv < voices.length; mv++) {
+			if (params.currentVoice.staffNum === multilineVars.voices[voices[mv]].staffNum && params.currentVoice.index === multilineVars.voices[voices[mv]].index)
+				params.currentVoiceName = voices[mv]
+		}
+	}
+	if (multilineVars.barNumbers === 0 && isFirstVoice() && multilineVars.currBarNumber !== 1)
+		params.barNumber = multilineVars.currBarNumber;
+	tuneBuilder.startNewLine(params);
+	if (multilineVars.key.impliedNaturals)
+		delete multilineVars.key.impliedNaturals;
+
+	multilineVars.partForNextLine = {};
+	if (multilineVars.tempoForNextLine.length === 4)
+		tuneBuilder.appendElement(multilineVars.tempoForNextLine[0], multilineVars.tempoForNextLine[1], multilineVars.tempoForNextLine[2], multilineVars.tempoForNextLine[3]);
+	multilineVars.tempoForNextLine = [];
+}
+
+// TODO-PER: make this a method in el.
+var addEndBeam = function (el) {
+	if (el.duration !== undefined && el.duration < 0.25)
+		el.end_beam = true;
+	return el;
+};
+
+var getCoreNote = function (line, index, el, canHaveBrokenRhythm) {
+	//var el = { startChar: index };
+	var isComplete = function (state) {
+		return (state === 'octave' || state === 'duration' || state === 'Zduration' || state === 'broken_rhythm' || state === 'end_slur');
+	};
+	var dottedTie;
+	if (line[index] === '.' && line[index + 1] === '-') {
+		dottedTie = true;
+		index++;
+	}
+	var state = 'startSlur';
+	var durationSetByPreviousNote = false;
+	while (1) {
+		switch (line[index]) {
+			case '(':
+				if (state === 'startSlur') {
+					if (el.startSlur === undefined) el.startSlur = 1; else el.startSlur++;
+				} else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case ')':
+				if (isComplete(state)) {
+					if (el.endSlur === undefined) el.endSlur = 1; else el.endSlur++;
+				} else return null;
+				break;
+			case '^':
+				if (state === 'startSlur') { el.accidental = 'sharp'; state = 'sharp2'; }
+				else if (state === 'sharp2') { el.accidental = 'dblsharp'; state = 'pitch'; }
+				else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case '_':
+				if (state === 'startSlur') { el.accidental = 'flat'; state = 'flat2'; }
+				else if (state === 'flat2') { el.accidental = 'dblflat'; state = 'pitch'; }
+				else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case '=':
+				if (state === 'startSlur') { el.accidental = 'natural'; state = 'pitch'; }
+				else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case 'A':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'E':
+			case 'F':
+			case 'G':
+			case 'a':
+			case 'b':
+			case 'c':
+			case 'd':
+			case 'e':
+			case 'f':
+			case 'g':
+				if (state === 'startSlur' || state === 'sharp2' || state === 'flat2' || state === 'pitch') {
+					el.pitch = pitches[line[index]];
+					el.pitch += 7 * (multilineVars.currentVoice && multilineVars.currentVoice.octave !== undefined ? multilineVars.currentVoice.octave : multilineVars.octave);
+					el.name = line[index];
+					if (el.accidental)
+						el.name = accMap[el.accidental] + el.name;
+					transpose.note(multilineVars, el);
+					state = 'octave';
+					// At this point we have a valid note. The rest is optional. Set the duration in case we don't get one below
+					if (canHaveBrokenRhythm && multilineVars.next_note_duration !== 0) {
+						el.duration = multilineVars.default_length * multilineVars.next_note_duration;
+						multilineVars.next_note_duration = 0;
+						durationSetByPreviousNote = true;
+					} else
+						el.duration = multilineVars.default_length;
+					// If the clef is percussion, there is probably some translation of the pitch to a particular drum kit item.
+					if ((multilineVars.clef && multilineVars.clef.type === "perc") ||
+						(multilineVars.currentVoice && multilineVars.currentVoice.clef === "perc")) {
+						var key = line[index];
+						if (el.accidental) {
+							key = accMap[el.accidental] + key;
+						}
+						if (tune.formatting && tune.formatting.midi && tune.formatting.midi.drummap)
+							el.midipitch = tune.formatting.midi.drummap[key];
+					}
+				} else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case ',':
+				if (state === 'octave') { el.pitch -= 7; el.name += ','; }
+				else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case '\'':
+				if (state === 'octave') { el.pitch += 7; el.name += "'"; }
+				else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case 'x':
+			case 'X':
+			case 'y':
+			case 'z':
+			case 'Z':
+				if (state === 'startSlur') {
+					el.rest = { type: rests[line[index]] };
+					// There shouldn't be some of the properties that notes have. If some sneak in due to bad syntax in the abc file,
+					// just nix them here.
+					delete el.accidental;
+					delete el.startSlur;
+					delete el.startTie;
+					delete el.endSlur;
+					delete el.endTie;
+					delete el.end_beam;
+					delete el.grace_notes;
+					// At this point we have a valid note. The rest is optional. Set the duration in case we don't get one below
+					if (el.rest.type.indexOf('multimeasure') >= 0) {
+						el.duration = tune.getBarLength();
+						el.rest.text = 1;
+						state = 'Zduration';
+					} else {
+						if (canHaveBrokenRhythm && multilineVars.next_note_duration !== 0) {
+							el.duration = multilineVars.default_length * multilineVars.next_note_duration;
+							multilineVars.next_note_duration = 0;
+							durationSetByPreviousNote = true;
+						} else
+							el.duration = multilineVars.default_length;
+						state = 'duration';
+					}
+				} else if (isComplete(state)) { el.endChar = index; return el; }
+				else return null;
+				break;
+			case '1':
+			case '2':
+			case '3':

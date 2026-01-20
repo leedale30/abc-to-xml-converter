@@ -1,0 +1,200 @@
+		}
+	}
+	this.lineContinuation = line.indexOf('\x12') >= 0 || (retHeader[0] > 0)
+	if (!this.lineContinuation) { el = {} }
+};
+
+var setIsInTie = function (multilineVars, overlayLevel, value) {
+	// If this is single voice music then the voice index isn't set, so we use the first voice.
+	var voiceIndex = multilineVars.currentVoice ? multilineVars.currentVoice.staffNum * 100 + multilineVars.currentVoice.index : 0;
+	if (multilineVars.inTie[overlayLevel] === undefined)
+		multilineVars.inTie[overlayLevel] = [];
+	multilineVars.inTie[overlayLevel][voiceIndex] = value;
+};
+
+var letter_to_chord = function (line, i) {
+	if (line[i] === '"') {
+		var chord = tokenizer.getBrackettedSubstring(line, i, 5);
+		if (!chord[2])
+			warn("Missing the closing quote while parsing the chord symbol", line, i);
+		// If it starts with ^, then the chord appears above.
+		// If it starts with _ then the chord appears below.
+		// (note that the 2.0 draft standard defines them as not chords, but annotations and also defines @.)
+		if (chord[0] > 0 && chord[1].length > 0 && chord[1][0] === '^') {
+			chord[1] = chord[1].substring(1);
+			chord[2] = 'above';
+		} else if (chord[0] > 0 && chord[1].length > 0 && chord[1][0] === '_') {
+			chord[1] = chord[1].substring(1);
+			chord[2] = 'below';
+		} else if (chord[0] > 0 && chord[1].length > 0 && chord[1][0] === '<') {
+			chord[1] = chord[1].substring(1);
+			chord[2] = 'left';
+		} else if (chord[0] > 0 && chord[1].length > 0 && chord[1][0] === '>') {
+			chord[1] = chord[1].substring(1);
+			chord[2] = 'right';
+		} else if (chord[0] > 0 && chord[1].length > 0 && chord[1][0] === '@') {
+			// @-15,5.7		
+			chord[1] = chord[1].substring(1);
+			var x = tokenizer.getFloat(chord[1]);
+			if (x.digits === 0) {
+				warn("Missing first position in absolutely positioned annotation.", line, i);
+				chord[1] = chord[1].replace("@", "");
+				chord[2] = 'above';
+				return chord;
+			}
+			chord[1] = chord[1].substring(x.digits);
+			if (chord[1][0] !== ',') {
+				warn("Missing comma absolutely positioned annotation.", line, i);
+				chord[1] = chord[1].replace("@", "");
+				chord[2] = 'above';
+				return chord;
+			}
+			chord[1] = chord[1].substring(1);
+			var y = tokenizer.getFloat(chord[1]);
+			if (y.digits === 0) {
+				warn("Missing second position in absolutely positioned annotation.", line, i);
+				chord[1] = chord[1].replace("@", "");
+				chord[2] = 'above';
+				return chord;
+			}
+			chord[1] = chord[1].substring(y.digits);
+			var ws = tokenizer.skipWhiteSpace(chord[1]);
+			chord[1] = chord[1].substring(ws);
+			chord[2] = null;
+			chord[3] = {
+				x: x.value,
+				y: y.value
+			};
+		} else {
+			if (multilineVars.freegchord !== true) {
+				chord[1] = chord[1].replace(/([ABCDEFG0-9])b/g, "$1♭");
+				chord[1] = chord[1].replace(/([ABCDEFG0-9])#/g, "$1♯");
+				chord[1] = chord[1].replace(/^([ABCDEFG])([♯♭]?)o([^A-Za-z])/g, "$1$2°$3");
+				chord[1] = chord[1].replace(/^([ABCDEFG])([♯♭]?)o$/g, "$1$2°");
+				chord[1] = chord[1].replace(/^([ABCDEFG])([♯♭]?)0([^A-Za-z])/g, "$1$2ø$3");
+				chord[1] = chord[1].replace(/^([ABCDEFG])([♯♭]?)\^([^A-Za-z])/g, "$1$2∆$3");
+			}
+			chord[2] = 'default';
+			chord[1] = transpose.chordName(multilineVars, chord[1]);
+		}
+		return chord;
+	}
+	return [0, ""];
+};
+
+var letter_to_grace = function (line, i) {
+	// Grace notes are an array of: startslur, note, endslur, space; where note is accidental, pitch, duration
+	if (line[i] === '{') {
+		// fetch the gracenotes string and consume that into the array
+		var gra = tokenizer.getBrackettedSubstring(line, i, 1, '}');
+		if (!gra[2])
+			warn("Missing the closing '}' while parsing grace note", line, i);
+		// If there is a slur after the grace construction, then move it to the last note inside the grace construction
+		if (line[i + gra[0]] === ')') {
+			gra[0]++;
+			gra[1] += ')';
+		}
+
+		var gracenotes = [];
+		var ii = 0;
+		var inTie = false;
+		while (ii < gra[1].length) {
+			var acciaccatura = false;
+			if (gra[1][ii] === '/') {
+				acciaccatura = true;
+				ii++;
+			}
+			var note = getCoreNote(gra[1], ii, {}, false);
+			if (note !== null) {
+				// The grace note durations should not be affected by the default length: they should be based on 1/16, so if that isn't the default, then multiply here.
+				note.duration = note.duration / (multilineVars.default_length * 8);
+				if (acciaccatura)
+					note.acciaccatura = true;
+				if (note.rest) {
+					// don't allow rests inside gracenotes
+					warn("Rests not allowed as grace notes '" + gra[1][ii] + "' while parsing grace note", line, i);
+				} else
+					gracenotes.push(note);
+
+				if (inTie) {
+					note.endTie = true;
+					inTie = false;
+				}
+				if (note.startTie)
+					inTie = true;
+
+				ii = note.endChar;
+				delete note.endChar;
+
+				if (note.end_beam) {
+					note.endBeam = true;
+					delete note.end_beam;
+				}
+			}
+			else {
+				// We shouldn't get anything but notes or a space here, so report an error
+				if (gra[1][ii] === ' ') {
+					if (gracenotes.length > 0)
+						gracenotes[gracenotes.length - 1].endBeam = true;
+				} else
+					warn("Unknown character '" + gra[1][ii] + "' while parsing grace note", line, i);
+				ii++;
+			}
+		}
+		if (gracenotes.length)
+			return [gra[0], gracenotes];
+	}
+	return [0];
+};
+
+function letter_to_overlay(line, i) {
+	if (line[i] === '&') {
+		var start = i;
+		while (line[i] && line[i] !== ':' && line[i] !== '|')
+			i++;
+		return [i - start, line.substring(start + 1, i)];
+	}
+	return [0];
+}
+
+function durationOfMeasure(multilineVars) {
+	// TODO-PER: This could be more complicated if one of the unusual measures is used.
+	var meter = multilineVars.origMeter;
+	if (!meter || meter.type !== 'specified')
+		return 1;
+	if (!meter.value || meter.value.length === 0)
+		return 1;
+	return parseInt(meter.value[0].num, 10) / parseInt(meter.value[0].den, 10);
+}
+
+
+
+
+var letter_to_accent = function (line, i) {
+	var macro = multilineVars.macros[line[i]];
+
+	if (macro !== undefined) {
+		if (macro[0] === '!' || macro[0] === '+')
+			macro = macro.substring(1);
+		if (macro[macro.length - 1] === '!' || macro[macro.length - 1] === '+')
+			macro = macro.substring(0, macro.length - 1);
+		if (legalAccents.includes(macro))
+			return [1, macro];
+		else if (volumeDecorations.includes(macro)) {
+			if (multilineVars.volumePosition === 'hidden')
+				macro = "";
+			return [1, macro];
+		} else if (dynamicDecorations.includes(macro)) {
+			if (multilineVars.dynamicPosition === 'hidden')
+				macro = "";
+			return [1, macro];
+		} else {
+			if (!multilineVars.ignoredDecorations.includes(macro))
+				warn("Unknown macro: " + macro, line, i);
+			return [1, ''];
+		}
+	}
+	switch (line[i]) {
+		case '.':
+			if (line[i + 1] === '(' || line[i + 1] === '-') // a dot then open paren is a dotted slur; likewise dot dash is dotted tie.
+				break;

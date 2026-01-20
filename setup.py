@@ -10,7 +10,17 @@ APP_NAME = 'ABC+ Converter'
 
 DATA_FILES = [
     ('templates', ['templates/index.html']),
-    ('static', ['static/style.css', 'static/script.js', 'static/abcjs-basic-min.js', 'static/opensheetmusicdisplay.min.js']),
+    ('static', ['static/style.css', 'static/script.js', 'static/abcjs-basic-min.js', 'static/opensheetmusicdisplay.min.js', 'static/manifest.json', 'static/sw.js']),
+    ('static/icons', [
+        'static/icons/icon-72.png',
+        'static/icons/icon-96.png',
+        'static/icons/icon-128.png',
+        'static/icons/icon-144.png',
+        'static/icons/icon-152.png',
+        'static/icons/icon-192.png',
+        'static/icons/icon-384.png',
+        'static/icons/icon-512.png',
+    ]),
     ('abc2xml', [
         'abc2xml/abc2xml.py',
         'abc2xml/LICENSE',
@@ -26,8 +36,8 @@ OPTIONS = {
         'CFBundleName': APP_NAME,
         'CFBundleDisplayName': APP_NAME,
         'CFBundleIdentifier': 'com.abcplus.converter',
-        'CFBundleVersion': '1.3.1',  # Keep in sync with APP_VERSION in app.py
-        'CFBundleShortVersionString': '1.3.1',  # Keep in sync with APP_VERSION in app.py
+        'CFBundleVersion': '1.4.0',  # Keep in sync with APP_VERSION in app.py
+        'CFBundleShortVersionString': '1.4.0',  # Keep in sync with APP_VERSION in app.py
         'LSMinimumSystemVersion': '10.13',
         'NSHighResolutionCapable': True,
     },

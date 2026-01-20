@@ -1,0 +1,200 @@
+var parseKeyVoice = require('./abc_parse_key_voice');
+var transpose = require('./abc_transpose');
+
+var tokenizer;
+var warn;
+var multilineVars;
+var tune;
+var tuneBuilder;
+var header;
+
+var {
+	legalAccents,
+	volumeDecorations,
+	dynamicDecorations,
+	accentPseudonyms,
+	accentDynamicPseudonyms,
+	nonDecorations,
+	durations,
+	pitches,
+	rests,
+	accMap,
+	tripletQ
+} = require('./abc_parse_settings')
+
+var MusicParser = function (_tokenizer, _warn, _multilineVars, _tune, _tuneBuilder, _header) {
+	tokenizer = _tokenizer;
+	warn = _warn;
+	multilineVars = _multilineVars;
+	tune = _tune;
+	tuneBuilder = _tuneBuilder;
+	header = _header;
+	this.lineContinuation = false;
+}
+
+//
+// Parse line of music
+//
+// This is a stream of <(bar-marking|header|note-group)...> in any order, with optional spaces between each element
+// core-note is <open-slur, accidental, pitch:required, octave, duration, close-slur&|tie> with no spaces within that
+// chord is <open-bracket:required, core-note:required... close-bracket:required duration> with no spaces within that
+// grace-notes is <open-brace:required, (open-slur|core-note:required|close-slur)..., close-brace:required> spaces are allowed
+// note-group is <grace-notes, chord symbols&|decorations..., grace-notes, slur&|triplet, chord|core-note, end-slur|tie> spaces are allowed between items
+// bar-marking is <ampersand> or <chord symbols&|decorations..., bar:required> spaces allowed
+// header is <open-bracket:required, K|M|L|V:required, colon:required, field:required, close-bracket:required> spaces can occur between the colon, in the field, and before the close bracket
+// header can also be the only thing on a line. This is true even if it is a continuation line. In this case the brackets are not required.
+// a space is a back-tick, a space, or a tab. If it is a back-tick, then there is no end-beam.
+
+// Line preprocessing: anything after a % is ignored (the double %% should have been taken care of before this)
+// Then, all leading and trailing spaces are ignored.
+// If there was a line continuation, the \n was replaced by a \r and the \ was replaced by a space. This allows the construct
+// of having a header mid-line conceptually, but actually be at the start of the line. This is equivolent to putting the header in [ ].
+
+// TODO-PER: How to handle ! for line break?
+// TODO-PER: dots before bar, dots before slur
+// TODO-PER: U: redefinable symbols.
+
+// Ambiguous symbols:
+// "[" can be the start of a chord, the start of a header element or part of a bar line.
+// --- if it is immediately followed by "|", it is a bar line
+// --- if it is immediately followed by K: L: M: V: it is a header (note: there are other headers mentioned in the standard, but I'm not sure how they would be used.)
+// --- otherwise it is the beginning of a chord
+// "(" can be the start of a slur or a triplet
+// --- if it is followed by a number from 2-9, then it is a triplet
+// --- otherwise it is a slur
+// "]"
+// --- if there is a chord open, then this is the close
+// --- if it is after a [|, then it is an invisible bar line
+// --- otherwise, it is par of a bar
+// "." can be a bar modifier or a slur modifier, or a decoration
+// --- if it comes immediately before a bar, it is a bar modifier
+// --- if it comes immediately before a slur, it is a slur modifier
+// --- otherwise it is a decoration for the next note.
+// number:
+// --- if it is after a bar, with no space, it is an ending marker
+// --- if it is after a ( with no space, it is a triplet count
+// --- if it is after a pitch or octave or slash, then it is a duration
+
+// Unambiguous symbols (except inside quoted strings):
+// vertical-bar, colon: part of a bar
+// ABCDEFGabcdefg: pitch
+// xyzZ: rest
+// comma, prime: octave
+// close-paren: end-slur
+// hyphen: tie
+// tilde, v, u, bang, plus, THLMPSO: decoration
+// carat, underscore, equal: accidental
+// ampersand: time reset
+// open-curly, close-curly: grace notes
+// double-quote: chord symbol
+// less-than, greater-than, slash: duration
+// back-tick, space, tab: space
+
+var isInTie = function (multilineVars, overlayLevel, el) {
+	if (multilineVars.inTie[overlayLevel] === undefined)
+		return false;
+	// If this is single voice music then the voice index isn't set, so we use the first voice.
+	var voiceIndex = multilineVars.currentVoice ? multilineVars.currentVoice.staffNum * 100 + multilineVars.currentVoice.index : 0;
+	if (multilineVars.inTie[overlayLevel][voiceIndex]) {
+		if (el.pitches !== undefined || el.rest.type !== 'spacer')
+			return true;
+	}
+	return false;
+};
+
+var el = {};
+MusicParser.prototype.parseMusic = function (line) {
+	header.resolveTempo();
+	//multilineVars.havent_set_length = false;	// To late to set this now.
+	multilineVars.is_in_header = false;	// We should have gotten a key header by now, but just in case, this is definitely out of the header.
+	var i = 0;
+	var startOfLine = multilineVars.iChar;
+	// see if there is nothing but a comment on this line. If so, just ignore it. A full line comment is optional white space followed by %
+	while (tokenizer.isWhiteSpace(line[i]) && i < line.length)
+		i++;
+	if (i === line.length || line[i] === '%')
+		return;
+
+	// Start with the standard staff, clef and key symbols on each line
+	var delayStartNewLine = multilineVars.start_new_line;
+	if (multilineVars.continueall === undefined)
+		multilineVars.start_new_line = true;
+	else
+		multilineVars.start_new_line = false;
+	var tripletNotesLeft = 0;
+
+	// See if the line starts with a header field
+	var retHeader = header.letter_to_body_header(line, i);
+	if (retHeader[0] > 0) {
+		i += retHeader[0];
+		// fixes bug on this: c[V:2]d
+		if (retHeader[1] === 'V')
+			this.startNewLine();
+		// delayStartNewLine = true;
+		// TODO-PER: Handle inline headers
+	}
+
+	var overlayLevel = 0;
+	while (i < line.length) {
+		var startI = i;
+		if (line[i] === '%')
+			break;
+
+		var retInlineHeader = header.letter_to_inline_header(line, i, delayStartNewLine);
+		if (retInlineHeader[0] > 0) {
+			i += retInlineHeader[0];
+			//console.log("inline header", retInlineHeader)
+			if (retInlineHeader[1] === 'V')
+				delayStartNewLine = true; // fixes bug on this: c[V:2]d
+			// TODO-PER: Handle inline headers
+			//multilineVars.start_new_line = false;
+		} else {
+			// Wait until here to actually start the line because we know we're past the inline statements.
+			if (!tuneBuilder.hasBeginMusic() || (delayStartNewLine && !this.lineContinuation)) {
+				this.startNewLine();
+				delayStartNewLine = false;
+			}
+
+			// We need to decide if the following characters are a bar-marking or a note-group.
+			// Unfortunately, that is ambiguous. Both can contain chord symbols and decorations.
+			// If there is a grace note either before or after the chord symbols and decorations, then it is definitely a note-group.
+			// If there is a bar marker, it is definitely a bar-marking.
+			// If there is either a core-note or chord, it is definitely a note-group.
+			// So, loop while we find grace-notes, chords-symbols, or decorations. [It is an error to have more than one grace-note group in a row; the others can be multiple]
+			// Then, if there is a grace-note, we know where to go.
+			// Else see if we have a chord, core-note, slur, triplet, or bar.
+
+			var ret;
+			while (1) {
+				ret = tokenizer.eatWhiteSpace(line, i);
+				if (ret > 0) {
+					i += ret;
+				}
+				if (i > 0 && line[i - 1] === '\x12') {
+					// there is one case where a line continuation isn't the same as being on the same line, and that is if the next character after it is a header.
+					ret = header.letter_to_body_header(line, i);
+					if (ret[0] > 0) {
+						if (ret[1] === 'V')
+							this.startNewLine(); // fixes bug on this: c\\nV:2]\\nd
+						// TODO: insert header here
+						i = ret[0];
+						multilineVars.start_new_line = false;
+					}
+				}
+				// gather all the grace notes, chord symbols and decorations
+				ret = letter_to_spacer(line, i);
+				if (ret[0] > 0) {
+					i += ret[0];
+				}
+
+				ret = letter_to_chord(line, i);
+				if (ret[0] > 0) {
+					// There could be more than one chord here if they have different positions.
+					// If two chords have the same position, then connect them with newline.
+					if (!el.chord)
+						el.chord = [];
+					var chordName = tokenizer.translateString(ret[1]);
+					chordName = chordName.replace(/;/g, "\n");
+					var addedChord = false;
+					for (var ci = 0; ci < el.chord.length; ci++) {
+						if (el.chord[ci].position === ret[2]) {

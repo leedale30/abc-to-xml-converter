@@ -1,0 +1,12 @@
+X:1
+T:Paul Rosen Slur Tests
+C:leedale30
+M:4/4
+L:1/8
+K:G
+%%STAVES (1 2)
+V:1
+GAG ({BcB}G) AB cd | (C(D) E) F G4 | (Cggg(D)ggg) | (C({g}D)E) F G4 |
+V:2
+K:HP
+({g}A) B c d e4 | (A({g}B)c) d e4 | GAG ({BcB}G) AB cd | A4 A4 |

@@ -167,5 +167,7 @@ This document tracks all MusicXML features supported by the ABC+ Converter.
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| 1.3.1 | 2026-01-20 | Fixed audio synthesis (offline support) and visual sync |
+| 1.3.0 | 2026-01-20 | Added ABCJS audio synthesis and OpenSheetMusicDisplay rendering |
 | 1.2.0 | 2026-01-17 | Added playback and layout controls |
 | 1.0.0 | 2026-01-17 | Initial release |

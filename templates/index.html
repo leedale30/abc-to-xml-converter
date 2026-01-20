@@ -14,6 +14,9 @@
         rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- OpenSheetMusicDisplay -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/opensheetmusicdisplay/1.8.8/opensheetmusicdisplay.min.js"></script>
 </head>
 
 <body>
@@ -49,6 +52,32 @@ C D E F | G A B c |"></textarea>
             <div class="pane-header">
                 <span><i class="fa-solid fa-code"></i> MusicXML Output</span>
                 <div class="pane-actions">
+                    <!-- View Toggle -->
+                    <div class="view-toggle">
+                        <button id="view-code-btn" class="toggle-btn active" title="Show XML Code">
+                            <i class="fa-solid fa-code"></i>
+                        </button>
+                        <button id="view-sheet-btn" class="toggle-btn" title="Show Sheet Music">
+                            <i class="fa-solid fa-music"></i>
+                        </button>
+                    </div>
+                    <div class="separator"></div>
+
+                    <!-- Playback Controls (Hidden in Code View) -->
+                    <div id="playback-controls" class="playback-controls hidden">
+                        <div class="bpm-control" title="Tempo (BPM)">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <input type="number" id="bpm-input" value="100" min="30" max="300" step="10">
+                        </div>
+                        <button id="play-btn" class="icon-btn" title="Play">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button id="stop-btn" class="icon-btn" title="Stop">
+                            <i class="fa-solid fa-stop"></i>
+                        </button>
+                    </div>
+                    <div class="separator"></div>
+
                     <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">
                         <i class="fa-regular fa-copy"></i>
                     </button>
@@ -64,6 +93,7 @@ C D E F | G A B c |"></textarea>
                 </div>
             </div>
             <textarea id="output-xml" readonly placeholder="XML output will appear here..."></textarea>
+            <div id="osmd-container" class="sheet-container hidden"></div>
 
             <div class="logs-container">
                 <div class="pane-header sub-header">

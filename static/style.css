@@ -331,3 +331,118 @@ textarea {
 .dismiss-btn:hover {
     opacity: 1;
 }
+
+/* --- New Styles for Playback & Viewer --- */
+
+/* View Toggle */
+.view-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 2px;
+    border: var(--glass-border);
+}
+
+.toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+    color: var(--text-primary);
+}
+
+.toggle-btn.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* Separator */
+.separator {
+    width: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+    height: 24px;
+    align-self: center;
+}
+
+/* Playback Controls */
+.playback-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.bpm-control {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 2px 6px;
+    gap: 6px;
+    border: var(--glass-border);
+}
+
+.bpm-control i {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.bpm-control input {
+    width: 45px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: 0.8rem;
+    text-align: center;
+    outline: none;
+    padding: 0;
+}
+
+/* Hide number arrows for chrome */
+.bpm-control input::-webkit-outer-spin-button,
+.bpm-control input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.playback-controls button i.fa-play {
+    color: var(--success-color);
+}
+
+.playback-controls button i.fa-stop {
+    color: var(--error-color);
+}
+
+/* Sheet Music Container */
+.sheet-container {
+    flex: 1;
+    width: 100%;
+    background: #ffffff;
+    /* Sheet music needs white bg */
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 1rem;
+    position: relative;
+    /* Center the OSMD canvas if needed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Ensure OSMD text is visible on white */
+.sheet-container text {
+    fill: #000 !important;
+}
+
+/* Hide helper */
+.hidden {
+    display: none !important;
+}

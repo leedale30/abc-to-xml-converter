@@ -141,155 +141,174 @@ document.addEventListener('DOMContentLoaded', () => {
     viewCodeBtn.addEventListener('click', () => setViewMode('code'));
     viewSheetBtn.addEventListener('click', () => setViewMode('sheet'));
 
-    // --- Ulthrathink Playback Logic ---
+    // --- Audio Playback Logic using ABCJS ---
 
-    const getBPM = () => {
-        const bpm = parseInt(bpmInput.value, 10);
-        return (bpm && bpm > 0) ? bpm : 100;
+    let synth = null;
+    let audioContext = null;
+    let playbackInterval = null;
+
+    const logToUI = (msg) => {
+        const logsArea = document.getElementById('output-logs');
+        logsArea.value += `[Audio] ${msg}\n`;
+        logsArea.scrollTop = logsArea.scrollHeight;
+        console.log(`[Audio] ${msg}`);
     };
 
-    const playNextNote = () => {
-        if (!osmd || !isPlaying) return;
-
-        // Advance cursor
-        const nextNoteExists = osmd.cursor.next();
-
-        if (!nextNoteExists) {
-            // End of score
-            stopPlayback();
+    const startPlayback = async () => {
+        if (!window.ABCJS) {
+            updateStatus('ABCJS Audio Library not loaded', 'error');
+            logToUI('ABCJS not found in window object.');
             return;
         }
-
-        // Calculate duration for the *current* cursor position (after next() call)
-        // Actually, cursor.next() places us visually on the note.
-        // We should wait *before* moving to the next.
-        // Wait... standard player logic:
-        // 1. Show cursor at start.
-        // 2. Wait for duration of note at start.
-        // 3. Move to next.
-
-        // But logic above calls next() first.
-        // Let's adjust:
-        // 1. We are at a position.
-        // 2. Get duration of current notes under cursor.
-        // 3. Wait that duration.
-        // 4. Move next. If no next, stop.
-
-        // Get current iterator notes
-        const iterator = osmd.cursor.Iterator;
-        // osmd.cursor.next() moved us to this new position.
-        // We want to verify we are valid.
-
-        if (iterator.EndReached) {
-            stopPlayback();
-            return;
-        }
-
-        // Calculate duration
-        // CurrentVoiceEntries gives notes at this timestamp.
-        // We take the max duration of notes here to determine step?
-        // Actually we should use the iterator's timestamp diff?
-        // OSMD Iterator is complex. 
-        // Simplest Robust Logic: Notes[0].Length.RealValue (e.g., 0.25)
-
-        let durationValue = 0.25; // Default quarter note fallback
-
-        const voices = iterator.CurrentVoiceEntries;
-        if (voices && voices.length > 0) {
-            const voice = voices[0];
-            if (voice.Notes && voice.Notes.length > 0) {
-                // Use the first note's length. 
-                // RealValue is fraction of whole note (0.25 = quarter)
-                durationValue = voice.Notes[0].Length.RealValue;
-            }
-        }
-
-        // Calculate milliseconds
-        // BPM = Quarter notes per minute
-        // 1 Quarter note (0.25) = 60000 / BPM ms
-        // Duration (1.0) = 4 * (60000/BPM)
-        // Duration (RealValue) = RealValue * 4 * (60000/BPM)
-
-        const bpm = getBPM();
-        const msPerQuarter = 60000 / bpm;
-        const delay = durationValue * 4 * msPerQuarter;
-
-        // Schedule next move
-        playbackTimeout = setTimeout(playNextNote, delay);
-    };
-
-    const startPlayback = () => {
-        if (!osmd) return;
 
         if (isPlaying) {
-            // Already playing, ignore or pause?
+            logToUI('Already playing, ignoring start request.');
             return;
         }
 
-        isPlaying = true;
-        osmd.cursor.show();
-
-        // If cursor is at end, reset
-        if (osmd.cursor.Iterator.EndReached) {
-            osmd.cursor.reset();
+        // 1. Initialize Audio Context if needed
+        if (!audioContext) {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                logToUI(`AudioContext created. State: ${audioContext.state}`);
+            } catch (e) {
+                logToUI(`Failed to create AudioContext: ${e.message}`);
+                updateStatus('Audio Support Failed', 'error');
+                return;
+            }
+        }
+        if (audioContext.state === 'suspended') {
+            try {
+                await audioContext.resume();
+                logToUI('AudioContext resumed.');
+            } catch (e) {
+                logToUI(`Failed to resume AudioContext: ${e.message}`);
+            }
         }
 
-        // Start the loop
-        // If we are at the very beginning (or reset), we should wait for the first note's duration
-        // BEFORE moving. But playNextNote moves *first*.
-        // So we need to handle the "current" note first.
+        // 2. Prepare Synth
+        if (!synth) {
+            synth = new ABCJS.synth.CreateSynth();
+            logToUI('Synth instance created.');
+        }
 
-        // Setup for first note:
-        // 1. Display cursor (done)
-        // 2. Get duration of *current* note (at start)
-        // 3. Wait, then playNextNote (which moves)
+        const abcContent = inputArea.value;
+        if (!abcContent.trim()) {
+            updateStatus('No ABC content to play', 'error');
+            return;
+        }
 
-        // Check current duration at start
-        let durationValue = 0.25;
+        updateStatus('Preparing Audio...', 'processing');
+        playBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        logToUI('Starting playback sequence...');
+
         try {
-            const voices = osmd.cursor.Iterator.CurrentVoiceEntries;
-            if (voices && voices.length > 0 && voices[0].Notes.length > 0) {
-                durationValue = voices[0].Notes[0].Length.RealValue;
+            // We need a visual Obj for the synth to work, but we don't need to display it.
+            // Render to a virtual element or just get the object
+            const visualObjArr = ABCJS.renderAbc("*", abcContent, {
+                add_classes: true,
+                responsive: "resize"
+            });
+
+            if (!visualObjArr || visualObjArr.length === 0) {
+                logToUI('ABCJS renderAbc returned no visual objects.');
+                throw new Error("Could not parse ABC for audio.");
             }
-        } catch (e) { console.log(e); }
 
-        const bpm = getBPM();
-        const msPerQuarter = 60000 / bpm;
-        const delay = durationValue * 4 * msPerQuarter;
+            const visualObj = visualObjArr[0];
 
-        updateStatus(`Playing (${bpm} BPM)...`, 'processing');
-        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; // Change to pause icon logic?
-        // Actually let's just keep Play/Stop for simplicity or toggle
+            let durationSec = 10; // Default fallback
+            if (visualObj && typeof visualObj.getTotalTime === 'function') {
+                const totalTime = visualObj.getTotalTime();
+                if (typeof totalTime === 'number' && !isNaN(totalTime)) {
+                    durationSec = totalTime;
+                }
+            }
+            logToUI(`Visual Object created. Total Duration: ${durationSec}s (original: ${visualObj ? visualObj.getTotalTime() : 'N/A'})`);
 
-        playbackTimeout = setTimeout(playNextNote, delay);
+            if (durationSec === 0) {
+                logToUI('Duration is 0. Attempting to play anyway.');
+                durationSec = 10;
+            }
+
+            logToUI('Initializing Synth...');
+            await synth.init({
+                audioContext: audioContext,
+                visualObj: visualObj,
+            });
+
+            logToUI('Priming Synth (loading buffers)...');
+            await synth.prime();
+
+            isPlaying = true;
+            synth.start();
+            logToUI('Synth started.');
+
+            updateStatus('Playing...', 'processing');
+            playBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+
+            // Approximate Cursor Movement (Visual Sync is hard between libraries)
+            if (osmd) {
+                osmd.cursor.show();
+                if (osmd.cursor.Iterator.EndReached) osmd.cursor.reset();
+
+                // Simple Interval based on BPM input just for visuals
+                const bpm = parseInt(bpmInput.value, 10) || 100;
+                const msPerBeat = 60000 / bpm;
+
+                if (playbackInterval) clearInterval(playbackInterval);
+                playbackInterval = setInterval(() => {
+                    if (osmd && isPlaying) {
+                        try {
+                            osmd.cursor.next();
+                            if (osmd.cursor.Iterator.EndReached) {
+                                // Don't auto stop synth, let synth finish
+                            }
+                        } catch (e) { }
+                    }
+                }, msPerBeat);
+            }
+
+            // Detect end
+            const durationMs = durationSec * 1000;
+            logToUI(`Scheduled stop in ${durationMs + 1000}ms`);
+            setTimeout(() => {
+                if (isPlaying) {
+                    logToUI('Track finished (timeout).');
+                    stopPlayback();
+                }
+            }, durationMs + 1000);
+
+        } catch (error) {
+            console.error("Audio Error:", error);
+            logToUI(`EXCEPTION: ${error.message}`);
+            updateStatus('Audio Error: ' + error.message, 'error');
+            stopPlayback();
+        }
     };
 
     const stopPlayback = () => {
         isPlaying = false;
-        if (playbackTimeout) {
-            clearTimeout(playbackTimeout);
-            playbackTimeout = null;
+        if (synth) {
+            synth.stop();
+        }
+        if (playbackInterval) {
+            clearInterval(playbackInterval);
+            playbackInterval = null;
         }
         if (osmd) {
             osmd.cursor.reset();
-            osmd.cursor.show();
+            osmd.cursor.show(); // keep cursor visible at start
         }
         updateStatus('Ready', 'success');
         playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
     };
 
-    // Toggle Play/Pause on play btn
+    // Toggle Play/Pause
     playBtn.addEventListener('click', () => {
         if (isPlaying) {
-            // Pause logic (just clear timeout but don't reset)
-            isPlaying = false;
-            if (playbackTimeout) clearTimeout(playbackTimeout);
-            updateStatus('Paused', 'processing');
-            playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            stopPlayback();
         } else {
-            // Resume
-            // If just paused, we should ideally wait remaining time, but
-            // for visual cursor, immediate resume is fine.
             startPlayback();
         }
     });

@@ -479,6 +479,124 @@ ${logsContent}
         });
     }
 
+    // --- New UX Improvements: Shortcuts, Drag & Drop, Examples, MIDI ---
+
+    const exampleSelect = document.getElementById('example-select');
+    const downloadMidiBtn = document.getElementById('download-midi-btn');
+
+    // 1. Example Tunes
+    const examples = {
+        scale: "X:1\nT:Major Scale\nM:4/4\nL:1/4\nK:C\nC D E F | G A B c |",
+        arpeggio: "X:1\nT:C Major Arpeggio\nM:4/4\nL:1/4\nK:C\nC E G c | G E C2 |",
+        reels: "X:1\nT:The Merry Blacksmith\nR:reel\nM:4/4\nL:1/8\nK:D\nd2|a2fa adfa|g2fg eA~A2|a2fa adfa|gece d2fg|\na2fa adfa|g2fg eA~A2|a2fa adfa|gece d2:|",
+        jig: "X:1\nT:The Kesh Jig\nR:jig\nM:6/8\nL:1/8\nK:G\n~G3 GAB|ABA ABd|edd gdd|edB dBA|\n~G3 GAB|ABA ABd|edd gdd|BAF G3:|"
+    };
+
+    if (exampleSelect) {
+        exampleSelect.addEventListener('change', (e) => {
+            const key = e.target.value;
+            if (examples[key]) {
+                inputArea.value = examples[key];
+                updateStatus('Example loaded', 'success');
+                // Trigger conversion automatically for examples
+                convertBtn.click();
+            }
+        });
+    }
+
+    // 2. MIDI Export
+    if (downloadMidiBtn) {
+        downloadMidiBtn.addEventListener('click', () => {
+            const abcContent = inputArea.value;
+            if (!abcContent.trim()) {
+                updateStatus('No content to export', 'error');
+                return;
+            }
+
+            if (!window.ABCJS || !ABCJS.synth || !ABCJS.synth.getMidiFile) {
+                updateStatus('MIDI Export not supported by current ABCJS library', 'error');
+                return;
+            }
+
+            try {
+                // Render ABC to get the timing info needed for MIDI
+                const visualObjArr = ABCJS.renderAbc("*", abcContent);
+                if (!visualObjArr || visualObjArr.length === 0) throw new Error("Parse error");
+
+                // getMidiFile returns a Blob-like format or base64? 
+                // In modern ABCJS, it returns a URL-ready string or blob.
+                const midiData = ABCJS.synth.getMidiFile(visualObjArr[0], {
+                    midiOutputType: 'blob'
+                });
+
+                const blob = new Blob([midiData], { type: 'audio/midi' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                // Get title for filename
+                const titleMatch = abcContent.match(/^T:\s*(.*)$/m);
+                const title = titleMatch ? titleMatch[1].trim().replace(/[^a-z0-9]/gi, '_') : 'output';
+
+                a.download = `${title}.mid`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                updateStatus('MIDI Exported', 'success');
+            } catch (err) {
+                console.error("MIDI Export Error:", err);
+                updateStatus('MIDI Export Failed', 'error');
+            }
+        });
+    }
+
+    // 3. Drag & Drop
+    if (inputArea) {
+        inputArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            inputArea.classList.add('drag-over');
+        });
+
+        inputArea.addEventListener('dragleave', () => {
+            inputArea.classList.remove('drag-over');
+        });
+
+        inputArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            inputArea.classList.remove('drag-over');
+
+            const file = e.dataTransfer.files[0];
+            if (file && (file.name.endsWith('.abc') || file.name.endsWith('.txt'))) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    inputArea.value = event.target.result;
+                    updateStatus('File loaded', 'success');
+                    convertBtn.click();
+                };
+                reader.readAsText(file);
+            } else {
+                updateStatus('Please drop an .abc or .txt file', 'error');
+            }
+        });
+    }
+
+    // 4. Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + Enter -> Convert
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            convertBtn.click();
+        }
+
+        // Ctrl/Cmd + S -> Download XML
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            downloadBtn.click();
+        }
+    });
+
     // Run update check
     checkForUpdates();
 });

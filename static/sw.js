@@ -1,5 +1,5 @@
 // ABC+ Converter Service Worker
-const CACHE_NAME = 'abc-plus-v1.4.0';
+const CACHE_NAME = 'abc-plus-v1.5.0';
 const STATIC_ASSETS = [
     '/',
     '/static/style.css',

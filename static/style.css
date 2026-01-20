@@ -446,3 +446,68 @@ textarea {
 .hidden {
     display: none !important;
 }
+
+/* --- New UX Improvements --- */
+
+/* Drag over feedback */
+#abc-input.drag-over {
+    background: rgba(123, 44, 191, 0.1);
+    border: 2px dashed var(--accent-color) !important;
+}
+
+/* Example Select */
+.example-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: var(--glass-border);
+    color: var(--text-secondary);
+    font-family: var(--font-family);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    max-width: 150px;
+    transition: all 0.2s;
+}
+
+.example-select:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.example-select option {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* MIDI Button Specific */
+#download-midi-btn i {
+    color: #ffd700; /* Gold for MIDI */
+}
+
+#download-midi-btn:hover i {
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        overflow-y: auto;
+    }
+    
+    .editor-pane {
+        height: 50vh;
+        border-right: none;
+        border-bottom: var(--glass-border);
+    }
+    
+    header h1 {
+        font-size: 1.1rem;
+    }
+    
+    .pane-header {
+        padding: 0.5rem 1rem;
+    }
+}

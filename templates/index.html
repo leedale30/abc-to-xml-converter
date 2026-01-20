@@ -46,7 +46,14 @@
     <main>
         <div class="editor-pane">
             <div class="pane-header">
-                <i class="fa-solid fa-music"></i> ABC Input
+                <span><i class="fa-solid fa-music"></i> ABC Input</span>
+                <select id="example-select" class="example-select" title="Load an example ABC tune">
+                    <option value="" disabled selected>Load Example...</option>
+                    <option value="scale">Major Scale</option>
+                    <option value="arpeggio">Arpeggio</option>
+                    <option value="reels">The Merry Blacksmith (Reel)</option>
+                    <option value="jig">The Kesh Jig</option>
+                </select>
             </div>
             <textarea id="abc-input" placeholder="Paste your ABC notation here...
 Example:
@@ -89,8 +96,11 @@ C D E F | G A B c |"></textarea>
                     <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">
                         <i class="fa-regular fa-copy"></i>
                     </button>
-                    <button id="download-btn" class="icon-btn" title="Download XML">
+                    <button id="download-btn" class="icon-btn" title="Download XML (Ctrl+S)">
                         <i class="fa-solid fa-download"></i>
+                    </button>
+                    <button id="download-midi-btn" class="icon-btn" title="Download MIDI">
+                        <i class="fa-solid fa-file-audio"></i>
                     </button>
                     <button id="save-session-btn" class="icon-btn" title="Save Project to App Folder">
                         <i class="fa-solid fa-folder-plus"></i>

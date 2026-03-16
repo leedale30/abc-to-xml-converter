@@ -1,5 +1,5 @@
 {
-    "abcPlusVersion": "1.0",
+    "abcPlusVersion": "1.4.0",
     "directives": {
         "dir": {
             "scope": "direction",
@@ -22,7 +22,7 @@
             },
             "musicXML": {
                 "element": "direction",
-                "type": "words"
+                "type": "effect"
             }
         },
         "analysis": {
@@ -32,8 +32,8 @@
                 "function": "string"
             },
             "musicXML": {
-                "element": "direction",
-                "type": "words"
+                "element": "harmony",
+                "type": "function"
             }
         },
         "game_state": {
@@ -42,7 +42,11 @@
             "attributes": {
                 "state": "string"
             },
-            "musicXML": null
+            "musicXML": {
+                "element": "direction",
+                "type": "words",
+                "subtype": "game-state"
+            }
         },
         "loop": {
             "scope": "measure",
@@ -50,7 +54,9 @@
             "attributes": {
                 "safe": "boolean"
             },
-            "musicXML": null
+            "musicXML": {
+                "element": "repeat"
+            }
         },
         "art": {
             "scope": "note",
@@ -62,6 +68,127 @@
                 "element": "notations",
                 "type": "articulations"
             }
+        },
+        "marker": {
+            "scope": "measure",
+            "placement": "before_measure",
+            "attributes": {
+                "text": "string"
+            },
+            "musicXML": {
+                "element": "direction",
+                "type": "rehearsal"
+            }
+        },
+        "measurenumbering": {
+            "scope": "score",
+            "placement": "global",
+            "attributes": {
+                "value": "string"
+            },
+            "musicXML": {
+                "element": "print",
+                "type": "measure-numbering"
+            }
+        },
+        "vskip": {
+            "scope": "score",
+            "placement": "global",
+            "attributes": {
+                "value": "number"
+            },
+            "musicXML": {
+                "element": "system-distance"
+            }
+        },
+        "sep": {
+            "scope": "score",
+            "placement": "global",
+            "attributes": {},
+            "musicXML": {
+                "element": "system-dividers"
+            }
+        },
+        "newpage": {
+            "scope": "score",
+            "placement": "global",
+            "attributes": {},
+            "musicXML": {
+                "element": "print",
+                "type": "new-page"
+            }
+        },
+        "newline": {
+            "scope": "score",
+            "placement": "global",
+            "attributes": {},
+            "musicXML": {
+                "element": "print",
+                "type": "new-system"
+            }
+        },
+        "swing": {
+            "scope": "measure",
+            "placement": "before_measure",
+            "attributes": {},
+            "musicXML": {
+                "element": "sound",
+                "type": "swing",
+                "value": "yes"
+            }
+        },
+        "swing-off": {
+            "scope": "measure",
+            "placement": "before_measure",
+            "attributes": {},
+            "musicXML": {
+                "element": "sound",
+                "type": "swing",
+                "value": "no"
+            }
+        },
+        "mute": {
+            "scope": "measure",
+            "placement": "before_measure",
+            "attributes": {},
+            "musicXML": {
+                "element": "sound",
+                "type": "mute",
+                "value": "yes"
+            }
+        },
+        "mute-off": {
+            "scope": "measure",
+            "placement": "before_measure",
+            "attributes": {},
+            "musicXML": {
+                "element": "sound",
+                "type": "mute",
+                "value": "no"
+            }
+        },
+        "frame": {
+            "scope": "measure",
+            "placement": "after_barline",
+            "attributes": {
+                "name": "string",
+                "fret": "number",
+                "pattern": "string"
+            },
+            "musicXML": {
+                "element": "harmony",
+                "type": "frame"
+            }
+        },
+        "fb": {
+            "scope": "measure",
+            "placement": "after_barline",
+            "attributes": {
+                "figures": "string"
+            },
+            "musicXML": {
+                "element": "figured-bass"
+            }
         }
     }
-} 
+}

@@ -1,0 +1,11 @@
+-- decoded from utf-8
+-- skipped header: (field X,1)
+-- done in 0.01 secs
+[Audio] AudioContext created. State: running
+[Audio] Synth instance created.
+[Audio] Starting playback sequence...
+[Audio] Visual Object created. Total Duration: 10s (original: undefined)
+[Audio] Initializing Synth...
+[Audio] Priming Synth (loading buffers)...
+[Audio] Synth started.
+[Audio] Scheduled stop in 11000ms

@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ABC+">
     <title>ABC+ Converter</title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/icon-96.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -46,8 +46,16 @@
     <main>
         <div class="editor-pane">
             <div class="pane-header">
-                <span><i class="fa-solid fa-music"></i> ABC Input</span>
-                <select id="example-select" class="example-select" title="Load an example ABC tune">
+                <span><i class="fa-solid fa-music"></i> Music Input</span>
+                <div class="input-mode-toggle">
+                    <button id="text-input-btn" class="toggle-btn active" title="Text Input" aria-label="Text Input Mode">
+                        <i class="fa-solid fa-keyboard" aria-hidden="true"></i>
+                    </button>
+                    <button id="file-input-btn" class="toggle-btn" title="File Upload" aria-label="File Upload Mode">
+                        <i class="fa-solid fa-upload" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <select id="example-select" class="example-select" title="Load an example ABC tune" aria-label="Load Example ABC Tune">
                     <option value="" disabled selected>Load Example...</option>
                     <option value="scale">Major Scale</option>
                     <option value="arpeggio">Arpeggio</option>
@@ -55,12 +63,38 @@
                     <option value="jig">The Kesh Jig</option>
                 </select>
             </div>
-            <textarea id="abc-input" placeholder="Paste your ABC notation here...
+            <div id="text-input-area">
+                <textarea id="abc-input" placeholder="Paste your ABC notation here...
 Example:
 X:1
 T:Scale
 K:C
 C D E F | G A B c |"></textarea>
+            </div>
+            <div id="file-input-area" class="hidden">
+                <div class="file-upload-zone" id="file-upload-zone">
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                    <p class="upload-text">Drag & drop your music file here</p>
+                    <p class="upload-subtext">or</p>
+                    <input type="file" id="file-upload-input" class="hidden" aria-label="Upload Music File" title="Upload Music File">
+                    <button id="browse-btn" class="primary-btn">Browse Files</button>
+                    <p class="upload-hint">Supports: ABC, MusicXML, MIDI, LilyPond, MEI, Humdrum, NoteWorthy, and more!</p>
+                </div>
+                <div id="file-info" class="file-info hidden">
+                    <i class="fa-solid fa-file-circle-check file-icon"></i>
+                    <div class="file-details">
+                        <span id="file-name" class="file-name"></span>
+                        <span id="file-format" class="file-format"></span>
+                    </div>
+                    <button id="clear-file-btn" class="icon-btn" title="Remove file">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="format-selector-panel" id="target-format-panel" class="hidden">
+                <label for="target-format-select">Convert to:</label>
+                <select id="target-format-select" class="format-select"></select>
+            </div>
         </div>
 
         <div class="editor-pane pane-dark">
@@ -68,40 +102,53 @@ C D E F | G A B c |"></textarea>
                 <span><i class="fa-solid fa-code"></i> MusicXML Output</span>
                 <div class="pane-actions">
                     <!-- View Toggle -->
-                    <div class="view-toggle">
-                        <button id="view-code-btn" class="toggle-btn active" title="Show XML Code">
-                            <i class="fa-solid fa-code"></i>
+                    <div class="view-toggle" role="group" aria-label="View Mode">
+                        <button id="view-code-btn" class="toggle-btn active" title="Show XML Code" aria-label="Show MusicXML Source Code">
+                            <i class="fa-solid fa-code" aria-hidden="true"></i>
                         </button>
-                        <button id="view-sheet-btn" class="toggle-btn" title="Show Sheet Music">
-                            <i class="fa-solid fa-music"></i>
+                        <button id="view-sheet-btn" class="toggle-btn" title="Show Sheet Music" aria-label="Show Rendered Sheet Music">
+                            <i class="fa-solid fa-music" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <div class="separator"></div>
+                    <div class="separator" role="separator" aria-orientation="vertical"></div>
 
                     <!-- Playback Controls (Hidden in Code View) -->
-                    <div id="playback-controls" class="playback-controls hidden">
+                    <div id="playback-controls" class="playback-controls hidden" role="toolbar" aria-label="Audio Playback Controls">
                         <div class="bpm-control" title="Tempo (BPM)">
-                            <i class="fa-solid fa-gauge-high"></i>
-                            <input type="number" id="bpm-input" value="100" min="30" max="300" step="10">
+                            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                            <input type="number" id="bpm-input" value="100" min="30" max="300" step="10" aria-label="Tempo in Beats Per Minute">
                         </div>
-                        <button id="play-btn" class="icon-btn" title="Play">
-                            <i class="fa-solid fa-play"></i>
+                        <button id="play-btn" class="icon-btn" title="Play Audio" aria-label="Play Synthesized Audio">
+                            <i class="fa-solid fa-play" aria-hidden="true"></i>
                         </button>
-                        <button id="stop-btn" class="icon-btn" title="Stop">
-                            <i class="fa-solid fa-stop"></i>
+                        <button id="stop-btn" class="icon-btn" title="Stop Audio" aria-label="Stop Synthesized Audio">
+                            <i class="fa-solid fa-stop" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <div class="separator"></div>
+                    <div class="separator" role="separator" aria-orientation="vertical"></div>
 
-                    <button id="copy-btn" class="icon-btn" title="Copy to Clipboard">
-                        <i class="fa-regular fa-copy"></i>
+                    <button id="copy-btn" class="icon-btn" title="Copy XML to Clipboard" aria-label="Copy MusicXML to Clipboard">
+                        <i class="fa-regular fa-copy" aria-hidden="true"></i>
                     </button>
-                    <button id="download-btn" class="icon-btn" title="Download XML (Ctrl+S)">
-                        <i class="fa-solid fa-download"></i>
+                    <button id="download-btn" class="icon-btn" title="Download XML" aria-label="Download MusicXML File">
+                        <i class="fa-solid fa-download" aria-hidden="true"></i>
                     </button>
-                    <button id="download-midi-btn" class="icon-btn" title="Download MIDI">
-                        <i class="fa-solid fa-file-audio"></i>
+                    <button id="download-midi-btn" class="icon-btn" title="Download MIDI" aria-label="Download MIDI Audio File">
+                        <i class="fa-solid fa-file-audio" aria-hidden="true"></i>
                     </button>
+                    <div class="format-selector">
+                        <select id="format-select" class="format-select" title="Select output format" aria-label="Select Target Export Format">
+                            <option value="musicxml">MusicXML</option>
+                            <option value="midi">MIDI</option>
+                            <option value="lilypond">LilyPond</option>
+                        </select>
+                        <button id="download-format-btn" class="icon-btn" title="Download selected format" aria-label="Download Selected File Format">
+                            <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+                        </button>
+                        <button id="download-all-btn" class="primary-btn" title="Convert to All Formats" aria-label="Convert and Download All Formats Archive">
+                            <i class="fa-solid fa-file-zipper" aria-hidden="true"></i> Convert to All
+                        </button>
+                    </div>
                     <button id="save-session-btn" class="icon-btn" title="Save Project to App Folder">
                         <i class="fa-solid fa-folder-plus"></i>
                     </button>

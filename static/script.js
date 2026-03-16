@@ -22,6 +22,214 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPlaying = false;
     let currentXml = ""; // Store current XML for rendering logic
 
+    // Multi-format conversion variables
+    let supportedFormats = [];
+    let currentFile = null;
+    let currentFileFormat = null;
+
+    // Multi-format conversion DOM elements
+    const textInputBtn = document.getElementById('text-input-btn');
+    const fileInputBtn = document.getElementById('file-input-btn');
+    const textInputArea = document.getElementById('text-input-area');
+    const fileInputArea = document.getElementById('file-input-area');
+    const fileUploadZone = document.getElementById('file-upload-zone');
+    const fileUploadInput = document.getElementById('file-upload-input');
+    const browseBtn = document.getElementById('browse-btn');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileFormat = document.getElementById('file-format');
+    const clearFileBtn = document.getElementById('clear-file-btn');
+    const targetFormatPanel = document.getElementById('target-format-panel');
+    const targetFormatSelect = document.getElementById('target-format-select');
+
+    // Initialize multi-format converter
+    const initMultiFormatConverter = async () => {
+        try {
+            const response = await fetch('/supported-formats');
+            const data = await response.json();
+            supportedFormats = data.formats;
+            console.log('Loaded supported formats:', supportedFormats);
+        } catch (error) {
+            console.error('Failed to load supported formats:', error);
+        }
+    };
+
+    // Toggle between text and file input modes
+    const toggleInputMode = (mode) => {
+        if (mode === 'text') {
+            textInputBtn.classList.add('active');
+            fileInputBtn.classList.remove('active');
+            textInputArea.classList.remove('hidden');
+            fileInputArea.classList.add('hidden');
+            targetFormatPanel.classList.add('hidden');
+        } else {
+            textInputBtn.classList.remove('active');
+            fileInputBtn.classList.add('active');
+            textInputArea.classList.add('hidden');
+            fileInputArea.classList.remove('hidden');
+        }
+    };
+
+    // Handle file selection
+    const handleFileSelect = (file) => {
+        currentFile = file;
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        
+        // Find format info
+        const formatInfo = supportedFormats.find(f => 
+            f.extensions.includes(fileExt) || 
+            f.extensions.some(e => e.toLowerCase() === fileExt)
+        );
+        
+        currentFileFormat = formatInfo ? formatInfo.extensions[0] : fileExt;
+        
+        // Show file info
+        fileInfo.classList.remove('hidden');
+        fileUploadZone.classList.add('hidden');
+        fileName.textContent = file.name;
+        fileFormat.textContent = formatInfo ? formatInfo.name : `${fileExt.toUpperCase()} File`;
+        
+        // Populate target formats
+        populateTargetFormats(formatInfo);
+        targetFormatPanel.classList.remove('hidden');
+    };
+
+    // Populate target format dropdown
+    const populateTargetFormats = (sourceFormatInfo) => {
+        targetFormatSelect.innerHTML = '';
+        
+        supportedFormats.forEach(format => {
+            if (format.can_write) {
+                const option = document.createElement('option');
+                option.value = format.extensions[0];
+                option.textContent = format.name;
+                targetFormatSelect.appendChild(option);
+            }
+        });
+    };
+
+    // Clear selected file
+    const clearFile = () => {
+        currentFile = null;
+        currentFileFormat = null;
+        fileInfo.classList.add('hidden');
+        fileUploadZone.classList.remove('hidden');
+        targetFormatPanel.classList.add('hidden');
+        fileUploadInput.value = '';
+    };
+
+    // Convert uploaded file
+    const convertUploadedFile = async () => {
+        if (!currentFile) {
+            updateStatus('Please select a file first', 'error');
+            return;
+        }
+        
+        const targetFormat = targetFormatSelect.value;
+        if (!targetFormat) {
+            updateStatus('Please select target format', 'error');
+            return;
+        }
+        
+        updateStatus('Converting...', 'processing');
+        
+        const formData = new FormData();
+        formData.append('file', currentFile);
+        formData.append('format', targetFormat);
+        
+        try {
+            const response = await fetch('/upload-and-convert', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    // Text format response
+                    const data = await response.json();
+                    if (data.success) {
+                        outputArea.value = data.content;
+                        updateStatus('Conversion Successful', 'success');
+                    }
+                } else {
+                    // Binary format - download directly
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `converted.${targetFormat}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    updateStatus('Conversion Successful - File Downloaded', 'success');
+                }
+            } else {
+                const data = await response.json();
+                updateStatus('Conversion Failed', 'error');
+                outputArea.value = 'Error:\n' + (data.error || 'Unknown error');
+            }
+        } catch (error) {
+            updateStatus('Network Error', 'error');
+            outputArea.value = 'Error: ' + error.message;
+        }
+    };
+
+    // Event listeners for multi-format conversion
+    if (textInputBtn) {
+        textInputBtn.addEventListener('click', () => toggleInputMode('text'));
+    }
+    if (fileInputBtn) {
+        fileInputBtn.addEventListener('click', () => toggleInputMode('file'));
+    }
+    if (browseBtn) {
+        browseBtn.addEventListener('click', () => fileUploadInput.click());
+    }
+    if (fileUploadInput) {
+        fileUploadInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+    }
+    if (fileUploadZone) {
+        // Drag and drop handlers
+        fileUploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadZone.classList.add('drag-over');
+        });
+        fileUploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileUploadZone.classList.remove('drag-over');
+        });
+        fileUploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadZone.classList.remove('drag-over');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+        fileUploadZone.addEventListener('click', () => fileUploadInput.click());
+    }
+    if (clearFileBtn) {
+        clearFileBtn.addEventListener('click', clearFile);
+    }
+
+    // Modify convert button to handle both modes
+    const originalConvertClick = convertBtn.onclick;
+    convertBtn.addEventListener('click', async (e) => {
+        if (fileInputBtn && fileInputBtn.classList.contains('active')) {
+            e.preventDefault();
+            await convertUploadedFile();
+        }
+        // Otherwise, original behavior will proceed
+    });
+
+    // Initialize on load
+    initMultiFormatConverter();
+
     const updateStatus = (text, type) => {
         statusText.textContent = text;
         statusDot.className = `status-dot ${type}`;
@@ -596,6 +804,100 @@ ${logsContent}
             downloadBtn.click();
         }
     });
+
+    // 5. Format Conversion
+    const formatSelect = document.getElementById('format-select');
+    const downloadFormatBtn = document.getElementById('download-format-btn');
+    const downloadAllBtn = document.getElementById('download-all-btn');
+
+    if (downloadFormatBtn) {
+        downloadFormatBtn.addEventListener('click', async () => {
+            const abcContent = inputArea.value;
+            if (!abcContent.trim()) {
+                updateStatus('No content to export', 'error');
+                return;
+            }
+
+            const format = formatSelect.value;
+            updateStatus(`Converting to ${format}...`, 'processing');
+
+            try {
+                const response = await fetch('/convert-to', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        abc_content: abcContent,
+                        format: format 
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Conversion failed');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `output.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                updateStatus(`Exported to ${format}`, 'success');
+            } catch (error) {
+                console.error("Format conversion error:", error);
+                updateStatus('Conversion Failed: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // 6. Download All Formats
+    if (downloadAllBtn) {
+        downloadAllBtn.addEventListener('click', async () => {
+            const abcContent = inputArea.value;
+            if (!abcContent.trim()) {
+                updateStatus('No content to export', 'error');
+                return;
+            }
+
+            updateStatus('Converting to all formats...', 'processing');
+
+            try {
+                const response = await fetch('/convert-to-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ abc_content: abcContent }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Conversion failed');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'all_formats.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                updateStatus('Exported all formats', 'success');
+            } catch (error) {
+                console.error("All formats conversion error:", error);
+                updateStatus('Conversion Failed: ' + error.message, 'error');
+            }
+        });
+    }
 
     // Run update check
     checkForUpdates();

@@ -1,0 +1,29 @@
+X: 1
+T: MIDI Features Test
+M: 4/4
+L: 1/4
+K: C
+%%midi program 1
+%%midi-bank 1
+%%midi-vol 100
+%%midi-pan -50
+C D E F |
+%%segno Segno1
+G A B c |
+%%damper-pedal yes
+c B A G |
+%%soft-pedal on
+F E D C |
+%%damper-pedal no
+%%soft-pedal off
+%%sostenuto-pedal yes
+C D E F |
+%%tocoda Coda1
+G A B c |
+%%sostenuto-pedal no
+c B A G |
+%%dalsegno Segno1
+F E D C |
+%%dacapo
+C D E F |
+%%fine

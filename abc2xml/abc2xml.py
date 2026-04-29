@@ -790,7 +790,7 @@ def stepTrans (step, soct, clef):   # [A-G] (1...8)
 def reduceMids (parts, vidsnew, midiInst):       # remove redundant instruments from a part
     for pid, part in zip (vidsnew, parts):
         mids, repls, has_perc = {}, {}, 0
-        for ipid, ivid, ch, prg, vol, pan in sorted (list (midiInst.values ())):
+        for ipid, ivid, ch, prg, vol, pan, bank in sorted (list (midiInst.values ())):
             if ipid != pid: continue                # only instruments from part pid
             if ch == '10': has_perc = 1; continue   # only consider non percussion instruments
             instId, inst = 'I%s-%s' % (ipid, ivid), (ch, prg)
@@ -990,7 +990,7 @@ class MusicXml:
         s.pageFmtAbc = []   # formatting from abc directives
         s.mdur = (4,4)      # duration of one measure
         s.gtrans = 0        # octave transposition (by clef)
-        s.midprg = ['', '', '', ''] # MIDI channel nr, program nr, volume, panning for the current part
+        s.midprg = ['', '', '', '', ''] # MIDI channel nr, program nr, volume, panning, bank for the current part
         s.vid = ''          # abc voice id for the current voice
         s.pid = ''          # xml part id for the current voice
         s.gcue_on = 0       # insert <cue/> tag in each note
@@ -1210,12 +1210,12 @@ class MusicXml:
         if getattr (n, 'tie', 0):
             tie = E.Element ('tie', type='start')
             addElem (nt, tie, lev + 1)
-        if (s.midprg != ['', '', '', ''] or midi) and n.name != 'rest': # only add when %%midi was present or percussion
+        if (s.midprg != ['', '', '', '', ''] or midi) and n.name != 'rest': # only add when %%midi was present or percussion
             instId = 'I%s-%s' % (s.pid, 'X' + midi if midi else s.vid)
             chan, midi = ('10', midi) if midi else s.midprg [:2]
             inst = E.Element ('instrument', id=instId)  # instrument id for midi
             addElem (nt, inst, lev + 1)
-            if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, chan, midi, s.midprg [2], s.midprg [3]) # for instrument list in mkScorePart
+            if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, chan, midi, s.midprg [2], s.midprg [3], s.midprg [4]) # for instrument list in mkScorePart
         addElemT (nt, 'voice', '1', lev + 1)    # default voice, for merging later
         if noMsrRest: addElemT (nt, 'type', xmltype, lev + 1) # add note type if not a measure rest
         for i in range (ndot):          # add dots
@@ -2195,6 +2195,7 @@ class MusicXml:
                 addDirection (maat, words, lev + 1, gstaff, placement=place)
             elif x.name == 'inline':
                 fieldtype, fieldval = x.t[0], ' '.join (x.t[1:])
+                print('DEBUG INLINE:', fieldtype, fieldval)
                 s.doFields (maat, {fieldtype:fieldval}, lev + 1)
             elif x.name == 'accia': s.acciatura = 1
             elif x.name == 'linebrk':
@@ -2232,7 +2233,7 @@ class MusicXml:
         s.curVolta = ''
         s.lyrdash = {}
         s.linebrk = 0
-        s.midprg = ['', '', '', ''] # MIDI channel nr, program nr, volume, panning for the current part
+        s.midprg = ['', '', '', '', ''] # MIDI channel nr, program nr, volume, panning, bank for the current part
         s.gcue_on = 0           # reset cue note marker for each new voice
         s.gtrans = 0            # reset octave transposition (by clef)
         s.percVoice = 0         # 1 if percussion clef encountered
@@ -2256,12 +2257,13 @@ class MusicXml:
         return part
 
     def mkScorePart (s, id, vids_p, partAttr, lev):
-        def mkInst (instId, vid, midchan, midprog, midnot, vol, pan, lev):
+        def mkInst (instId, vid, midchan, midprog, midnot, vol, pan, bank, lev):
             si = E.Element ('score-instrument', id=instId)
             pnm = partAttr.get (vid, [''])[0]   # part name if present
             addElemT (si, 'instrument-name', pnm or 'dummy', lev + 2)   # MuseScore needs a name
             mi = E.Element ('midi-instrument', id=instId)
             if midchan: addElemT (mi, 'midi-channel', midchan, lev + 2)
+            if bank:    addElemT (mi, 'midi-bank', bank, lev + 2)
             if midprog: addElemT (mi, 'midi-program', str (int (midprog) + 1), lev + 2) # compatible with abc2midi
             if midnot:  addElemT (mi, 'midi-unpitched', str (int (midnot) + 1), lev + 2)
             if vol: addElemT (mi, 'volume', '%.2f' % (int (vol) / 1.27), lev + 2)
@@ -2276,9 +2278,9 @@ class MusicXml:
         snm.text = subnm
         if subnm: addElem (sp, snm, lev + 1)    # only add if subname was given
         inst = []
-        for instId, (pid, vid, chan, midprg, vol, pan) in sorted (s.midiInst.items ()):
+        for instId, (pid, vid, chan, midprg, vol, pan, bank) in sorted (s.midiInst.items ()):
             midprg, midnot = ('0', midprg) if chan == '10' else (midprg, '')
-            if pid == id: inst.append (mkInst (instId, vid, chan, midprg, midnot, vol, pan, lev))
+            if pid == id: inst.append (mkInst (instId, vid, chan, midprg, midnot, vol, pan, bank, lev))
         for si, mi in inst: addElem (sp, si, lev + 1)
         for si, mi in inst: addElem (sp, mi, lev + 1)
         return sp
@@ -2305,9 +2307,12 @@ class MusicXml:
         return partlist
 
     def doField_I (s, type, x, instDir, addTrans, lev=1):
-        def instChange (midchan, midprog):  # instDir -> doFields
+        def instChange (midchan, midprog, midvol, midpan, midbank):  # instDir -> doFields
             if midchan and midchan != s.midprg [0]: instDir ('midi-channel', midchan, 'chan: %s')
             if midprog and midprog != s.midprg [1]: instDir ('midi-program', str (int (midprog) + 1), 'prog: %s')
+            if midvol and midvol != s.midprg [2]: instDir ('volume', midvol, 'vol: %s')
+            if midpan and midpan != s.midprg [3]: instDir ('pan', midpan, 'pan: %s')
+            if midbank and midbank != s.midprg [4]: instDir ('midi-bank', midbank, 'bank: %s')
         def readPfmt (x, n): # read ABC page formatting constant
             if not s.pageFmtAbc: s.pageFmtAbc = s.pageFmtDef    # set the default values on first change
             ro = re.search (r'[^.\d]*([\d.]+)\s*(cm|in|pt)?', x)    # float followed by unit
@@ -2405,7 +2410,7 @@ class MusicXml:
             val = 'no' if 'off' in x else 'yes'
             snd = E.Element('sound', mute=val)
             if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
-        elif x.startswith ('MIDI') or x.startswith ('midi'):
+        elif x.startswith ('MIDI ') or x.startswith ('midi ') or x.startswith('MIDI=') or x.startswith('midi='):
             r1 = re.search (r'program *(\d*) +(\d+)', x)
             r2 = re.search (r'channel *(\d+)', x)
             # Support both ABC notation (^_=) and standard notation (#b) for accidentals
@@ -2423,9 +2428,10 @@ class MusicXml:
                 prg = prg_nw or s.midprg [1]
                 vol = vol_nw or s.midprg [2]
                 pan = pan_nw or s.midprg [3]
+                bank = s.midprg [4]
                 instId = 'I%s-%s' % (s.pid, s.vid)              # only look for real instruments, no percussion
-                if instId in s.midiInst: instChange (ch, prg)   # instChance -> doFields
-                s.midprg = [ch, prg, vol, pan]  # mknote: new instrument -> s.midiInst
+                if instId in s.midiInst: instChange (ch, prg, vol, pan, bank)   # instChance -> doFields
+                s.midprg = [ch, prg, vol, pan, bank]  # mknote: new instrument -> s.midiInst
             if r3:      # translate drummap to percmap
                 acc_pre, step, acc_post, oct, midi = r3.groups ()
                 # Normalize accidentals: # -> ^, b -> _
@@ -2439,6 +2445,54 @@ class MusicXml:
             if 'mute' in x:  s.nextdecos.append ('mute' if 'off' not in x else 'mute-off')
             r = re.search (r'transpose[^-\d]*(-?\d+)', x)
             if r: addTrans (r.group (1))        # addTrans -> doFields
+        elif x.startswith ('dacapo'):
+            snd = E.Element('sound', dacapo='yes')
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('fine'):
+            snd = E.Element('sound', fine='yes')
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('segno '):
+            snd = E.Element('sound', segno=x[6:].strip())
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('dalsegno '):
+            snd = E.Element('sound', dalsegno=x[9:].strip())
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('tocoda '):
+            snd = E.Element('sound', coda=x[7:].strip())
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('damper-pedal'):
+            val = 'no' if 'off' in x or 'no' in x else 'yes'
+            snd = E.Element('sound')
+            snd.set('damper-pedal', val)
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('soft-pedal'):
+            val = 'no' if 'off' in x or 'no' in x else 'yes'
+            snd = E.Element('sound')
+            snd.set('soft-pedal', val)
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('sostenuto-pedal'):
+            val = 'no' if 'off' in x or 'no' in x else 'yes'
+            snd = E.Element('sound')
+            snd.set('sostenuto-pedal', val)
+            if s.maat: addDirection(s.maat, None, lev, s.gStaffNums.get(s.vid, 0), [snd])
+        elif x.startswith ('midi-pan '):
+            pan_val = x[9:].strip()
+            ch, prg, vol, pan, bank = s.midprg
+            instId = 'I%s-%s' % (s.pid, s.vid)
+            if instId in s.midiInst: instChange (ch, prg, vol, pan_val, bank)
+            s.midprg = [ch, prg, vol, pan_val, bank]
+        elif x.startswith ('midi-vol '):
+            vol_val = x[9:].strip()
+            ch, prg, vol, pan, bank = s.midprg
+            instId = 'I%s-%s' % (s.pid, s.vid)
+            if instId in s.midiInst: instChange (ch, prg, vol_val, pan, bank)
+            s.midprg = [ch, prg, vol_val, pan, bank]
+        elif x.startswith ('midi-bank '):
+            bank_val = x[10:].strip()
+            ch, prg, vol, pan, bank = s.midprg
+            instId = 'I%s-%s' % (s.pid, s.vid)
+            if instId in s.midiInst: instChange (ch, prg, vol, pan, bank_val)
+            s.midprg = [ch, prg, vol, pan, bank_val]
         elif x.startswith ('percmap'): readPercMap (x); s.pMapFound = 1
         elif x.startswith ('drummap'):
             # Handle I:drummap lines directly (not prefixed with MIDI)
@@ -2738,9 +2792,9 @@ class MusicXml:
             parts.append (part)
             vids.append (vid)
             partAttr [vid] = (pname, psubnm, s.midprg)
-            if s.midprg != ['', '', '', ''] and not s.percVoice:    # when a part has only rests
+            if s.midprg != ['', '', '', '', ''] and not s.percVoice:    # when a part has only rests
                 instId = 'I%s-%s' % (s.pid, s.vid)
-                if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, s.midprg [0], s.midprg [1], s.midprg [2], s.midprg [3])
+                if instId not in s.midiInst: s.midiInst [instId] = (s.pid, s.vid, s.midprg [0], s.midprg [1], s.midprg [2], s.midprg [3], s.midprg [4])
         parts, vidsnew = mergeParts (parts, vids, s.staves, rOpt) # merge parts into staves as indicated by %%score
         parts, vidsnew = mergeParts (parts, vidsnew, s.grands, rOpt, 1) # merge grand staves
         reduceMids (parts, vidsnew, s.midiInst)

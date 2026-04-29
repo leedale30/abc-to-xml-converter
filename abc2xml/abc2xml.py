@@ -2195,7 +2195,6 @@ class MusicXml:
                 addDirection (maat, words, lev + 1, gstaff, placement=place)
             elif x.name == 'inline':
                 fieldtype, fieldval = x.t[0], ' '.join (x.t[1:])
-                print('DEBUG INLINE:', fieldtype, fieldval)
                 s.doFields (maat, {fieldtype:fieldval}, lev + 1)
             elif x.name == 'accia': s.acciatura = 1
             elif x.name == 'linebrk':

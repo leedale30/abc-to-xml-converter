@@ -1441,7 +1441,7 @@ class MusicXml:
                     content = re.search(r'\((.*?)\)', d)
                     if content: el.text = content.group(1)
                     addElem (tecs_cnt, el, lev + 2)
-                elif d.startswith('text(') or d.startswith('marker ') or d.startswith('fret(') or d.startswith('string(') or d in s.dynaMap or d in s.wedgeMap or '@' in d:
+                elif d.startswith('text(') or d.startswith('vel:') or d.startswith('marker ') or d.startswith('fret(') or d.startswith('string(') or d in s.dynaMap or d in s.wedgeMap or '@' in d:
                     if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
                 else:
                     if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
@@ -1665,6 +1665,18 @@ class MusicXml:
                 words = E.Element('words')
                 words.text = content
                 addDirection (maat, words, lev, gstaff, placement=placement if placement else 'above')
+                continue
+            
+            if d.startswith('vel:'):
+                try:
+                    vel_val = int(d[4:])
+                    if 0 <= vel_val <= 127:
+                        other_dir = E.Element('other-direction')
+                        other_dir.text = 'vel:' + str(vel_val)
+                        sound = E.Element('sound', dynamics=str(vel_val))
+                        addDirection (maat, [(other_dir, []), (None, [sound])], lev, gstaff, placement=placement if placement else 'below')
+                except ValueError:
+                    pass
                 continue
             
             if d in s.dynaMap:

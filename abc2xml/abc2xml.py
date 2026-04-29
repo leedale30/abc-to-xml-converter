@@ -1441,14 +1441,14 @@ class MusicXml:
                     content = re.search(r'\((.*?)\)', d)
                     if content: el.text = content.group(1)
                     addElem (tecs_cnt, el, lev + 2)
-                elif d.startswith('text(') or d.startswith('vel:') or d.startswith('marker ') or d.startswith('fret(') or d.startswith('string(') or d in s.dynaMap or d in s.wedgeMap or '@' in d:
+                elif d.startswith('text(') or d.startswith('vel:') or d.startswith('marker ') or d.startswith('harp ') or d.startswith('accordion ') or d.startswith('fret(') or d.startswith('string(') or d in s.dynaMap or d in s.wedgeMap or '@' in d:
                     if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
                 else:
                     if hasattr(s, 'maat'): s.staffDecos([d], s.maat, lev)
                     # Skip common staff decorations to avoid redundant other-articulation elements
                     if d in ['swing', 'swing-off', 'mute', 'mute-off', '8va', '8vb', '15ma', '15mb', '22ma', '22mb',
                              'ped', 'ped-up', 'ped-change', 'ped(', 'ped)', 'trill(', 'trill)'] or \
-                       d.startswith(('vskip', 'sep', 'frame', 'fb', 'measurenb', 'measurenumbering', '(1slur', '(2slur', '(3slur', '(4slur', 'slur-start', 'slur-end')):
+                       d.startswith(('vskip', 'sep', 'harp ', 'accordion ', 'frame', 'fb', 'measurenb', 'measurenumbering', '(1slur', '(2slur', '(3slur', '(4slur', 'slur-start', 'slur-end')):
                         continue
                     other = E.Element ('other-articulation')
                     other.text = d
@@ -1718,6 +1718,32 @@ class MusicXml:
                 words.text = 'separator'
                 words.set('print-object', 'no')
                 addDirection (maat, words, lev, gstaff, placement='above')
+            elif d.startswith('harp '):
+                pedals = d[5:].strip().split()
+                if len(pedals) == 7:
+                    harp = E.Element('harp-pedals')
+                    pedal_tunings = []
+                    for p in pedals:
+                        step = p[0].upper()
+                        alter = 0
+                        if len(p) > 1:
+                            if p[1] == '#': alter = 1
+                            elif p[1] == 'b': alter = -1
+                        tuning = E.Element('pedal-tuning')
+                        E.SubElement(tuning, 'pedal-step').text = step
+                        E.SubElement(tuning, 'pedal-alter').text = str(alter)
+                        pedal_tunings.append(tuning)
+                    addDirection(maat, harp, lev, gstaff, subelms=pedal_tunings)
+            elif d.startswith('accordion '):
+                settings = d[10:].strip().split()
+                acc_reg = E.Element('accordion-registration')
+                for s_attr in settings:
+                    if '=' in s_attr:
+                        key, val = s_attr.split('=', 1)
+                        if key in ['high', 'middle', 'low']:
+                            elem = E.SubElement(acc_reg, 'accordion-' + key)
+                            elem.text = val
+                addDirection(maat, acc_reg, lev, gstaff)
             elif d.startswith (('8v', '15m', '22m')):
                 size = '8'
                 if '15' in d: size = '15'
@@ -2354,7 +2380,7 @@ class MusicXml:
             s.nextdecos.append (x)
         elif x.startswith ('measurenumbering '):
             s.measureNumbering = x[17:].strip()
-        elif x.startswith (('vskip', 'sep')):
+        elif x.startswith (('vskip', 'sep', 'harp ', 'accordion ')):
             s.nextdecos.append(x)
         elif x.startswith ('marker '):
             s.nextdecos.append(x)

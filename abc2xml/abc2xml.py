@@ -1385,7 +1385,9 @@ class MusicXml:
             if tupnotation == 'start': tup_attr['bracket'] = 'yes'
             addElem (nots, E.Element ('tuplet', **tup_attr), lev + 1)
 
-        if tstop:  addElem (nots, E.Element ('tied', type='stop'), lev + 1)
+        if tstop:
+            addElem (nots, E.Element ('tied', type='stop'), lev + 1)
+            if ptup in s.ties: del s.ties [ptup]
         if tstart:
             s.ties[ptup] = (alter, nots, s.overlayVnum, nt)
             tie = E.Element ('tied', type='start')
@@ -2805,6 +2807,7 @@ class MusicXml:
         addElem (score, partlist, lev + 1)
         for ip, part in enumerate (parts): addElem (score, part, lev + 1)
 
+        fixGraceBreaths (score)     # MuseScore-compat: keep breath-marks off grace notes
         return score
 
 
@@ -2818,6 +2821,40 @@ def decodeInput (data_string):
 
 def ggd (a, b): # greatest common divisor
     return a if b == 0 else ggd (b, a % b)
+
+def fixGraceBreaths (score):
+    # MuseScore 4's importer crashes when a <breath-mark> is attached to a <grace> note.
+    # abc2xml applies a decoration to the next note event, so a phrase-end !breath! written
+    # immediately before a pickup grace ("... e2) !breath! | ({f} ...") lands the breath inside
+    # the grace note's <articulations>. The XML is valid (Dorico imports it fine) but MuseScore
+    # segfaults on it. Relocate any such breath-mark onto the preceding real (non-grace) note --
+    # where the breath belongs musically (end of the previous phrase); drop it if there is none.
+    # Grace notes alone and breath-marks alone are both fine; only the combination crashes.
+    for part in score.findall ('part'):
+        prev_real = None
+        for note in part.iter ('note'):
+            if note.find ('grace') is None:             # real (non-grace) note
+                prev_real = note
+                continue
+            nots = note.find ('notations')              # grace note
+            arts = nots.find ('articulations') if nots is not None else None
+            if arts is None: continue
+            for b in arts.findall ('breath-mark'):
+                arts.remove (b)                         # take the breath off the grace note
+                if prev_real is None: continue          # nowhere to put it -> drop
+                dnots = prev_real.find ('notations')
+                if dnots is None:
+                    dnots = E.Element ('notations')
+                    kids = list (prev_real); ins = len (kids)
+                    for i, k in enumerate (kids):       # <notations> must precede <lyric>/<play>
+                        if k.tag in ('lyric', 'play'): ins = i; break
+                    prev_real.insert (ins, dnots)
+                darts = dnots.find ('articulations')
+                if darts is None: darts = E.SubElement (dnots, 'articulations')
+                darts.append (b)                        # now renders after the previous note
+            if len (arts) == 0: nots.remove (arts)      # tidy up empty containers
+            if nots is not None and len (nots) == 0: note.remove (nots)
+    return score
 
 xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"    
 def fixDoctype (elem):

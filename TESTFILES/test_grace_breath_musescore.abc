@@ -1,0 +1,19 @@
+X:1
+T:Grace plus breath MuseScore-compat regression
+C:abc2xml relocates breath marks off grace notes
+% REGRESSION TEST for the MuseScore 4 grace-plus-breath import crash.
+% MuseScore 4 segfaults when a breath mark is attached to a grace note.
+% abc2xml applies a decoration to the next note event, so a phrase-end breath
+% written just before a pickup grace would otherwise attach to that grace note.
+% fixGraceBreaths() relocates it onto the preceding real note instead.
+% PASS: after conversion, no note has BOTH a grace child AND a breath mark, and
+% all breath marks survive (relocated, not dropped). The music line below has 3
+% breath marks; exactly one falls before a grace and must be relocated.
+% Check (must print 0):
+%   awk '/<note>/{g=b=0} /grace/{g=1} /breathANDmark/{b=1} /\/note/{if(g+b==2)c++} END{print c+0}' out.xml
+M:4/4
+L:1/8
+Q:1/4=70
+K:C
+V:Fl clef=treble name="Flute"
+{C}(!tenuto!D3 D A2 A2|!tenuto!A3 A {d}e2 e2) !breath!|({f}!tenuto!e3 d !mordent!B2 A2|!tenuto!d6) !breath!z2|{A}(!tenuto!A3 A e2 e2|!tenuto!e3 d {e}c2 A2)|(!tenuto!G3 A !turn!F2 E2|!tenuto!D6) !breath!z2|]

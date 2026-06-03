@@ -17,7 +17,7 @@ Designed for composers, engravers, and researchers, ABC+ goes beyond standard co
 
 ### ✨ Key Features
 
-- **🎯 Precision MusicXML 4.0**: Fully compatible with MuseScore 4, Sibelius, and Finale.
+- **🎯 Precision MusicXML 4.0**: Fully compatible with MuseScore 4, Sibelius, and Finale — instruments are **auto-recognised** on import (every part is tagged with a MusicXML `<instrument-sound>`), and grace-note phrasing imports cleanly (no MuseScore import crashes).
 - **🎹 Advanced Playback & Tab**: Native interpretation of `%%swing`, `%%mute`, and automatic **Tin Whistle Tablature** generation.
 - **📏 Pro Layout Controls**: Fine-grained vertical orchestration with `%%vskip`, `%%lyrics-above`, and custom `%%sep` separators.
 - **🎻 Orchestral Power**: Support for complex `@above`/`@below` placements (including technical notations and fingerings).

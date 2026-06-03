@@ -2808,6 +2808,7 @@ class MusicXml:
         for ip, part in enumerate (parts): addElem (score, part, lev + 1)
 
         fixGraceBreaths (score)     # MuseScore-compat: keep breath-marks off grace notes
+        addInstrumentSounds (score) # MuseScore-compat: <instrument-sound> for instrument recognition
         return score
 
 
@@ -2854,6 +2855,125 @@ def fixGraceBreaths (score):
                 darts.append (b)                        # now renders after the previous note
             if len (arts) == 0: nots.remove (arts)      # tidy up empty containers
             if nots is not None and len (nots) == 0: note.remove (nots)
+    return score
+
+# --- MusicXML standard "instrument-sound" ids, matched from the part name ---
+# Notation apps (MuseScore etc.) map a part to a playback instrument via the
+# <instrument-sound> id inside <score-instrument>. abc2xml does not emit these, so
+# imported parts fall back to a generic/basic sound. The table is scanned in order;
+# the first key found in the lower-cased part name wins -- so more specific names
+# ("bass clarinet", "piccolo trumpet") must precede the general ones, and the bare
+# "bass" -> voice fallback comes last (after all bass-* instruments and contrabass).
+_INSTRUMENT_SOUNDS = [
+    ('piccolo trumpet',  'brass.trumpet.piccolo'),
+    ('piccolo',          'wind.flutes.flute.piccolo'),
+    ('alto flute',       'wind.flutes.flute.alto'),
+    ('bass flute',       'wind.flutes.flute.bass'),
+    ('flute',            'wind.flutes.flute'),
+    ('recorder',         'wind.flutes.recorder'),
+    ('english horn',     'wind.reed.english-horn'),
+    ('cor anglais',      'wind.reed.english-horn'),
+    ('oboe',             'wind.reed.oboe'),
+    ('bass clarinet',    'wind.reed.clarinet.bass'),
+    ('clarinet',         'wind.reed.clarinet.bflat'),
+    ('contrabassoon',    'wind.reed.contrabassoon'),
+    ('double bassoon',   'wind.reed.contrabassoon'),
+    ('bassoon',          'wind.reed.bassoon'),
+    ('soprano sax',      'wind.reed.saxophone.soprano'),
+    ('alto sax',         'wind.reed.saxophone.alto'),
+    ('tenor sax',        'wind.reed.saxophone.tenor'),
+    ('baritone sax',     'wind.reed.saxophone.baritone'),
+    ('saxophone',        'wind.reed.saxophone'),
+    ('descant horn',     'brass.french-horn'),
+    ('french horn',      'brass.french-horn'),
+    ('horn in f',        'brass.french-horn'),
+    ('flugelhorn',       'brass.flugelhorn'),
+    ('cornet',           'brass.cornet'),
+    ('trumpet',          'brass.trumpet.bflat'),
+    ('bass trombone',    'brass.trombone.bass'),
+    ('trombone',         'brass.trombone'),
+    ('euphonium',        'brass.euphonium'),
+    ('cimbasso',         'brass.cimbasso'),
+    ('tuba',             'brass.tuba'),
+    ('horn',             'brass.french-horn'),
+    ('timpani',          'drum.timpani'),
+    ('glockenspiel',     'pitched-percussion.glockenspiel'),
+    ('xylophone',        'pitched-percussion.xylophone'),
+    ('marimba',          'pitched-percussion.marimba'),
+    ('vibraphone',       'pitched-percussion.vibraphone'),
+    ('crotales',         'pitched-percussion.crotales'),
+    ('antique cymbal',   'pitched-percussion.crotales'),
+    ('tubular bell',     'pitched-percussion.tubular-bells'),
+    ('chime',            'pitched-percussion.tubular-bells'),
+    ('celesta',          'keyboard.celesta'),
+    ('celeste',          'keyboard.celesta'),
+    ('harpsichord',      'keyboard.harpsichord'),
+    ('piano',            'keyboard.piano'),
+    ('organ',            'keyboard.organ'),
+    ('harp',             'pluck.harp'),
+    ('bass drum',        'drum.bass-drum'),
+    ('snare',            'drum.snare-drum'),
+    ('side drum',        'drum.snare-drum'),
+    ('suspended cymbal', 'metal.cymbal.suspended'),
+    ('cymbal',           'metal.cymbal.crash'),
+    ('tam-tam',          'metal.tamtam'),
+    ('tamtam',           'metal.tamtam'),
+    ('gong',             'metal.tamtam'),
+    ('triangle',         'metal.triangle'),
+    ('mark tree',        'metal.bells.bell-tree'),
+    ('bell tree',        'metal.bells.bell-tree'),
+    ('tambourine',       'drum.tambourine'),
+    ('wood block',       'wood.wood-block'),
+    ('woodblock',        'wood.wood-block'),
+    ('castanet',         'wood.castanets'),
+    ('soprano',          'voice.soprano'),
+    ('mezzo',            'voice.mezzo-soprano'),
+    ('contralto',        'voice.alto'),
+    ('alto',             'voice.alto'),
+    ('tenor',            'voice.tenor'),
+    ('baritone',         'voice.baritone'),
+    ('violin',           'strings.violin'),
+    ('viola',            'strings.viola'),
+    ('violoncello',      'strings.cello'),
+    ('cello',            'strings.cello'),
+    ('contrabass',       'strings.contrabass'),
+    ('double bass',      'strings.contrabass'),
+    ('bass',             'voice.bass'),
+]
+
+def _instrumentSound (name):    # map a part/instrument name to a MusicXML standard sound id
+    n = (name or '').lower ()
+    for key, snd in _INSTRUMENT_SOUNDS:
+        if key in n: return snd
+    return None
+
+def addInstrumentSounds (score):
+    # Add <instrument-sound> to every part so notation apps recognise the instrument and
+    # assign the right playback sound (otherwise MuseScore can only name-match and most
+    # parts fall back to a generic sound). Creates a <score-instrument> when the part has
+    # none (abc2xml omits it for melodic parts). Names we cannot map are left untouched.
+    plist = score.find ('part-list')
+    if plist is None: return score
+    for sp in plist.findall ('score-part'):
+        snd = _instrumentSound (sp.findtext ('part-name'))
+        if not snd: continue
+        sins = sp.findall ('score-instrument')
+        if sins:                                    # part already has instrument(s): add the sound
+            for si in sins:
+                if si.find ('instrument-sound') is None:
+                    el = E.Element ('instrument-sound'); el.text = snd
+                    anchor = si.find ('instrument-abbreviation')
+                    if anchor is None: anchor = si.find ('instrument-name')
+                    if anchor is not None: si.insert (list (si).index (anchor) + 1, el)
+                    else: si.insert (0, el)
+        else:                                       # create a single <score-instrument>
+            pid = sp.get ('id', 'P')
+            si = E.Element ('score-instrument', id='%s-I1' % pid)
+            nm = E.SubElement (si, 'instrument-name'); nm.text = sp.findtext ('part-name') or pid
+            so = E.SubElement (si, 'instrument-sound'); so.text = snd
+            mi = sp.find ('midi-instrument')
+            if mi is not None: sp.insert (list (sp).index (mi), si)
+            else: sp.append (si)
     return score
 
 xmlVersion = "<?xml version='1.0' encoding='utf-8'?>"    

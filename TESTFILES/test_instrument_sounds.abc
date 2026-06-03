@@ -1,0 +1,27 @@
+X:1
+T:Instrument-sound mapping test
+C:addInstrumentSounds regression
+% Verifies addInstrumentSounds(): every part gets the right MusicXML <instrument-sound>.
+% Exercises the tricky disambiguations that depend on most-specific-first ordering:
+%   bass clarinet vs clarinet, piccolo trumpet vs trumpet, english horn vs (french) horn,
+%   contrabass (string) vs basses (voice).
+% Expected ids: wind.flutes.flute, wind.reed.clarinet.bass, wind.reed.english-horn,
+%   brass.french-horn, brass.trumpet.piccolo, strings.contrabass, voice.bass.
+% Check: grep -c '<instrument-sound>' out.xml   == number of parts (7).
+M:4/4
+L:1/4
+K:C
+V:V1 name="Flute 1"
+V:V2 name="Bass Clarinet"
+V:V3 name="English Horn"
+V:V4 name="Horn in F 1"
+V:V5 name="Piccolo Trumpet"
+V:V6 name="Contrabasses"
+V:V7 name="Basses"
+[V:V1] CDEF|
+[V:V2] CDEF|
+[V:V3] CDEF|
+[V:V4] CDEF|
+[V:V5] CDEF|
+[V:V6] C,D,E,F,|
+[V:V7] C,D,E,F,|

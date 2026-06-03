@@ -92,3 +92,47 @@ awk '/<note>/{g=b=0}/<grace/{g=1}/breath-mark/{b=1}/<\/note>/{if(g&&b)c++}END{pr
 ---
 
 *Documented: 2026-06-02*
+
+---
+
+# MuseScore imports parts as generic / "MS Basic" sounds (instruments not recognised)
+
+## Problem
+
+After importing a converted `.musicxml`, MuseScore shows "MS Basic" (or a generic sound) for
+most parts instead of the real instruments. Only a few whose `<part-name>` happens to match
+MuseScore's instrument list exactly (e.g. "Piccolo", "English Horn") are recognised. Opening the
+file in Dorico, re-saving as MusicXML, then opening *that* in MuseScore works fine.
+
+## Root Cause
+
+MuseScore maps a part to a playback instrument primarily via the MusicXML **`<instrument-sound>`**
+id inside `<score-instrument>` (e.g. `wind.flutes.flute`, `brass.trumpet.bflat`, `strings.violin`).
+abc2xml did not emit `<instrument-sound>` at all — and emitted no `<score-instrument>` for melodic
+parts — so MuseScore could only name-match and fell back to a generic sound. Dorico writes an
+`<instrument-sound>` for every part, which is why a Dorico round-trip "fixes" recognition.
+
+## Solution
+
+`addInstrumentSounds()` (called at the end of `parse()`) adds an `<instrument-sound>` to every
+part, mapped from the part name via a standard-sound table (`_INSTRUMENT_SOUNDS`), creating a
+`<score-instrument>` when the part has none. The table is scanned most-specific-first (so
+"bass clarinet" beats "clarinet", "piccolo trumpet" beats "trumpet", and a bare "bass" → voice
+fallback comes last). Result matches Dorico: Flute → `wind.flutes.flute`, Cimbasso →
+`brass.cimbasso`, Mark Tree → `metal.bells.bell-tree`, voices → `voice.*`, strings → `strings.*`.
+
+Note: orchestral string **sections** named in the plural ("Violins 1", "Violas", …) are mapped by
+MuseScore to its string-section sound `strings.group` — this is MuseScore's own behaviour and is
+identical for Dorico's export; solo strings ("Solo Viola") map to the specific instrument.
+
+## Verification
+
+Every `<score-part>` should contain an `<instrument-sound>`:
+
+```bash
+grep -c '<instrument-sound>' out.musicxml   # == number of parts
+```
+
+---
+
+*Documented: 2026-06-03*

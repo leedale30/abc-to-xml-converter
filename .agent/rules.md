@@ -31,3 +31,12 @@ awk '/<note>/{g=b=0}/<grace/{g=1}/breath-mark/{b=1}/<\/note>/{if(g&&b)c++}END{pr
 ```
 
 *Discovered 2026-06-02 while preparing a 58-stave orchestral score (The Fire-Bringer). Minimal reproducer + passing twin in that project's `grace_test/` (`06_grace_plus_breath_CRASHES` vs `02_grace_full`).*
+
+### Instrument recognition is automatic — use clear instrument names
+The converter now adds a MusicXML `<instrument-sound>` id to every part (`addInstrumentSounds()`),
+mapped from the **part name**, so MuseScore (and other apps) recognise the instrument instead of
+falling back to a generic "MS Basic" sound. For this to map correctly, give voices recognisable
+names via `V:ID name="..."` — e.g. `Flute 1`, `Bass Clarinet`, `Horn in F 3`, `Piccolo Trumpet`,
+`Contrabassoon`, `Violins 1`, `Sopranos`. The mapping is most-specific-first, so compound names
+("bass clarinet", "piccolo trumpet", "english horn") resolve correctly. Unknown names are left
+without a sound (MuseScore then name-matches as before).

@@ -189,6 +189,29 @@
             "musicXML": {
                 "element": "figured-bass"
             }
+        },
+        "tempofont": {
+            "scope": "score",
+            "placement": "header",
+            "attributes": {
+                "value": "string"
+            },
+            "musicXML": {
+                "element": "direction",
+                "type": "metronome",
+                "subtype": "font-family"
+            }
+        },
+        "barnumbers": {
+            "scope": "score",
+            "placement": "header",
+            "attributes": {
+                "value": "string"
+            },
+            "musicXML": {
+                "element": "print",
+                "type": "measure-numbering"
+            }
         }
     }
 }

@@ -998,6 +998,8 @@ class MusicXml:
         s.percMap = {}      # (part-id, abc_pitch, xml-octave) -> (abc staff step, midi note number, xml notehead)
         s.pMapFound = 0     # at least one I:percmap has been found
         s.vcepid = {}       # voice_id -> part_id
+        s.tempofont = ''
+        s.measureNumbering = 'no'
         s.midiInst = {}     # inst_id -> (part_id, voice_id, channel, midi_number), remember instruments used
         s.capo = 0          # fret position of the capodastro
         s.tunmid = []       # midi numbers of strings
@@ -2025,7 +2027,10 @@ class MusicXml:
         elems = []  # [(element, sub-elements)] will be added as direction-types
         if rtxt:
             num, den, upm = 1, 4, s.tempoMap.get (rtxt.group (1).lower ().strip (), 120)
-            words = E.Element ('words'); words.text = rtxt.group (1)
+            words = E.Element ('words')
+            if hasattr(s, 'tempofont') and s.tempofont:
+                words.set('font-family', s.tempofont)
+            words.text = rtxt.group (1)
             elems.append ((words, []))
         if t:
             try:
@@ -2035,6 +2040,8 @@ class MusicXml:
             num, den = simplify (num, den);
             dotted, den_not = (1, den // 2) if num == 3 else (0, den)
             metro = E.Element ('metronome')
+            if hasattr(s, 'tempofont') and s.tempofont:
+                metro.set('font-family', s.tempofont)
             u = E.Element ('beat-unit'); u.text = s.typeMap.get (4 * den_not, 'quarter')
             pm = E.Element ('per-minute'); pm.text = ('%.2f' % upm).rstrip ('0').rstrip ('.')
             subelms = [u, E.Element ('beat-unit-dot'), pm] if dotted else [u, pm]
@@ -2386,6 +2393,10 @@ class MusicXml:
             s.nextdecos.append (x)
         elif x.startswith ('measurenumbering '):
             s.measureNumbering = x[17:].strip()
+        elif x.startswith ('barnumbers '):
+            s.measureNumbering = 'yes' if '1' in x or 'yes' in x else 'no'
+        elif x.startswith ('tempofont '):
+            s.tempofont = x[10:].strip()
         elif x.startswith (('vskip', 'sep', 'harp ', 'accordion ')):
             s.nextdecos.append(x)
         elif x.startswith ('marker '):

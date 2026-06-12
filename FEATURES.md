@@ -167,6 +167,7 @@ This document tracks all MusicXML features supported by the ABC+ Converter.
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
+| 1.4.2 | 2026-06-12 | New directives: `%%tempofont <font>` (font-family on tempo words/metronome) and `%%barnumbers <0|1|yes|no>` (alias for measure numbering). Ported from in-progress work recovered from a secondary clone. Spec submodule removed — the ABC+ spec lives in its own repo (github.com/leedale30/abc-plus-spec). |
 | 1.3.3 | 2026-06-03 | MuseScore-compat: `addInstrumentSounds()` emits `<instrument-sound>` for every part (mapped from the part name) so MuseScore/others recognise instruments instead of falling back to generic "MS Basic" sounds. Matches Dorico's output. |
 | 1.3.2 | 2026-06-02 | MuseScore-compat: `fixGraceBreaths()` relocates breath-marks off grace notes (prevents a MuseScore 4 import crash; output stays valid MusicXML, Dorico-confirmed). Regression test: `TESTFILES/test_grace_breath_musescore.abc`. See `TROUBLESHOOTING.md` / `.agent/rules.md`. |
 | 1.3.1 | 2026-01-20 | Fixed audio synthesis (offline support) and visual sync |

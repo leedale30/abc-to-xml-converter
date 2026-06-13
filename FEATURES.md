@@ -89,6 +89,19 @@ This document tracks all MusicXML features supported by the ABC+ Converter.
 | `C-C` | `<tie>`, `<tied>` | Ties |
 | `.(CDE)` | `<slur line-type="dotted">` | Dotted slur |
 
+### Pedal & Octave Lines
+
+Real, playback-capable spanners — attach the decoration to the next note (no space). Do **not**
+use `"^Ped."`/`"^8va"` text annotations: they are cosmetic `<words>` only and do not play back.
+
+| ABC+ Syntax | MusicXML Element | Notes |
+| :--- | :--- | :--- |
+| `!ped!` / `!ped-up!` | `<pedal line="no" sign="yes">` | Sustain pedal, asterisk style (`Ped.` … `✶`) |
+| `!ped(!` / `!ped)!` | `<pedal line="yes" sign="no">` | Sustain pedal, line/bracket style |
+| `!ped-change!` | `<pedal type="change" line="yes">` | Re-pedal (lift-and-recatch) notch inside a pedal line |
+| `!8va!` / `!8va)!` | `<octave-shift>` | Octave line (also `!8vb!` `!15ma!` `!15mb!` `!22ma!` `!22mb!`); close with `)` |
+| `!gliss(!` / `!gliss)!` | `<glissando>` | Glissando slide (spell `gliss`, not `glissando`) |
+
 ### Barlines & Repeats
 
 | ABC+ Syntax | MusicXML Element | Notes |

@@ -1,0 +1,22 @@
+X:1
+T:Regression - real sustain-pedal styles (sign / line / change)
+C:Antony Leedale
+M:4/4
+L:1/16
+Q:1/4=60
+%%score { ( 1 2 ) | ( 3 4 ) }
+V:1 clef=treble name="Grand Piano" snm="Pno."
+V:2 clef=treble stem=down
+V:3 clef=bass stem=up
+V:4 clef=bass stem=down
+K:none
+% Each !ped...! must emit a real <pedal> (MuseScore plays these back):
+%   !ped! / !ped-up!  -> <pedal line="no"  sign="yes">   (asterisk "Ped." ... "*")
+%   !ped(! / !ped)!   -> <pedal line="yes" sign="no">    (bracket line)
+%   !ped-change!      -> <pedal type="change" line="yes"> (re-pedal notch, only inside a line)
+% Decoration must attach to the next note with NO space.  Bare repeated !ped! signs merge
+% into one held pedal in MuseScore, so re-pedalling uses a !ped(! ... !ped)! line + changes.
+[V:1] C16 | C16 | C16 |
+[V:2] x16 | x16 | x16 |
+[V:3] C,16 | C,16 | C,16 |
+[V:4] !ped![CEG]4 [DFA]4 [CEG]4 !ped-up![DFA]4 | !ped(![CEG]4 !ped-change![DFA]4 [CEG]4 !ped)![DFA]4 | !ped(![CEG]8 !ped)![DFA]8 |

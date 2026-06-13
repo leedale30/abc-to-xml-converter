@@ -1764,10 +1764,18 @@ class MusicXml:
                 if ')' in d: type = 'stop'
                 addDirection (maat, E.Element ('octave-shift', type=type, size=size), lev, gstaff, placement=plce)
             elif d in ['ped', 'ped-up', 'ped(', 'ped)', 'ped-change']:
-                type = 'start'
-                if d.endswith('up') or d.endswith(')'): type = 'stop'
-                elif d == 'ped-change': type = 'change'
-                el = E.Element ('pedal', type=type, line='yes')
+                # Real sustain-pedal directions (MuseScore plays these back).
+                #   !ped! / !ped-up!  -> sign style  ("Ped." ... "*")   line=no  sign=yes
+                #   !ped(! / !ped)!   -> bracket-line style               line=yes sign=no
+                #   !ped-change!      -> change notch within a bracket line
+                if d == 'ped-change':
+                    el = E.Element ('pedal', type='change', line='yes')
+                elif d in ('ped', 'ped-up'):
+                    ptype = 'stop' if d == 'ped-up' else 'start'
+                    el = E.Element ('pedal', type=ptype, line='no', sign='yes')
+                else:  # ped( / ped)
+                    ptype = 'stop' if d.endswith(')') else 'start'
+                    el = E.Element ('pedal', type=ptype, line='yes', sign='no')
                 addDirection (maat, el, lev, gstaff)
             elif d in ['swing', 'swing-off']:
                 snd = E.Element('sound', swing='yes' if d == 'swing' else 'no')

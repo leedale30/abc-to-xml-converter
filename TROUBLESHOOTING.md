@@ -223,3 +223,44 @@ PY
 ---
 
 *Fixed: 2026-06-13*
+
+---
+
+# Pedal (or octave line) doesn't play back — written as text instead of a decoration
+
+## Problem
+
+A score shows `Ped.` / `✶` (or `8va`) markings but the sustain pedal (or octave transposition)
+has **no effect on playback** in MuseScore.
+
+## Root Cause
+
+The marking was written as a **text annotation** — `"^Ped."`, `"_Ped."`, `"_*"`, `"^8va"` —
+which abc2xml emits as a cosmetic `<words>` element. It is **not** a `<pedal>` / `<octave-shift>`,
+so nothing plays. (MuseScore may also misread a tempo-like word from such text.)
+
+## Solution
+
+Use the real decorations, attached to the next note with **no space**:
+
+| Want | Write | Emits |
+| --- | --- | --- |
+| Pedal, asterisk style (`Ped.` … `✶`) | `!ped!` … `!ped-up!` | `<pedal line="no" sign="yes">` |
+| Pedal, line/bracket style | `!ped(!` … `!ped)!` | `<pedal line="yes" sign="no">` |
+| Re-pedal (lift + recatch) | `!ped-change!` (inside a `!ped(!`…`!ped)!` line) | `<pedal type="change">` |
+| Octave up/down | `!8va!`…`!8va)!`, `!8vb!`, `!15ma!`, … | `<octave-shift>` |
+
+For continuous **re-pedalling**, use ONE `!ped(!`…`!ped)!` line with `!ped-change!` at each
+harmony change — a run of bare `!ped!` signs merges into a single held pedal in MuseScore.
+`tools/abc_audit.py` flags pedal/octave written as text.
+
+## Verification
+
+```bash
+python3 abc2xml/abc2xml.py -o /tmp TESTFILES/test_pedal_styles.abc
+grep -c '<pedal' /tmp/test_pedal_styles.xml      # must be > 0 (real pedal directions)
+```
+
+---
+
+*Fixed: 2026-06-13*

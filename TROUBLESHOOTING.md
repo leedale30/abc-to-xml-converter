@@ -136,3 +136,90 @@ grep -c '<instrument-sound>' out.musicxml   # == number of parts
 ---
 
 *Documented: 2026-06-03*
+
+---
+
+# MuseScore 4 crashes on import (tuplet duration rounding, divisions=2520)
+
+## Problem
+
+A score using explicit-ratio tuplets — e.g. `(4:3:4` over `L:1/16` sixteenths — converts with
+**no error**, but **MuseScore 4 crashes on import** (crash reporter fires, no output file).
+One isolated tuplet group in a bar may survive; a bar full of them, or many such bars, crashes.
+
+## Root Cause
+
+abc2xml used `divisions = 2520` (2^3 x 3^2 x 5 x 7) per quarter note — chosen for 5/7/9-tuplets,
+but **not divisible enough for q=3 ratios on sixteenth notes**. A `(4:3` tuplet sixteenth is
+`630 * 3/4 = 472.5` divisions, and `mkNote` floor-divides (`dvs * tmden // tmnum`) → 472.
+Each group loses 2 divisions, measures come up short, and MuseScore 4's importer crashes on the
+inconsistent measure lengths. (Dotted-eighth-span 4:3 groups are idiomatic in polyrhythmic
+piano writing, so this hit every bar of a 4-against-3 mesh.)
+
+## Solution
+
+`divisions` raised to **5040** (2^4 x 3^2 x 5 x 7) in `abc2xml.py` (`reset()`), making every
+common tuplet duration integral: 4:3 sixteenth = 945, 5:4 = 1008, 9:8 = 1120, 3:2 = 1680.
+The unused-factor reducer at output time shrinks the numbers back down where possible.
+
+## Verification
+
+```bash
+python3 abc2xml/abc2xml.py -o /tmp TESTFILES/test_ratio_tuplet_divisions.abc
+"/Applications/MuseScore 4.app/Contents/MacOS/mscore" -o /tmp/t.mscz /tmp/test_ratio_tuplet_divisions.xml
+ls /tmp/t.mscz   # must exist
+```
+
+---
+
+*Fixed: 2026-06-12*
+
+---
+
+# MuseScore 4 shows a wrong default 120 tempo (tempo-word annotation, no BPM)
+
+## Problem
+
+A score plays back at a wrong **120 BPM** at section starts even though the `Q:` / metronome
+marks are correct. Inspecting the `.mscz` shows extra `<Tempo>` objects of 2.0 QPS (120 BPM)
+sitting next to the real ones — and sometimes mid-section (e.g. a stray 120 inside a 90-BPM
+Agitato). The `.musicxml` is correct (one `<sound tempo>` per real change).
+
+## Root Cause
+
+Tempo *text* written as a standalone annotation separate from the metronome —
+`[Q:1/4=60] "^Poco piu mosso"` — makes abc2xml emit **two** directions: a `<metronome>`/
+`<sound tempo>` (the real BPM) and a bare `<words>Poco piu mosso</words>`. MuseScore 4's
+importer recognises Italian tempo terms (`Lento`, `Presto`, `Vivace`, `piu mosso`,
+`largamente`, …) in `<words>` and creates a Tempo for them; with no BPM on that direction it
+**defaults to 120**. A purely descriptive term that happens to be a tempo word (e.g.
+`largamente` used as an expression, with no tempo change) creates a stray 120 all on its own.
+
+## Solution
+
+Unify the term and the BPM into one direction using ABC's tempo-with-string syntax, so there is
+only one tempo object (carrying the real BPM):
+
+```
+Q:"Lento misterioso" 1/4=40           % header
+[Q:"Poco piu mosso" 1/4=60]           % inline, replaces  [Q:1/4=60] "^Poco piu mosso"
+```
+
+For a tempo *word used as expression only* (no tempo change), reword to a non-tempo term
+(`largamente` → `sonoro`, `ben cantato`, …) so MuseScore does not invent a tempo.
+
+## Verification
+
+```bash
+# unzip the .mscz and count Tempo objects — must equal the number of real tempo changes
+python3 - <<'PY'
+import re,glob
+mscx=open(glob.glob('*.mscx')[0]).read()
+print(len(re.findall(r'<tempo>([0-9.]+)</tempo>', mscx)), "tempo marks; BPMs:",
+      [round(float(t)*60,1) for t in re.findall(r'<tempo>([0-9.]+)</tempo>', mscx)])
+PY
+```
+
+---
+
+*Fixed: 2026-06-13*

@@ -1,0 +1,19 @@
+X:1
+T:Regression - explicit-ratio tuplet divisions (4:3 over 16ths)
+C:Antony Leedale
+M:4/4
+L:1/16
+Q:1/4=60
+%%score { ( 1 2 ) | ( 3 4 ) }
+V:1 clef=treble name="Grand Piano" snm="Pno."
+V:2 clef=treble stem=down
+V:3 clef=bass stem=up
+V:4 clef=bass stem=down
+K:none
+% A full bar of (4:3:4 tuplet 16ths. With divisions=2520 each tuplet 16th was
+% 472.5 divisions, floor-divided to 472 -> measures came up short -> MuseScore 4
+% crashed on import. divisions=5040 keeps these durations integral (945 each).
+[V:1] (4:3:4 abcd e (4:3:4 abcd e (4:3:4 abcd e (4:3:4 abcd e |
+[V:2] (5:4:5 abcde (5:4:5 abcde (9:8:9 abcdefgab |
+[V:3] (3:4:3 C,E,G, (3:4:3 C,E,G, (3:2:3 C,4E,4G,4 |
+[V:4] C,,16 |]

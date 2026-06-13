@@ -952,7 +952,12 @@ class MusicXml:
         s.pageFmtCmd = []   # set by command line option -p
         s.reset ()
     def reset (s, fOpt=False):
-        s.divisions = 2520  # xml duration of 1/4 note, 2^3 * 3^2 * 5 * 7 => 5,7,9 tuplets
+        s.divisions = 5040  # xml duration of 1/4 note, 2^4 * 3^2 * 5 * 7 => 5,7,9 tuplets AND
+                            # p:q ratios with q=3 on 16th notes (e.g. (4:3 over L:1/16).
+                            # 2520 made a 4:3-tuplet 16th = 472.5 divisions; the floor division
+                            # in mkNote (dvs * tmden // tmnum) truncated it, measures came up
+                            # short, and MuseScore 4 crashed on import. 5040 keeps all common
+                            # tuplet durations integral.
         s.ties = {}         # {abc pitch tuple -> alteration} for all open ties
         s.slurstack = {}    # stack of open slur numbers per (overlay) voice
         s.slurbeg = []      # type of slurs to start (when slurs are detected at element-level)

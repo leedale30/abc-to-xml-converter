@@ -319,3 +319,39 @@ python3 abc2xml/abc2xml.py TESTFILES/test_wedge_hairpins.abc | grep -o 'wedge ty
 
 If you have scores authored before 1.4.3, re-convert them: their hairpins were never in the
 MusicXML, so any `.mscz`/audio rendered from them is missing its dynamics.
+
+---
+
+# "none of the input files exist" for a file that plainly exists
+
+## Problem
+
+```bash
+python3 abc2xml/abc2xml.py "Bossa Nova [Mark]/OLD/Bossa_Nova_Mark.abc"
+# abc2xml.py: error: none of the input files exist
+```
+
+The file is right there, and the path is correct.
+
+## Root Cause
+
+Every argument was passed through `glob()`. Glob treats `[` `]` `?` `*` as pattern
+metacharacters, so `[Mark]` is read as "one character from {M,a,r,k}" — it matches nothing,
+the argument expands to an empty list, and the file is silently dropped. Any real filename
+containing brackets hits this; folders like `Bossa Nova [Mark]` or `track [live]` are common.
+
+## Solution
+
+Fixed in **1.4.4** — an existing literal path is used as-is; `glob()` is only consulted when
+the path does not exist, so genuine patterns (`TESTFILES/*.abc`) still expand.
+
+## Verification
+
+```bash
+python3 abc2xml/abc2xml.py "some [bracketed] folder/score.abc"   # converts
+python3 abc2xml/abc2xml.py "TESTFILES/*.abc"                     # still globs (12 scores)
+```
+
+## Workaround on older versions
+
+Copy the file to a path without brackets, or pipe it in on stdin (`abc2xml.py -`).

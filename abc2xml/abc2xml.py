@@ -3156,6 +3156,10 @@ if __name__ == '__main__':
     fnmext_list = []
     for i in args:
         if i == '-': fnmext_list.append ('-.abc')   # represents standard input
+        # An existing literal path wins over glob expansion. Real filenames often contain glob
+        # metacharacters -- e.g. "Bossa Nova [Mark]/x.abc", where glob reads [Mark] as a character
+        # class, matches nothing, and the file is silently dropped ("none of the input files exist").
+        elif os.path.exists (i): fnmext_list.append (i)
         else:        fnmext_list += glob (i)
     if not fnmext_list: parser.error ('none of the input files exist')
     t_start = time.time ()

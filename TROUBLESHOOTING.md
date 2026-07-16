@@ -264,3 +264,58 @@ grep -c '<pedal' /tmp/test_pedal_styles.xml      # must be > 0 (real pedal direc
 ---
 
 *Fixed: 2026-06-13*
+
+---
+
+# Hairpins never appear (all `<wedge>` elements are `type="stop"`)
+
+## Problem
+
+Crescendos and diminuendos written with the word forms are silently dropped. The score
+converts without error, but MuseScore shows **no hairpins** and plays no dynamic swell:
+
+```abc
+!crescendo(!C D E F!crescendo)!      % -> no hairpin at all
+!diminuendo(!G A B c!diminuendo)!    % -> no hairpin at all
+```
+
+Diagnose by counting wedge types — starts must balance stops:
+
+```bash
+python3 abc2xml/abc2xml.py score.abc | grep -o 'wedge type="[a-z]*"' | sort | uniq -c
+#   BAD:  26 wedge type="stop"          <- zero starts, every hairpin dead
+#   GOOD:  9 wedge type="crescendo"
+#          4 wedge type="diminuendo"
+#         13 wedge type="stop"
+```
+
+## Root Cause
+
+The wedge start/stop test was a substring match:
+
+```python
+if ')' in d or 'end' in d: type = 'stop'      # checked FIRST
+```
+
+`end` is a substring of cresc**end**o, diminu**end**o and decresc**end**o. So the *opening*
+tokens matched the stop test and every hairpin start became a stop. Affected tokens:
+`crescendo(`, `diminuendo(`, and the bare `crescendo` / `diminuendo` / `decrescendo`.
+
+The `!<(!` / `!<)!` / `!>(!` / `!>)!` symbol forms contain no "end" and always worked — which
+is why the bug went unnoticed: whichever form you happened to use decided whether your
+dynamics existed.
+
+## Solution
+
+Fixed in **1.4.3** — the substring guesswork is replaced by explicit token sets covering all
+25 `wedgeMap` entries. Both the word forms and the symbol forms now work.
+
+## Verification
+
+```bash
+python3 abc2xml/abc2xml.py TESTFILES/test_wedge_hairpins.abc | grep -o 'wedge type="[a-z]*"'
+# expect: 4x crescendo, 4x diminuendo, 8x stop — strictly alternating start,stop
+```
+
+If you have scores authored before 1.4.3, re-convert them: their hairpins were never in the
+MusicXML, so any `.mscz`/audio rendered from them is missing its dynamics.

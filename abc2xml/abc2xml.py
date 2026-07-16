@@ -1697,15 +1697,17 @@ class MusicXml:
                 else:
                      addDirection (maat, dynel, lev, gstaff, subelms=[E.Element (d)], placement=placement if placement else 'below', cue_on=s.gcue_on)
             elif d in s.wedgeMap:
-                if ')' in d or 'end' in d: type = 'stop'
-                elif d in ['w', 'crescendo', 'cresc', 'cresc('] or '<' in d or 'crescendo(' in d:
-                    type = 'crescendo'
-                elif d in ['decrescendo', 'diminuendo', 'dim', 'decresc', 'dim(', 'decresc('] or '>' in d:
+                # Explicit token sets. Do NOT substring-test for 'end': it occurs inside
+                # "cresc-end-o" / "diminu-end-o" / "decresc-end-o", which silently turned every
+                # hairpin START into a stop (all wedges type="stop", so hairpins never rendered).
+                if d in ('<)', '>)', 'crescendo)', 'diminuendo)', 'cresc)', 'decresc)', 'dim)',
+                         'cresc(end)', 'dim(end)'):
+                    type = 'stop'
+                elif d in ('>(', 'diminuendo(', 'dim(', 'decresc(', 'diminuendo', 'decrescendo',
+                           'dim', 'decresc', 'dim(start)'):
                     type = 'diminuendo'
-                else:
-                    type = 'crescendo' if '<' in d or 'cresc' in d else 'diminuendo'
-                if 'start' in d: type = 'crescendo' if 'cresc' in d else 'diminuendo'
-                if 'end' in d: type = 'stop'
+                else:   # '<(', 'crescendo(', 'cresc(', 'crescendo', 'cresc', 'w', 'cresc(start)'
+                    type = 'crescendo'
                 addDirection (maat, E.Element ('wedge', type=type), lev, gstaff, placement=placement)
             elif d.startswith('marker '):
                 words = E.Element('rehearsal')

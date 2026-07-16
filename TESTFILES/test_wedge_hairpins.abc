@@ -1,0 +1,18 @@
+X:1
+T:Wedge hairpins - regression test
+C:Antony Leedale
+%
+% REGRESSION (2026-07-16): every wedge START was emitted as <wedge type="stop">, so all
+% hairpins were silently dead (starts never appeared; MuseScore showed/played nothing).
+% Cause: the start/stop test used `if ')' in d or 'end' in d`, and "end" is a substring of
+% cresc-END-o / diminu-END-o / decresc-END-o. Fixed with explicit token sets.
+%
+% EXPECTED from this file: 4x wedge type="crescendo", 4x type="diminuendo", 8x type="stop",
+% strictly alternating start,stop,start,stop... Verify with:
+%   python3 abc2xml/abc2xml.py TESTFILES/test_wedge_hairpins.abc | grep -o 'wedge type="[a-z]*"'
+%
+M:4/4
+L:1/4
+K:C
+V:1 name="Violin"
+[V:1] !crescendo(!C D E F!crescendo)! | !diminuendo(!G A B c!diminuendo)! | !<(!C D E F!<)! | !>(!G A B c!>)! | !cresc(!C D E F!cresc)! | !dim(!G A B c!dim)! | !cresc(start)!C D E F!cresc(end)! | !dim(start)!G A B c!dim(end)! |]

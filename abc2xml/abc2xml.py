@@ -3172,6 +3172,32 @@ if __name__ == '__main__':
             info ('skipped directory %s. Only files are accepted' % fnmext)
             continue
         abctext = readfile (fnmext)
+        # ---- HOUSE GUARD, D116 (added 2026-09-01) --------------------------------
+        # This converter does not know what an ABC+ `@{v=NN}` performance tag is. It
+        # drops the whole velocity layer SILENTLY and exit 0 -- and it does not only
+        # delete, it FABRICATES: `v` is ABC's legacy down-bow shorthand, so it engraves
+        # a <down-bow/> on the following note. Measured on the _exam_bank 2026-09-01:
+        # 23,798 velocity tags lost and 23,492 phantom down-bows written across 207 of
+        # 209 extracts, every one of them built with this command instead of the house
+        # front end. A tool that silently deletes data AND invents notation in its place
+        # survives a proofread, because the page looks like someone meant it.
+        #
+        # `COMPOSER/tools/abc_perf.py compile` drives THIS SAME converter and then
+        # injects the tags as <note dynamics="...">. It rewrites every tag to a
+        # "^@PERF:..." annotation before calling us, so the correct path never trips
+        # this guard -- only a direct call on tagged source does.
+        if (re.search (r'@\{[^}\n]*[vt]\s*=', abctext)
+                and not os.environ.get ('ABC2XML_VIA_ABC_PERF')
+                and not os.environ.get ('ABC2XML_ALLOW_PERF_TAG_LOSS')):
+            sys.stderr.write (
+                '\nREFUSING: %s carries ABC+ @{v=/t=} performance tags.\n'
+                '  Bare abc2xml drops every one of them and engraves a phantom <down-bow/>\n'
+                '  in their place (house defect D116). Build it the house way instead:\n\n'
+                '      python3 COMPOSER/tools/abc_perf.py compile %s -o OUTDIR\n\n'
+                '  Verify with:  python3 AOS_COMPOSER_TEST/perf_tag_check.py %s\n'
+                '  To convert anyway and accept the loss, set ABC2XML_ALLOW_PERF_TAG_LOSS=1.\n'
+                % (fnmext, fnmext, fnmext))
+            sys.exit (2)
         skip, num = options.m
         xml_docs = getXmlDocs (abctext, skip, num, options.r, options.b, options.f)
         for itune, xmldoc in enumerate (xml_docs):

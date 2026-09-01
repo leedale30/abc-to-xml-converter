@@ -11,6 +11,7 @@ Designed for composers, engravers, and researchers, ABC+ goes beyond standard co
 [![Release](https://img.shields.io/github/v/release/leedale30/abc-to-xml-converter?include_prereleases&style=for-the-badge)](https://github.com/leedale30/abc-to-xml-converter/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/leedale30/abc-to-xml-converter/release.yml?style=for-the-badge)](https://github.com/leedale30/abc-to-xml-converter/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Engine: abc2xml LGPL](https://img.shields.io/badge/engine-abc2xml%20(LGPL)-blue.svg?style=for-the-badge)](abc2xml/LICENSE)
 [![MusicXML 4.0](https://img.shields.io/badge/MusicXML-4.0-blue.svg?style=for-the-badge)](https://www.musicxml.com/)
 
 ---
@@ -165,8 +166,36 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ---
 
+### 🙏 Credits & Third-Party Software
+
+**The conversion engine is not ours.** ABC+ Converter is built around
+**[`abc2xml`](https://wim.vree.org/svgParse/abc2xml.html) by Willem G. Vree** — the
+ABC-to-MusicXML translator that does the actual notation conversion. It is vendored in
+`abc2xml/` and carries this project's own modifications on top.
+
+> **abc2xml** — Copyright © 2012–2018 Willem G. Vree, with contributions from Nils Liberg,
+> Nicolas Froment, Norman Schmidt, Reinier Maliepaard, Martin Tarenskeen, Paul Villiger,
+> Alexander Scheutzow, Herbert Schneider, David Randolph and Michael Strasser.
+> Licensed under the **LGPL**. Canonical source: <https://wim.vree.org/svgParse/abc2xml.html>
+
+Everything this project adds — the swing playback, orchestral layout, figured bass and
+custom-articulation handling advertised above — is a layer *around* Vree's converter, not a
+replacement for it.
+
+The packaging scaffolding in `abc2xml/` (its README) came from a small GitHub mirror by
+Federico Del Gaudio, MIT-licensed. See [`abc2xml/LICENSE`](abc2xml/LICENSE), which sets out
+which licence governs which file.
+
+---
+
 ### 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+The ABC+ Converter's own code — the Flask app, web UI, packaging, docs and tests — is
+licensed under the **MIT License**. See [LICENSE](LICENSE).
+
+**The MIT licence does not extend to `abc2xml/abc2xml.py`**, which is **LGPL** and remains
+Willem Vree's work. Modifications made to it here are derivative and likewise LGPL. If you
+redistribute this project, you are redistributing an LGPL component: keep its notice intact
+and make its source available. Full detail in [`abc2xml/LICENSE`](abc2xml/LICENSE).
 
 *Created and maintained by [Antony Leedale](https://github.com/leedale30).*

@@ -1,21 +1,87 @@
-MIT License
+LICENSING OF THIS DIRECTORY
+===========================
 
-Copyright (c) 2023 Federico Del Gaudio
+This directory contains work by two different authors under two different
+licences. Read this before assuming either one covers the whole folder.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. abc2xml.py — LGPL, Copyright (C) 2012-2018 Willem G. Vree
+------------------------------------------------------------
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+    Copyright (C) 2012-2018: Willem G. Vree
+    Contributions: Nils Liberg, Nicolas Froment, Norman Schmidt,
+    Reinier Maliepaard, Martin Tarenskeen, Paul Villiger,
+    Alexander Scheutzow, Herbert Schneider, David Randolph,
+    Michael Strasser
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the Lesser GNU General Public License as published by
+    the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the Lesser GNU
+    General Public License for more details.
+
+    <http://www.gnu.org/licenses/lgpl.html>
+
+That notice is reproduced verbatim from the header of abc2xml.py itself,
+which is authoritative. Canonical source and full documentation:
+
+    https://wim.vree.org/svgParse/abc2xml.html
+
+abc2xml.py is VENDORED here, not forked: this repository has no upstream
+remote and shares no history with Willem Vree's. It carries house
+modifications (a glob-metacharacter fix, MusicXML conformance and Dorico
+enum work, and the D116 performance-tag guard); the `.pre-*` snapshots
+beside it record the state before each. Those modifications are likewise
+LGPL, being derivative of an LGPL work.
+
+TODO: ship a verbatim copy of the LGPL text in this directory. The licence
+requires that recipients receive one, and a URL is not a substitute. It is
+deliberately not transcribed here rather than risk an inexact copy — fetch
+it from gnu.org and commit it as `LGPL.txt`.
+
+
+2. README.md — MIT, Copyright (c) 2023 Federico Del Gaudio
+-----------------------------------------------------------
+
+This file previously contained ONLY the MIT notice below, which made it read
+as though abc2xml.py were MIT-licensed. It is not, and never was.
+
+That MIT notice arrived with the small GitHub mirror this directory was
+copied from — a repository whose stated purpose was "to have quick access to
+the script with the steps required to use it easily for importing ABC files
+into MuseScore" (see README.md). It covers Del Gaudio's own contribution,
+the packaging and instructions, and it is retained below for that reason.
+It does not, and cannot, relicense Willem Vree's work.
+
+    MIT License
+
+    Copyright (c) 2023 Federico Del Gaudio
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+
+3. The rest of this repository — MIT, Copyright (c) 2026 Antony Leedale
+-----------------------------------------------------------------------
+
+Everything outside this directory (the Flask app, web UI, packaging, docs,
+tests) is the project's own work under the root LICENSE. The root MIT licence
+does NOT extend over abc2xml.py.

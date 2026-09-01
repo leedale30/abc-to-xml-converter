@@ -3,6 +3,20 @@
 ## Overview
 This document explains how to install the required dependencies for the ABC+ Converter to support all file formats.
 
+## Bundled conversion engine — abc2xml (LGPL, Willem G. Vree)
+
+Not something you install: **`abc2xml.py` ships inside this repository, in `abc2xml/`.**
+It is the engine that performs the ABC-to-MusicXML conversion, and it is **not this
+project's work** —
+
+> Copyright © 2012–2018 **Willem G. Vree**, plus eleven named contributors.
+> **LGPL.** Canonical source: <https://wim.vree.org/svgParse/abc2xml.html>
+
+It is vendored rather than forked: there is no upstream git remote, so updating means
+re-downloading Vree's current script and re-applying the house modifications recorded in
+the `abc2xml/*.pre-*` snapshots. See [`abc2xml/LICENSE`](abc2xml/LICENSE) for which licence
+covers which file.
+
 ## Dependencies
 
 ### 1. Python Dependencies

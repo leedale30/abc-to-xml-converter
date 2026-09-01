@@ -3186,7 +3186,14 @@ if __name__ == '__main__':
         # injects the tags as <note dynamics="...">. It rewrites every tag to a
         # "^@PERF:..." annotation before calling us, so the correct path never trips
         # this guard -- only a direct call on tagged source does.
+        # `"^@PERF:` is abc_perf's own rewrite marker, so text carrying one reached us
+        # THROUGH abc_perf and must pass even if a few raw tags remain beside it (those
+        # are orphans -- a tag not attached to a note -- which abc_perf and
+        # perf_tag_check report, and which must not kill the build). Checking for the
+        # marker as well as the env var keeps this guard compatible with an abc_perf
+        # that predates it, so the two repos need not be upgraded in lockstep.
         if (re.search (r'@\{[^}\n]*[vt]\s*=', abctext)
+                and '"^@PERF:' not in abctext
                 and not os.environ.get ('ABC2XML_VIA_ABC_PERF')
                 and not os.environ.get ('ABC2XML_ALLOW_PERF_TAG_LOSS')):
             sys.stderr.write (

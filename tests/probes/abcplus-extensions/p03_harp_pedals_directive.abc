@@ -1,0 +1,9 @@
+X:1
+T:harp pedal diagram directive form
+M:4/4
+L:1/4
+K:C
+V:V1 name="Harp"
+[V:V1] C D E F|
+%%harp Db C B E F# G A
+[V:V1] G A B c|

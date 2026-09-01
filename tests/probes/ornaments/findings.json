@@ -1,0 +1,113 @@
+{
+  "domain": "ornaments",
+  "date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py",
+  "method": "Each probe converted with `python3 abc2xml/abc2xml.py -o xml <probe>.abc`; XML inspected with xml.etree (inspect_probes.py), element counts attribute-order-independent.",
+  "code_map": {
+    "ornMap": "abc2xml.py:915-920 — decoration token -> MusicXML ornament element",
+    "uSyms": "abc2xml.py:942-943 — single-char shorthands: ~=roll T=trill M=lowermordent P=uppermordent",
+    "doNotations": "abc2xml.py:1350-1498 — ornMap branch at 1435-1441 (adds type=start when token contains '(' and lacks trailing ')'); phantom other-articulation fallback at 1455-1464",
+    "staffDecos_tremolo": "abc2xml.py:1800-1805 — '/-','//-','///-','////-' duplet tremolo; '/','//','///' single; 'trem1'..'trem3' explicit",
+    "tremolo_emit": "abc2xml.py:1382-1388 — <tremolo> emitted inside <ornaments>",
+    "never_cleared_mechanism": "doNotations else-branch (1456) calls staffDecos, whose final else (1810) re-appends the unknown token to s.nextdecos, so the next note re-processes it forever — shared root cause of D31 and the D95 propagation"
+  },
+  "findings": [
+    {
+      "feature": "trill-mark",
+      "syntax": "!trill! or shorthand T (uSyms T->trill, ornMap trill->trill-mark)",
+      "probe": "p01_trill_mark.abc",
+      "status": "works",
+      "evidence": "p01: 2 notes decorated (one !trill!, one T) -> 2 ornaments/trill-mark, 0 other-articulation."
+    },
+    {
+      "feature": "wavy-line spans (extended trill)",
+      "syntax": "documented in FEATURES.md as !trill(! / !trill)! -> <wavy-line>; direct tokens !wavy-line(! / !wavy-line)! also reachable via ornMap",
+      "probe": "p02_trill_span.abc, p03_wavy_line_direct.abc",
+      "status": "broken",
+      "evidence": "p02: wavy-line count = 0; start note emits <trill-mark type=\"start\"> (type attr is not valid on trill-mark) and !trill)! emits nothing (0 elements) — the span never renders and never closes. p03: !wavy-line(! -> 1 wavy-line[type=start] (valid) but !wavy-line)! -> other-articulation=\"wavy-line)\" (1 count, phantom, would propagate to any later notes); no stop is ever emitted.",
+      "detail": "d_clean = d.split('(')[0] strips '(' but not ')', so ')'-suffixed ornament tokens miss ornMap and fall to the phantom fallback; 'trill)' is only rescued by the skip-list at abc2xml.py:1459 (silently dropped, still re-appended to nextdecos forever).",
+      "fix_hint": "In the ornMap branch also match tokens ending in ')'; map trill(/trill) to wavy-line start/stop (that is what FEATURES.md promises) and wavy-line)/wavy-line( likewise; never emit type on trill-mark."
+    },
+    {
+      "feature": "mordent",
+      "syntax": "!mordent!, !lowermordent!, shorthand M",
+      "probe": "p04_mordent.abc",
+      "status": "works",
+      "evidence": "p04: 3 decorated notes -> 3 ornaments/mordent."
+    },
+    {
+      "feature": "inverted-mordent",
+      "syntax": "!uppermordent!, !pralltriller!, !inverted-mordent!, shorthand P",
+      "probe": "p05_inverted_mordent.abc",
+      "status": "works",
+      "evidence": "p05: 4 decorated notes (4 spellings) -> 4 ornaments/inverted-mordent."
+    },
+    {
+      "feature": "turn",
+      "syntax": "!turn!",
+      "probe": "p06_turn.abc",
+      "status": "works",
+      "evidence": "p06: 1 ornaments/turn on the decorated note."
+    },
+    {
+      "feature": "delayed-turn (and delayed-inverted-turn)",
+      "syntax": "!delayed-turn!, !delayed-inverted-turn!",
+      "probe": "p07_delayed_turn.abc",
+      "status": "works",
+      "evidence": "p07: 1 ornaments/delayed-turn + 1 ornaments/delayed-inverted-turn, one per decorated note."
+    },
+    {
+      "feature": "inverted-turn",
+      "syntax": "!invertedturn! or !inverted-turn!",
+      "probe": "p08_inverted_turn.abc",
+      "status": "works",
+      "evidence": "p08: 2 decorated notes (both spellings) -> 2 ornaments/inverted-turn."
+    },
+    {
+      "feature": "tremolo single, 1-3 beams",
+      "syntax": "!/! !//! !///! (slash) or !trem1! !trem2! !trem3! (explicit); decoration precedes the note",
+      "probe": "p09_trem_single.abc",
+      "status": "works",
+      "evidence": "p09: 6 ornaments/tremolo[type=single] with texts 1,2,3,1,2,3 on the 6 decorated notes; notated durations unchanged (quarter stays quarter)."
+    },
+    {
+      "feature": "tremolo single, 4+ beams",
+      "syntax": "none reaches <tremolo>; natural guesses !////! and !trem4! are accepted by the parser but unmapped",
+      "probe": "p10_trem_single_4beam_slash.abc, p11_trem_single_trem4.abc",
+      "status": "missing",
+      "evidence": "p10: 0 tremolo elements; other-articulation=\"////\" on all 4 notes (the never-cleared phantom). p11: 0 tremolo; other-articulation=\"trem4\" on all 4 notes. MusicXML allows tremolo marks 0-8.",
+      "proposed_syntax": "extend abc2xml.py:1802-1805 with '////' and 'trem4'..'trem8' -> s.trem = -n, consistent with existing forms; MuseScore supports up to 4 single-note tremolo beams."
+    },
+    {
+      "feature": "tremolo double (two-note), 1-4 beams",
+      "syntax": "!/-! !//-! !///-! !////-! before the first note of the pair; write both notes at true sounding duration",
+      "probe": "p12_trem_double.abc",
+      "status": "works",
+      "evidence": "p12: 8 tremolo elements = 4 start/stop pairs with texts 1,2,3,4; each note notated type=half with time-modification 2:1 and duration 240 (sounding quarter), measure math consistent; 0 tuplet elements leak."
+    },
+    {
+      "feature": "schleifer",
+      "syntax": "!schleifer!",
+      "probe": "p13_schleifer.abc",
+      "status": "works",
+      "evidence": "p13: 1 ornaments/schleifer on the decorated note."
+    },
+    {
+      "feature": "haydn",
+      "syntax": "!haydn!",
+      "probe": "p14_haydn.abc",
+      "status": "works",
+      "evidence": "p14: 1 ornaments/haydn on the decorated note."
+    },
+    {
+      "feature": "~ roll ornament (D95)",
+      "syntax": "~ shorthand before a note (uSyms '~' -> 'roll'; 'roll' absent from ornMap and artMap)",
+      "probe": "p15_tilde_roll_d95.abc",
+      "status": "broken",
+      "evidence": "p15: a single ~ on note 1 of 7 -> 7/7 notes carry articulations/other-articulation=\"roll\"; 0 <ornaments> elements in the whole file (no turn, no inverted-mordent, no trill-mark). D95 reproduced exactly, including the D31-style never-cleared propagation: doNotations else-branch (1462-1464) emits the phantom AND staffDecos (1810) re-appends 'roll' to s.nextdecos each note.",
+      "fix_hint": "Map 'roll' to a real ornament (MusicXML has no <roll>: nearest are <turn/> or <inverted-mordent/>, or <other-ornament>roll</other-ornament> inside <ornaments>) and stop the nextdecos re-append loop for tokens already handled."
+    }
+  ],
+  "adjacent_untested": "ornMap also carries shake, vertical-turn, inverted-vertical-turn (claimed in FEATURES.md); same code path as the working ornaments, not probed in this census.",
+  "counts": {"works": 10, "broken": 2, "missing": 1, "unclear": 0}
+}

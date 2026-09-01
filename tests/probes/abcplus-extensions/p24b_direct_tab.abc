@@ -1,0 +1,7 @@
+X:1
+T:direct tab clef voice
+M:4/4
+L:1/4
+V:V1 name="Guitar" clef=tab
+K:C
+[V:V1] C D E F|G A B c|

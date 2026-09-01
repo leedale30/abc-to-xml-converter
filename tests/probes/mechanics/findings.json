@@ -1,0 +1,149 @@
+{
+  "domain": "mechanics",
+  "census_date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py (abc-to-xml-converter, post-1.4.4 working tree)",
+  "probe_dir": "tests/probes/mechanics/",
+  "method": "each probe converted with `python3 abc2xml/abc2xml.py -o xml <probe>.abc`; XML inspected with xml.etree (element counts, attribute-order-independent); no regex over raw XML",
+  "counts": { "works": 15, "broken": 1, "missing": 2, "unclear": 1 },
+  "findings": [
+    {
+      "feature": "tuplet 3:2 (triplet)",
+      "syntax": "(3CDE  (M:4/4 L:1/8)",
+      "probe": "tuplet_3_2.abc",
+      "status": "works",
+      "evidence": "3x <time-modification> actual=3/normal=2; 1 <tuplet type=start bracket=yes> + 1 stop; triplet 1/8s get duration 80 (div=240) and both bars sum to exactly 960"
+    },
+    {
+      "feature": "tuplet 5:4",
+      "syntax": "(5:4:5CDEFG",
+      "probe": "tuplet_5_4.abc",
+      "status": "works",
+      "evidence": "5x time-modification 5/4; tuplet start(bracket=yes)/stop pair; five notes at duration 96 = 480 div = 2 beats; bars sum 960/960"
+    },
+    {
+      "feature": "tuplet 7:8",
+      "syntax": "(7:8:7CDEFGAB",
+      "probe": "tuplet_7_8.abc",
+      "status": "works",
+      "evidence": "7x time-modification 7/8; tuplet start/stop pair; divisions auto-raised to 1680, 7 notes x 960 = 6720 = exactly one 4/4 bar"
+    },
+    {
+      "feature": "nested tuplets",
+      "syntax": "attempted (3:2:3C(3:2:3DEFG (no nested syntax documented anywhere in repo)",
+      "probe": "tuplet_nested.abc",
+      "status": "broken",
+      "evidence": "inner (3 silently clobbers the outer tuplet state: 4 notes get time-modification 3/2 (never 9/4), only ONE tuplet start/stop pair emitted, and bar 1 sums 440 of 480 divisions with NO warning printed",
+      "note": "either real nesting or a hard rejection with a warning is needed; today it corrupts the measure silently. Proposed syntax if implemented: standard abc2xml has none - suggest allowing an inner (p:q:r before the outer count is exhausted and multiplying the time-modifications"
+    },
+    {
+      "feature": "ties (regression check)",
+      "syntax": "C2- C2 | G2- G2 |]",
+      "probe": "ties_standard.abc",
+      "status": "works",
+      "evidence": "REGRESSION INTACT: exactly 2 <tie type=start> + 2 <tie type=stop> and 2 <tied start> + 2 <tied stop> on the 4-note standard probe"
+    },
+    {
+      "feature": "slurs incl. nested",
+      "syntax": "(CDEF) | ((CD)(EF)) | (c(BA)G)",
+      "probe": "slurs_nested_dashed.abc",
+      "status": "works",
+      "evidence": "7 slur starts / 7 slur stops, all balanced; nested slurs correctly disambiguated with number=1 vs number=2"
+    },
+    {
+      "feature": "dotted (dashed-style) slurs",
+      "syntax": ".(GABc)",
+      "probe": "slurs_nested_dashed.abc",
+      "status": "works",
+      "evidence": "1 <slur line-type=\"dotted\"> emitted on the .( slur; note: only 'dotted' exists - there is no syntax that reaches MusicXML line-type=\"dashed\""
+    },
+    {
+      "feature": "beam control + broken beams via note spacing",
+      "syntax": "CDEF GABc CD EF GA Bc (space = beam break)",
+      "probe": "beams.abc",
+      "status": "works",
+      "evidence": "beam sequence begin-cont-cont-end, begin-cont-cont-end, then 4x begin-end exactly matching the ABC spacing groups; quarter notes carry no beam elements"
+    },
+    {
+      "feature": "secondary beam levels (16th and shorter)",
+      "syntax": "n/a (automatic)",
+      "probe": "beams.abc",
+      "status": "unclear",
+      "evidence": "all 16 beamed notes are <type>16th</type> but each carries only <beam number=\"1\"> - the number=2 beam level is never emitted (doBeams hardcodes number='1'). MuseScore re-derives beams on import so visual damage unconfirmed; strict readers will draw single beams",
+      "note": "verify in MuseScore before calling it a defect"
+    },
+    {
+      "feature": "%%beam begin/end directive",
+      "syntax": "%%beam begin / %%beam end (in tune body)",
+      "probe": "beam_directive.abc",
+      "status": "missing",
+      "evidence": "zero effect on beam grouping (sequence identical to spacing-derived BEBEBEBE); the handler at abc2xml.py:2008-2011 (elif ftype == 'beam') is an unreachable stub whose body is `pass` - %% body directives arrive as ftype 'I', which has no beam branch",
+      "note": "beam control today is ONLY via note spacing"
+    },
+    {
+      "feature": "two voices on one staff",
+      "syntax": "%%score (1 2) with V:1 / V:2",
+      "probe": "two_voices_one_staff.abc",
+      "status": "works",
+      "evidence": "1 score-part / 1 part, 12 notes with <voice> values 1 (x6) and 2 (x6), 2 <backup> elements (one per measure)"
+    },
+    {
+      "feature": "grand staff + cross-staff voice relocation",
+      "syntax": "%%score {* RH LH} with inline [I:staff +1] or [I:staff 2]",
+      "probe": "grand_staff_cross.abc + grand_staff_cross_abs.abc",
+      "status": "works",
+      "evidence": "1 part, <staves>2</staves>, clefs number=1/2; RH bar-2 notes carry <staff>2</staff> (staff distribution 1:4 / 2:9) for both the relative and absolute forms",
+      "note": "TRAP: plain %%score {RH LH} with zero (or two) named voices is silently REJECTED as a grand staff (mkGrand accepts only when exactly one voice has name=\"..\", or with the {* force form) - the probe then emits TWO separate parts, gStaffNums stays empty, and every [I:staff] relocation fails with 'could not relocate to staff'"
+    },
+    {
+      "feature": "chords + intervals (incl. chord ties)",
+      "syntax": "[CEG] [CE] [ce] [C,E] | [CEG]2- [CEG]2",
+      "probe": "chords_intervals.abc",
+      "status": "works",
+      "evidence": "15 notes carrying 9 <chord/> tags (every non-first chord member tagged); chord tie yields 3 tie starts/3 stops and 3 tied starts/3 stops - all three chord members tied"
+    },
+    {
+      "feature": "multi-verse lyrics with hyphenation, melisma extender, skip",
+      "syntax": "two w: lines; syl-la-ble hyphens, _ extender, * skip",
+      "probe": "lyrics_multiverse.abc",
+      "status": "works",
+      "evidence": "lyric number=1 x7 and number=2 x8; syllabic begin=3/end=3/single=7; extend start=2/stop=2 (star_ and here_); * correctly leaves note 8 of verse 1 lyric-free"
+    },
+    {
+      "feature": "lyric elision element",
+      "syntax": "oh~my (ABC elision tilde)",
+      "probe": "lyrics_multiverse.abc",
+      "status": "missing",
+      "evidence": "0 <elision> elements in output; ~ is flattened to a plain space inside one <text> node ('oh my') at doLyr (abc2xml.py:1519 area)",
+      "note": "acceptable ABC semantics but the MusicXML <elision> element is unreachable; proposal: emit <elision>‿</elision> between two <text> children when ~ joins syllables"
+    },
+    {
+      "feature": "chord symbols",
+      "syntax": "\"C\" \"Am\" \"G7\" \"C/E\"",
+      "probe": "chord_symbols.abc",
+      "status": "works",
+      "evidence": "4 <harmony>: C/major, A/minor, G/dominant, C/major with <bass><bass-step>E - roots, quality mapping and slash bass all correct"
+    },
+    {
+      "feature": "fretboard frames",
+      "syntax": "%%frame C x32010 (header) + \"C\" chord symbol on a note",
+      "probe": "frame.abc",
+      "status": "works",
+      "evidence": "1 <harmony> containing <frame>: frame-strings=6, 5 <frame-note> (muted low-E skipped), string/fret pairs (5,3)(4,2)(3,0)(2,1)(1,0) = x32010 with correct high-string-is-1 reversal",
+      "note": "frame-frets is hardcoded to '4'; fine for open-position shapes, wrong for shapes spanning 5+ frets"
+    },
+    {
+      "feature": "figured bass",
+      "syntax": "%%fb 6 4 and %%fb #6 (body lines before the target note)",
+      "probe": "figured_bass.abc",
+      "status": "works",
+      "evidence": "2 <figured-bass> elements, each placed BEFORE its target note in the measure child order; first carries figures 6 and 4, second carries prefix=sharp figure-number=6"
+    },
+    {
+      "feature": "swing playback",
+      "syntax": "%%swing (body)",
+      "probe": "swing.abc",
+      "status": "works",
+      "evidence": "exactly 1 <direction> containing <sound swing=\"yes\"/>; zero phantom <other-articulation> elements (the D31/D95 leak pattern does not fire here)"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+X:1
+T:score brace both voices named
+M:4/4
+L:1/4
+%%score {V1 V2}
+V:V1 name="Flute" clef=treble
+V:V2 name="Bassoon" clef=bass
+K:C
+[V:V1] C D E F|G A B c|
+[V:V2] C, D, E, F,|G, A, B, C|

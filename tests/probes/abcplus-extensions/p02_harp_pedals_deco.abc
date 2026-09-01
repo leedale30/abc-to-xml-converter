@@ -1,0 +1,7 @@
+X:1
+T:harp pedal diagram decoration
+M:4/4
+L:1/4
+K:C
+V:V1 name="Harp"
+[V:V1] !harp Db C B E F# G A!C D E F|G A B c|

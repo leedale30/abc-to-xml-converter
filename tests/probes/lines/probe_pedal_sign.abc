@@ -1,0 +1,7 @@
+X:1
+T:Probe - pedal sign style ped / ped-up
+M:4/4
+L:1/4
+K:C clef=bass
+V:1 name="Piano"
+[V:1] !ped!C, E, G, !ped-up!C | C, E, G, C |

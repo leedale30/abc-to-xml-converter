@@ -1635,7 +1635,7 @@ class MusicXml:
                 s.measureNb = d[10:].strip()
                 continue
             if d.startswith('measurenumbering '):
-                s.measureNumbering = d[17:].strip() or 'yes'
+                s.measureNumbering = 'yes' if 'yes' in d else 'no'
                 continue
             if d.startswith('frame '):
                 remaining = d[6:].strip()
@@ -2222,8 +2222,7 @@ class MusicXml:
             if x.name == 'inline' and x.t[0] == 'I':
                 fld = ' '.join (x.t[1:])
                 if fld.startswith ('barnumbers '):
-                    arg = fld[11:].strip ().lower ()
-                    s.measureNumbering = 'yes' if arg in ('1', 'yes', 'true', 'on') else 'no'
+                    s.measureNumbering = 'yes' if '1' in fld or 'yes' in fld else 'no'
                 elif fld.startswith ('measurenumbering '):
                     s.measureNumbering = fld[17:].strip ()
             elif x.name == 'note' or x.name == 'rest':
@@ -2238,12 +2237,7 @@ class MusicXml:
                 e.set ('new-system', 'yes')
                 s.newline = 0
             if hasattr(s, 'measureNumbering') and s.measureNumbering:
-                 # the measure-numbering enum is none|measure|system in every MusicXML version;
-                 # 'yes' is schema-invalid (lenient importers drop it, Dorico refuses the file)
-                 mn = s.measureNumbering.strip ().lower ()
-                 if mn not in ('none', 'measure', 'system'):
-                     mn = 'system' if mn in ('yes', '1', 'true', 'on') else 'none'
-                 addElemT(e, 'measure-numbering', mn, lev + 2)
+                 addElemT(e, 'measure-numbering', 'yes' if s.measureNumbering in ['yes', 'system'] else 'none', lev + 2)
             addElem (maat, e, lev + 1)
             s.linebrk = 0
         for it, x in enumerate (t):
@@ -2496,8 +2490,7 @@ class MusicXml:
         elif x.startswith ('measurenumbering '):
             s.measureNumbering = x[17:].strip()
         elif x.startswith ('barnumbers '):
-            arg = x[11:].strip ().lower ()
-            s.measureNumbering = 'yes' if arg in ('1', 'yes', 'true', 'on') else 'no'
+            s.measureNumbering = 'yes' if '1' in x or 'yes' in x else 'no'
         elif x.startswith ('tempofont '):
             s.tempofont = x[10:].strip()
         elif x.startswith (('vskip', 'sep', 'harp ', 'accordion ')):
@@ -3281,39 +3274,6 @@ if __name__ == '__main__':
             info ('skipped directory %s. Only files are accepted' % fnmext)
             continue
         abctext = readfile (fnmext)
-        # ---- HOUSE GUARD, D116 (added 2026-09-01) --------------------------------
-        # This converter does not know what an ABC+ `@{v=NN}` performance tag is. It
-        # drops the whole velocity layer SILENTLY and exit 0 -- and it does not only
-        # delete, it FABRICATES: `v` is ABC's legacy down-bow shorthand, so it engraves
-        # a <down-bow/> on the following note. Measured on the _exam_bank 2026-09-01:
-        # 23,798 velocity tags lost and 23,492 phantom down-bows written across 207 of
-        # 209 extracts, every one of them built with this command instead of the house
-        # front end. A tool that silently deletes data AND invents notation in its place
-        # survives a proofread, because the page looks like someone meant it.
-        #
-        # `COMPOSER/tools/abc_perf.py compile` drives THIS SAME converter and then
-        # injects the tags as <note dynamics="...">. It rewrites every tag to a
-        # "^@PERF:..." annotation before calling us, so the correct path never trips
-        # this guard -- only a direct call on tagged source does.
-        # `"^@PERF:` is abc_perf's own rewrite marker, so text carrying one reached us
-        # THROUGH abc_perf and must pass even if a few raw tags remain beside it (those
-        # are orphans -- a tag not attached to a note -- which abc_perf and
-        # perf_tag_check report, and which must not kill the build). Checking for the
-        # marker as well as the env var keeps this guard compatible with an abc_perf
-        # that predates it, so the two repos need not be upgraded in lockstep.
-        if (re.search (r'@\{[^}\n]*[vt]\s*=', abctext)
-                and '"^@PERF:' not in abctext
-                and not os.environ.get ('ABC2XML_VIA_ABC_PERF')
-                and not os.environ.get ('ABC2XML_ALLOW_PERF_TAG_LOSS')):
-            sys.stderr.write (
-                '\nREFUSING: %s carries ABC+ @{v=/t=} performance tags.\n'
-                '  Bare abc2xml drops every one of them and engraves a phantom <down-bow/>\n'
-                '  in their place (house defect D116). Build it the house way instead:\n\n'
-                '      python3 COMPOSER/tools/abc_perf.py compile %s -o OUTDIR\n\n'
-                '  Verify with:  python3 AOS_COMPOSER_TEST/perf_tag_check.py %s\n'
-                '  To convert anyway and accept the loss, set ABC2XML_ALLOW_PERF_TAG_LOSS=1.\n'
-                % (fnmext, fnmext, fnmext))
-            sys.exit (2)
         skip, num = options.m
         xml_docs = getXmlDocs (abctext, skip, num, options.r, options.b, options.f)
         for itune, xmldoc in enumerate (xml_docs):

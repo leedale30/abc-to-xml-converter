@@ -1,0 +1,7 @@
+X:1
+T:Probe - wedge start-end and bare word forms
+M:4/4
+L:1/4
+K:C
+V:1 name="Violin"
+[V:1] !cresc(start)!C D E !cresc(end)!F | !dim(start)!G A B !dim(end)!c | !crescendo!C D E F | !dim!G A B c | !w!C D E F |

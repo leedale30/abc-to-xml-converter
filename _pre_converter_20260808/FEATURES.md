@@ -140,7 +140,7 @@ use `"^Ped."`/`"^8va"` text annotations: they are cosmetic `<words>` only and do
 | `%%newline` | `<print new-system="yes">` | Start new system |
 | `%%vskip 20` | `<system-distance>` | Vertical spacing |
 | `%%sep` | `<system-dividers>` | Horizontal separator |
-| `%%measurenumbering none\|measure\|system` (`yes`→`system`, `no`→`none`) | `<measure-numbering>` | Bar numbers — emits the MusicXML enum value (v1.4.5) |
+| `%%measurenumbering yes` | `<measure-numbering>` | Toggle bar numbers |
 
 ### Playback Controls
 
@@ -180,7 +180,6 @@ use `"^Ped."`/`"^8va"` text annotations: they are cosmetic `<words>` only and do
 
 | Version | Date | Changes |
 | :--- | :--- | :--- |
-| 1.4.5 | 2026-08-29 | **`<measure-numbering>` now emits a legal enum value — Dorico can open our files again.** The element's MusicXML enum is `none`/`measure`/`system` in every spec version; `%%barnumbers 1` had been emitting the literal `yes` on every measure of every conversion. MuseScore's lenient importer dropped it silently (falling back to its per-system default), so months of scores engraved fine; Dorico schema-validates and refused the files outright. `yes`-style inputs now map to `system` (matching what MuseScore was already rendering), `no`-style to `none`, and explicit `none`/`measure`/`system` pass through — so `%%measurenumbering system|measure` finally works as documented. `%%barnumbers` argument parsing reads the actual token (was: `'1' in fld`, which matched `10`). Guards: `tests/` probes p19/p21/barnumbers/barnumbers_header assert 4×`system` **and 0×`yes`**, proven able to fail against the pre-fix build (`abc2xml/abc2xml.py.pre-dorico-enum-2026-08-29`: exactly those 4 probes go red). |
 | 1.4.4 | 2026-07-16 | **Filenames containing glob metacharacters are no longer silently dropped.** Input paths were always passed through `glob()`, so a real file whose name contains `[` `]` `?` `*` — e.g. `Bossa Nova [Mark]/x.abc`, where `[Mark]` is read as a character class — matched nothing and abc2xml exited with "none of the input files exist". An existing literal path now wins; globbing still applies to genuine patterns. |
 | 1.4.3 | 2026-07-16 | **Hairpin fix (silent data loss).** Every wedge *start* was emitted as `<wedge type="stop">`, so all crescendos/diminuendos were dead — scores showed and played no hairpins at all, with no warning. The start/stop test was `if ')' in d or 'end' in d`, and `end` is a substring of cresc**end**o / diminu**end**o / decresc**end**o, so `!crescendo(!`, `!diminuendo(!` and the bare `!crescendo!` / `!diminuendo!` / `!decrescendo!` forms all became stops. (The `!<(!` / `!>(!` forms were unaffected — hence the bug hid.) Replaced the substring guesswork with explicit token sets; all 25 `wedgeMap` tokens now map correctly. Regression test: `TESTFILES/test_wedge_hairpins.abc`. See `TROUBLESHOOTING.md`. |
 | 1.4.2 | 2026-06-12 | New directives: `%%tempofont <font>` (font-family on tempo words/metronome) and `%%barnumbers <0|1|yes|no>` (alias for measure numbering). Ported from in-progress work recovered from a secondary clone. Spec submodule removed — the ABC+ spec lives in its own repo (github.com/leedale30/abc-plus-spec). |

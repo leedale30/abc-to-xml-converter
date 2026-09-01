@@ -1,0 +1,8 @@
+X:1
+T:mid-tune instrument change
+M:4/4
+L:1/4
+V:V1 name="Clarinet"
+%%MIDI program 71
+K:C
+[V:V1] C D E F|[I:MIDI program 56] G A B c|

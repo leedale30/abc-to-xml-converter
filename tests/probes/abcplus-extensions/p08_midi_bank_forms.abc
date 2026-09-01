@@ -1,0 +1,15 @@
+X:1
+T:MIDI bank vol pan directive forms
+M:4/4
+L:1/4
+V:V1 name="Synth"
+%%MIDI program 80
+%%midi-bank 2
+%%midi-vol 90
+%%midi-pan 64
+V:V2 name="Lead"
+%%MIDI program 81
+%%MIDI bank 3
+K:C
+[V:V1] C D E F|
+[V:V2] c d e f|

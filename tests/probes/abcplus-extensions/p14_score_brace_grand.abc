@@ -1,0 +1,10 @@
+X:1
+T:score brace grand staff one named voice
+M:4/4
+L:1/4
+%%score {RH LH}
+V:RH name="Piano" clef=treble
+V:LH clef=bass
+K:C
+[V:RH] C D E F|G A B c|
+[V:LH] C, D, E, F,|G, A, B, C|

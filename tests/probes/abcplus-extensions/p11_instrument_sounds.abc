@@ -1,0 +1,19 @@
+X:1
+T:instrument-sound auto-mapping
+M:4/4
+L:1/4
+K:C
+V:V1 name="Flute 1"
+V:V2 name="Bass Clarinet"
+V:V3 name="English Horn"
+V:V4 name="Horn in F 1"
+V:V5 name="Piccolo Trumpet"
+V:V6 name="Contrabasses"
+V:V7 name="Basses"
+[V:V1] CDEF|
+[V:V2] CDEF|
+[V:V3] CDEF|
+[V:V4] CDEF|
+[V:V5] CDEF|
+[V:V6] C,D,E,F,|
+[V:V7] C,D,E,F,|

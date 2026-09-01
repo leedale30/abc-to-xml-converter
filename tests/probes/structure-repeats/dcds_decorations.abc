@@ -1,0 +1,7 @@
+X:1
+T:DC DS Decorations
+M:4/4
+L:1/4
+K:C
+!segno! C D E F | !coda! G A B c | !fine! c B A G | !D.C.! F E D C |
+!D.S.! C D E F | !D.C.alFine! G A !D.C.alCoda! B c | !D.S.alCoda! c B !D.S.alFine! A G | !dacoda! F E D C |]

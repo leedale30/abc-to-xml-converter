@@ -1,0 +1,159 @@
+{
+  "domain": "articulations-breaths",
+  "date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py (abc-to-xml-converter)",
+  "method": "each probe converted with `python3 abc2xml/abc2xml.py -o xml <probe>.abc`; XML inspected with xml.etree ElementTree (element counts, attribute-order independent)",
+  "code_anchors": {
+    "artMap": "abc2xml.py:908-914 (all 14 articulations + breath-mark + caesura mapped)",
+    "explicit_handlers": "abc2xml.py:1409-1425 (fermata, staccato/., staccatissimo/wedge, accent/>, marcato/^, tenuto)",
+    "artMap_fallthrough": "abc2xml.py:1434 (bare element, parenthesised content NOT extracted -- unlike ornMap/tecMap at 1439-1440/1450-1451)",
+    "unknown_deco_fallthrough": "abc2xml.py:1455-1464 (staffDecos + <other-articulation> junk, sticky across notes)",
+    "shorthand_uSyms": "abc2xml.py:942-943 ('H'->fermata, 'L'->accent, '~'->roll ...)"
+  },
+  "features": [
+    {
+      "feature": "staccato",
+      "syntax": "!staccato! or . prefix",
+      "probe": "probe_staccato.abc",
+      "status": "works",
+      "evidence": "2 notes decorated -> 2 <articulations>/<staccato> (both !staccato!C and .D forms); rest clean"
+    },
+    {
+      "feature": "staccatissimo",
+      "syntax": "!staccatissimo! or !wedge!",
+      "probe": "probe_staccatissimo.abc",
+      "status": "works",
+      "evidence": "2 decorated notes -> 2 <articulations>/<staccatissimo> (both spellings); undecorated notes clean"
+    },
+    {
+      "feature": "tenuto",
+      "syntax": "!tenuto!",
+      "probe": "probe_tenuto.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<tenuto>; other 3 events clean"
+    },
+    {
+      "feature": "detached-legato",
+      "syntax": "!detached-legato!",
+      "probe": "probe_detached_legato.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<detached-legato>; others clean"
+    },
+    {
+      "feature": "accent",
+      "syntax": "!accent!, !>!, or L shorthand",
+      "probe": "probe_accent.abc",
+      "status": "works",
+      "evidence": "3 decorated notes -> 3 <articulations>/<accent> (all three spellings); rest clean"
+    },
+    {
+      "feature": "strong-accent (marcato)",
+      "syntax": "!marcato! or !^!",
+      "probe": "probe_marcato.abc",
+      "status": "works",
+      "evidence": "2 decorated notes -> 2 <articulations>/<strong-accent> (both spellings); note: no type=up/down control (MusicXML default up)"
+    },
+    {
+      "feature": "soft-accent",
+      "syntax": "!soft-accent!",
+      "probe": "probe_soft_accent.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<soft-accent>; others clean"
+    },
+    {
+      "feature": "spiccato",
+      "syntax": "!spiccato!",
+      "probe": "probe_spiccato.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<spiccato>; others clean"
+    },
+    {
+      "feature": "scoop",
+      "syntax": "!scoop! or !slide!",
+      "probe": "probe_scoop.abc",
+      "status": "works",
+      "evidence": "2 decorated notes -> 2 <articulations>/<scoop> (both spellings); others clean"
+    },
+    {
+      "feature": "plop",
+      "syntax": "!plop!",
+      "probe": "probe_plop.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<plop>; others clean"
+    },
+    {
+      "feature": "doit",
+      "syntax": "!doit!",
+      "probe": "probe_doit.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<doit>; others clean"
+    },
+    {
+      "feature": "falloff",
+      "syntax": "!falloff!",
+      "probe": "probe_falloff.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<falloff>; others clean"
+    },
+    {
+      "feature": "stress",
+      "syntax": "!stress!",
+      "probe": "probe_stress.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<stress>; others clean. XML valid; MuseScore 4 has no native stress glyph (import-tolerated)"
+    },
+    {
+      "feature": "unstress",
+      "syntax": "!unstress!",
+      "probe": "probe_unstress.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<unstress>; others clean. XML valid; MuseScore 4 has no native unstress glyph (import-tolerated)"
+    },
+    {
+      "feature": "breath-mark (default comma)",
+      "syntax": "!breath!",
+      "probe": "probe_breath.abc",
+      "status": "works",
+      "evidence": "2 decorated notes -> 2 <articulations>/<breath-mark> (empty content = default rendering); undecorated note clean. fixGraceBreaths (abc2xml.py:2852) already guards the grace-note crash case"
+    },
+    {
+      "feature": "breath-mark symbols (comma/tick/upbow/salzedo)",
+      "syntax": "none reaches the element; probed proposed form !breath(comma|tick|upbow|salzedo)!",
+      "probe": "probe_breath_symbols.abc",
+      "status": "missing",
+      "evidence": "4 probes !breath(X)! all parse but emit 4 bare <breath-mark> with 0 text content -- the symbol is silently dropped because line 1434 (artMap path) never extracts parenthesised content, unlike ornMap/tecMap (lines 1439-1451)",
+      "proposal": "extend the artMap branch to extract parenthesised content into element text for breath-mark (and caesura): !breath(tick)! -> <breath-mark>tick</breath-mark>. Consistent with the existing ornMap/tecMap re.search(r'\\((.*?)\\)') convention"
+    },
+    {
+      "feature": "caesura",
+      "syntax": "!caesura!",
+      "probe": "probe_caesura.abc",
+      "status": "works",
+      "evidence": "1 decorated note -> 1 <articulations>/<caesura> (empty = MusicXML default 'normal'); others clean. MusicXML 4.0 shape values (thick/short/curved/single) have no syntax -- same parenthesised-content fix as breath-mark would cover them"
+    },
+    {
+      "feature": "fermata normal (upright)",
+      "syntax": "!fermata! or H shorthand",
+      "probe": "probe_fermata_normal.abc",
+      "status": "works",
+      "evidence": "2 decorated notes -> 2 <notations>/<fermata type=\"upright\"> (both spellings), empty content = MusicXML default 'normal' shape; others clean"
+    },
+    {
+      "feature": "fermata shapes angled/square (short/long)",
+      "syntax": "!shortfermata! / !longfermata! (explicit handlers, abc2xml.py:1410-1411)",
+      "probe": "probe_fermata_shapes.abc",
+      "status": "broken",
+      "evidence": "emits <fermata type=\"upright\" shape=\"long\"> and shape=\"short\" -- 'shape' is NOT a MusicXML fermata attribute (only type/id/print-style); the shape belongs in element TEXT from the fermata-shape enum (normal/angled/square/...). MuseScore ignores the unknown attribute, so both render as plain fermatas: shape silently lost",
+      "proposal": "!shortfermata! -> <fermata type=\"upright\">angled</fermata>; !longfermata! -> <fermata type=\"upright\">square</fermata> (the standard SMuFL/MusicXML correspondence)"
+    },
+    {
+      "feature": "fermata inverted",
+      "syntax": "!invertedfermata! (standard ABC 2.1 name; no handler in abc2xml)",
+      "probe": "probe_fermata_inverted.abc",
+      "status": "broken",
+      "evidence": "1 decoration on note 1 -> 4/4 note events (incl. the rest) each carry <articulations>/<other-articulation>invertedfermata</other-articulation>; 0 <fermata> elements emitted. Unknown-decoration fallthrough (abc2xml.py:1455-1464) is sticky across notes -- same defect class as D31 (!glissando!)",
+      "proposal": "add explicit handler beside line 1409: !invertedfermata! -> <fermata type=\"inverted\"/>; also accept !invertedshortfermata!/!invertedlongfermata! for the shape combos. Separately, the sticky other-articulation fallthrough needs the D31-class fix (clear consumed decos)"
+    }
+  ],
+  "counts": {"works": 17, "broken": 2, "missing": 1, "unclear": 0}
+}

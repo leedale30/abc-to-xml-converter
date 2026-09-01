@@ -1,0 +1,9 @@
+X:1
+T:Figured bass
+M:4/4
+L:1/4
+K:C clef=bass
+%%fb 6 4
+C, D, E, F, |
+%%fb #6
+G, A, B, C |]

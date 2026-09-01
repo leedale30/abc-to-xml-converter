@@ -1,0 +1,7 @@
+X:1
+T:Probe - pedal change notch inside a pedal line
+M:4/4
+L:1/4
+K:C clef=bass
+V:1 name="Piano"
+[V:1] !ped(!C, E, !ped-change!G, !ped)!C | C, E, G, C |

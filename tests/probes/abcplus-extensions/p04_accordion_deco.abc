@@ -1,0 +1,7 @@
+X:1
+T:accordion registration decoration
+M:4/4
+L:1/4
+K:C
+V:V1 name="Accordion"
+[V:V1] !accordion high=1 middle=2 low=1!C D E F|G A B c|

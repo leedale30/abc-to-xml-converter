@@ -1,0 +1,128 @@
+{
+  "domain": "dynamics-directions-tempo",
+  "census_date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py (post-conformance backup: abc2xml.py.pre-conformance-2026-08-06)",
+  "method": "each probe converted with `python3 abc2xml/abc2xml.py -o xml <file.abc>`; XML inspected with xml.etree via inspect_probes.py (element counts, attribute-order independent); 4 representative probes additionally smoke-tested through headless MuseScore 4 import (all OK)",
+  "features": [
+    {
+      "feature": "basic dynamic marks p pp ppp pppp f ff fff ffff mp mf",
+      "syntax": "!p! !pp! !ppp! !pppp! !f! !ff! !fff! !ffff! !mp! !mf! (dynaMap also holds 5/6-letter ppppp..pppppp, fffff..ffffff)",
+      "syntax_source": "FEATURES.md Dynamics table; dynaMap abc2xml.py:896",
+      "probe": "p01_dynamics_basic.abc",
+      "status": "works",
+      "evidence": "10 <dynamics> elements with child tags exactly ['p','pp','ppp','pppp','f','ff','fff','ffff','mp','mf'] in note order; all valid MusicXML 4.0 dynamics children"
+    },
+    {
+      "feature": "special dynamic marks fp sf sfz rfz fz sfp (+ rf sffz sfpp sfzp n pf, subito-*)",
+      "syntax": "!fp! !sf! !sfz! !rfz! !fz! !sfp! !rf! !sffz! !sfpp! !sfzp! !n! !pf! !subito-p!",
+      "syntax_source": "dynaMap abc2xml.py:896-899",
+      "probe": "p02_dynamics_special.abc",
+      "status": "works",
+      "evidence": "13 <dynamics>: 12 proper element children ['fp','sf','sfz','rfz','fz','sfp','rf','sffz','sfpp','sfzp','n','pf'] plus 1 <other-dynamics>'subito p'; MuseScore 4 import OK"
+    },
+    {
+      "feature": "<words> text directions",
+      "syntax": "\"^text\" (above) / \"_text\" (below) annotations",
+      "syntax_source": "FEATURES.md Text & Directions",
+      "probe": "p03_words_directions.abc",
+      "status": "works",
+      "evidence": "3 <direction-type><words> with (text,placement) = [('dolce','above'),('sotto voce','below'),('cantabile e legato','above')] — placement follows ^/_ correctly"
+    },
+    {
+      "feature": "rehearsal marks (inline [I:marker], P: field)",
+      "syntax": "[I:marker A] inline (also %%marker as directive); [P:B] gives a bold rehearsal",
+      "syntax_source": "FEATURES.md '%%marker'; handlers abc2xml.py:1712 and 2004",
+      "probe": "p04_rehearsal_marks.abc",
+      "status": "works",
+      "evidence": "2 <rehearsal> elements: measure 2 = 'A' (from [I:marker A]), measure 3 = 'B' with font-weight='bold' (from [P:B])"
+    },
+    {
+      "feature": "metronome mark (plain beat unit)",
+      "syntax": "Q:1/4=120 header field",
+      "syntax_source": "FEATURES.md Text & Directions; doTempo abc2xml.py:2037",
+      "probe": "p05_metronome_basic.abc",
+      "status": "works",
+      "evidence": "1 <metronome> with beat-unit='quarter', per-minute='120'; <sound tempo='120.00'>"
+    },
+    {
+      "feature": "metronome mark with dotted beat unit",
+      "syntax": "Q:3/8=100 (numerator 3 means dotted half-denominator unit)",
+      "syntax_source": "standard ABC; dotted logic abc2xml.py:2055",
+      "probe": "p06_metronome_dotted.abc",
+      "status": "works",
+      "evidence": "<metronome> children = beat-unit 'quarter' + <beat-unit-dot/> + per-minute '100'; <sound tempo='150.00'> (dotted-quarter 100 -> qpm 150, arithmetic correct)"
+    },
+    {
+      "feature": "metric modulation (beat-unit = beat-unit)",
+      "syntax": "NONE exists. Tried [Q:1/4=3/8]",
+      "syntax_source": "no doc/testfile syntax; doTempo regex only matches d/dd=number or bare number",
+      "probe": "p07_metric_modulation.abc",
+      "status": "missing",
+      "evidence": "0 <metronome-relation>, 0 second beat-unit; the attempt is SILENTLY mis-parsed: regex takes '3' of '3/8' as per-minute, emitting quarter=3 and <sound tempo='3.00'> (playback near-frozen, no warning)",
+      "proposal": "extend doTempo: when the right side of '=' is itself n/m (Q:1/4=3/8), emit <metronome> with beat-unit + optional dots on BOTH sides and no per-minute (MusicXML beat-unit,beat-unit pair), carry previous <sound tempo> forward unchanged; at minimum, warn instead of emitting tempo=3"
+    },
+    {
+      "feature": "mid-piece [Q:] changes (multiple, incl. mid-bar)",
+      "syntax": "[Q:1/4=132] inline at bar start or between notes",
+      "syntax_source": "standard ABC inline field; dispatch abc2xml.py:2220->1812->2002",
+      "probe": "p08_q_midpiece.abc",
+      "status": "works",
+      "evidence": "3 tempo directions: m1 quarter=100(sound 100.00), m2 quarter=132(sound 132.00), m3 mid-bar eighth=240(sound 120.00) positioned in the note stream between note 2 (D) and note 3 (E) — position and qpm both correct"
+    },
+    {
+      "feature": "tempo words (Allegro etc.) via Q:\"text\"",
+      "syntax": "Q:\"Allegro\" (words only) or Q:\"Andante\" 1/4=76 (words + metronome)",
+      "syntax_source": "standard ABC; tempoMap abc2xml.py:900",
+      "probe": "p09_tempo_text.abc",
+      "status": "works",
+      "evidence": "Q:\"Allegro\" -> <words>Allegro + <sound tempo='120.00'> (tempoMap allegro=120); combined form -> words + metronome quarter=76 + sound 76.00. CAVEAT: unknown text ('Molto rubato') still emits sound tempo=120.00 default, which can wrongly snap playback tempo mid-piece"
+    },
+    {
+      "feature": "rit. / accel. as text",
+      "syntax": "\"^rit.\" \"^accel.\" \"^a tempo\" annotations (no dedicated decoration exists)",
+      "syntax_source": "standard ABC annotations; no !rit!/!accel! token in any map",
+      "probe": "p10_rit_accel_text.abc",
+      "status": "works",
+      "evidence": "3 <words> ('rit.','accel.','a tempo') placement above, 0 <sound> elements — cosmetic text only, no tempo ramp (MusicXML has no standard ramp; acceptable)"
+    },
+    {
+      "feature": "D.C./D.S./segno/coda/fine decorations with <sound>",
+      "syntax": "!segno! !coda! !fine! !D.S.! !D.C.! !dacoda! (capoMap also D.S.alCoda, D.C.alFine etc.)",
+      "syntax_source": "capoMap abc2xml.py:928; emission 1788-1798",
+      "probe": "p11_dacapo_segno_decos.abc",
+      "status": "works",
+      "evidence": "!segno! -> <segno/>+sound segno='segno'; !coda! -> <coda/>+sound coda='coda'; !fine! -> words 'Fine'+sound fine='yes'; !D.S.! -> sound dalsegno='segno'; !D.C.! -> sound dacapo='yes'; !dacoda! -> words 'To Coda'+sound tocoda='coda'; MuseScore 4 import OK"
+    },
+    {
+      "feature": "sound-only navigation directives (recently added dacapo/segno <sound> support)",
+      "syntax": "[I:segno S1] [I:tocoda C1] [I:dalsegno S1] [I:dacapo] [I:fine] (also %%-form)",
+      "syntax_source": "doField_I abc2xml.py:2475-2495",
+      "probe": "p12_sound_directives.abc",
+      "status": "works",
+      "evidence": "5 sound-only directions with attrs {segno:'S1'},{coda:'C1'},{dalsegno:'S1'},{dacapo:'yes'},{fine:'yes'} at the right measures; NOTE each is a <direction> with 0 <direction-type> children (XSD nominally requires >=1) but MuseScore 4 imports OK"
+    },
+    {
+      "feature": "%%tempofont",
+      "syntax": "%%tempofont Georgia (header directive), applies to subsequent Q: output",
+      "syntax_source": "FEATURES.md v1.4.2 entry; abc2xml.py:2413, 2046, 2058",
+      "probe": "p13_tempofont.abc",
+      "status": "works",
+      "evidence": "both <words font-family='Georgia'>Allegro and <metronome font-family='Georgia'> carry the attribute"
+    },
+    {
+      "feature": "<sound tempo> value arithmetic (incl. deprecated Q:number)",
+      "syntax": "Q:120 (unit-length-per-minute, deprecated) and Q:1/2=60",
+      "syntax_source": "standard ABC; qpm formula abc2xml.py:2066",
+      "probe": "p14_sound_tempo_values.abc",
+      "status": "works",
+      "evidence": "Q:120 under L:1/8 -> metronome eighth=120, sound tempo=60.00 (correct deprecated semantics); [Q:1/2=60] -> half=60, sound tempo=120.00 (correct)"
+    }
+  ],
+  "counts": {"works": 13, "broken": 0, "missing": 1, "unclear": 0},
+  "musescore_smoke_test": "p02, p08, p11, p12 all IMPORT OK via '/Applications/MuseScore 4.app/Contents/MacOS/mscore <xml> -o <mscz>'",
+  "notes": [
+    "D31/D95 (glissando other-articulation leak, ~ roll phantom) do not intersect this domain; no <other-articulation> appeared in any probe XML.",
+    "Hairpin wedges excluded — covered by FEATURES v1.4.3 regression test TESTFILES/test_wedge_hairpins.abc and presumed under another census domain.",
+    "Hazard worth a FIX ticket even though classified missing: Q:1/4=3/8 (any n/m right side) silently emits per-minute=3 / sound tempo=3.00 — a nearly-frozen playback tempo with no warning."
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "domain": "abcplus-extensions",
+  "date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py (post-conformance working copy)",
+  "method": "tiny self-contained probes in this directory; converted with abc2xml.py -o out; XML inspected with xml.etree (element counts, attribute-order independent); MuseScore 4 CLI import smoke test on every output (out_ms/*.mscz)",
+  "musescore_note": "all 29 probe XMLs produced a plausible-size .mscz; exit code 134 occurrences are MuseScore 4's non-deterministic crash-on-exit (6 of 8 flipped to exit 0 on immediate retry), not import failures",
+  "features": [
+    {
+      "feature": "vel: per-note velocity decoration (!vel:N!)",
+      "probe": "p01_vel_pernote.abc",
+      "status": "works",
+      "evidence": "2 <other-direction> with texts vel:90/vel:64 + 2 sibling <sound dynamics='90'/'64'> directions, placement=below; MuseScore import OK",
+      "caveats": "value passed straight into sound/@dynamics, which MusicXML defines as a PERCENT of forte, not a raw 0-127 MIDI velocity (vel:64 plays ~64% of forte, not velocity 64); feature is absent from FEATURES.md (code-only)"
+    },
+    {
+      "feature": "harp pedal diagram, decoration form (!harp Db C B E F# G A!)",
+      "probe": "p02_harp_pedals_deco.abc",
+      "status": "works",
+      "evidence": "1 <harp-pedals> under direction-type with 7 <pedal-tuning>, steps D C B E F G A, alters -1 0 0 0 1 0 0 (Db and F# both honoured)"
+    },
+    {
+      "feature": "harp pedal diagram, directive form (%%harp ...)",
+      "probe": "p03_harp_pedals_directive.abc",
+      "status": "works",
+      "evidence": "identical output to decoration form: 1 harp-pedals, 7 pedal-tunings, correct alters; MuseScore import OK"
+    },
+    {
+      "feature": "accordion registration, decoration form (!accordion high=1 middle=2 low=1!)",
+      "probe": "p04_accordion_deco.abc",
+      "status": "works",
+      "evidence": "1 <accordion-registration> under direction-type with children accordion-high='1', accordion-middle='2', accordion-low='1' in schema order; MuseScore import OK",
+      "caveats": "MusicXML 4.0 defines accordion-high/accordion-low as EMPTY elements; the emitted text content ('1') is schema-noise (tolerated by MuseScore); the value after high=/low= is ignored semantically - high=0 would still draw the high dot"
+    },
+    {
+      "feature": "accordion registration, directive form (%%accordion ...)",
+      "probe": "p05_accordion_directive.abc",
+      "status": "works",
+      "evidence": "identical output to decoration form"
+    },
+    {
+      "feature": "per-voice %%MIDI program placement in header (directive after its V: line)",
+      "probe": "p06_midi_program_pervoice.abc",
+      "status": "works",
+      "evidence": "Flute -> midi-program 74, Cello -> midi-program 43 (correct 1-based MusicXML offset from ABC 73/42); binding to the preceding V: line is correct"
+    },
+    {
+      "feature": "%%MIDI channel + %%MIDI control 7 (vol) / control 10 (pan)",
+      "probe": "p07_midi_channel_control.abc",
+      "status": "works",
+      "evidence": "midi-instrument = {midi-channel 3, midi-program 57, volume 78.74 (=100/1.27), pan -61.65 (=20/127*180-90)} - correct MusicXML unit conversions"
+    },
+    {
+      "feature": "%%midi-bank / %%midi-vol / %%midi-pan directives",
+      "probes": ["p08_midi_bank_forms.abc", "p08b_midi_bank_body.abc"],
+      "status": "broken",
+      "evidence": "in the tune HEADER (next to %%MIDI program, the natural place) all three are SILENTLY DROPPED: part emitted with only midi-program 81, no midi-bank/volume/pan. Same directives inside the voice body work: {midi-bank 2, volume 70.87, pan 0.71}",
+      "root_cause": "splitHeaderVoices (abc2xml.py ~line 592) relocates only fields starting exactly 'I:MIDI' (case-sensitive) to the voice stream; 'I:midi-bank' etc. stay in the header where the per-voice midprg reset wipes them"
+    },
+    {
+      "feature": "%%MIDI bank N form",
+      "probe": "p08_midi_bank_forms.abc (voice V2)",
+      "status": "missing",
+      "evidence": "V2 with '%%MIDI bank 3' emitted midi-program 82 only, no midi-bank element; the %%MIDI branch (~line 2440) has regexes for program/channel/drummap/control but none for 'bank'",
+      "proposal": "add r5 = re.search(r'bank *(\\d+)', x) feeding midprg[4], consistent with the existing %%midi-bank directive"
+    },
+    {
+      "feature": "mid-tune instrument change ([I:MIDI program N] inside a voice)",
+      "probe": "p09_midi_midtune_change.abc",
+      "status": "works",
+      "evidence": "measure 2 carries <direction> with words 'prog: 57' + <sound><midi-instrument><midi-program>57; part-list keeps opening program 72; MuseScore import OK"
+    },
+    {
+      "feature": "MIDI= assignment form (%%MIDI=program N)",
+      "probe": "p10_midi_equals_form.abc",
+      "status": "works",
+      "evidence": "midi-program 69 emitted (68+1); the startswith('MIDI=') branch fires"
+    },
+    {
+      "feature": "<instrument-sound> auto-mapping from part names (_INSTRUMENT_SOUNDS)",
+      "probe": "p11_instrument_sounds.abc",
+      "status": "works",
+      "evidence": "7/7 parts got the expected ids incl. the order-sensitive disambiguations: Flute 1->wind.flutes.flute, Bass Clarinet->wind.reed.clarinet.bass, English Horn->wind.reed.english-horn, Horn in F 1->brass.french-horn, Piccolo Trumpet->brass.trumpet.piccolo, Contrabasses->strings.contrabass, Basses->voice.bass"
+    },
+    {
+      "feature": "%%score [V1 V2] bracket group",
+      "probe": "p12_score_bracket.abc",
+      "status": "works",
+      "evidence": "2 score-parts + part-group start/stop with group-symbol=bracket; brackets do NOT merge parts (matches corrected house semantics, contradicts the older rule-13 wording)"
+    },
+    {
+      "feature": "%%score (V1 V2) paren staff-share",
+      "probe": "p13_score_paren.abc",
+      "status": "works",
+      "evidence": "1 score-part, measure 1 has 8 notes across xml voices 1 and 2 on one staff - parens are the merging construct"
+    },
+    {
+      "feature": "%%score {RH LH} grand staff (exactly one voice named)",
+      "probe": "p14_score_brace_grand.abc",
+      "status": "works",
+      "evidence": "1 score-part 'PRH', staves=2, clefs G+F, voices 1+2 - true piano grand staff"
+    },
+    {
+      "feature": "%%score {V1 V2} with BOTH voices named",
+      "probe": "p15_score_brace_rejected.abc",
+      "status": "unclear",
+      "evidence": "grand staff silently rejected by the one-named-voice heuristic (mkGrand 'accept' test): output is 2 separate parts wrapped in a brace part-group instead of 1 two-staff part; XML is valid and MuseScore imports it",
+      "caveats": "the heuristic is documented nowhere; a user bracing two named voices gets a cosmetic brace, not a grand staff, with no warning - use {* ...} to force"
+    },
+    {
+      "feature": "%%score {* V1 V2} forced grand staff",
+      "probe": "p16_score_star_grand.abc",
+      "status": "works",
+      "evidence": "1 score-part, staves=2, clefs G+F, both voices merged regardless of names"
+    },
+    {
+      "feature": "%%score with a nonexistent voice id among real ones",
+      "probe": "p17_score_badvoice.abc",
+      "status": "works",
+      "evidence": "unknown id skipped ('score partname V9 does not exist' on stderr), remaining part + bracket group emitted correctly"
+    },
+    {
+      "feature": "%%score naming ONLY nonexistent voice ids",
+      "probe": "p17b_score_allbad.abc",
+      "status": "broken",
+      "evidence": "part-list contains 0 <score-part> (plus an orphan bracket part-group start/stop) while a <part id='PV1'> with music is still emitted - schema-invalid MusicXML (every part must have a matching score-part); matches the '0 parts' failure in the house memory"
+    },
+    {
+      "feature": "%%measurenb N (measure renumbering)",
+      "probes": ["p18_measurenb.abc", "p18b_measurenb_cont.abc"],
+      "status": "broken",
+      "evidence": "directive before measure 3 produced measure numbers 1,2,3,25,5,6 - it renumbers the measure AFTER the one it precedes (off-by-one: m_num is read at mkMeasure start, line ~2157, before doFields sets s.measureNb) and numbering falls back to the internal index on the next measure instead of continuing 26,27",
+      "caveats": "feature exists only in code, no repo doc defines intended semantics; current behaviour is wrong under any reading"
+    },
+    {
+      "feature": "%%measurenumbering yes",
+      "probe": "p19_measurenumbering.abc",
+      "status": "works",
+      "evidence": "<print><measure-numbering>yes</measure-numbering></print> on all 4 measures"
+    },
+    {
+      "feature": "default measure-numbering emission (no directive given)",
+      "probe": "p20_measurenumbering_default.abc",
+      "status": "broken",
+      "evidence": "with NO directive at all, every measure still gets <print><measure-numbering>none</measure-numbering></print> (2/2 measures) - s.measureNumbering defaults to the truthy string 'no' (line ~1007) so the 'is set' test at line ~2162 always fires; this explicitly ORDERS MuseScore to hide bar numbers on every converted score, overriding MuseScore's own default numbering",
+      "root_cause": "initialise s.measureNumbering to '' (or None) instead of 'no'"
+    },
+    {
+      "feature": "%%barnumbers <0|1|yes|no> alias",
+      "probe": "p21_barnumbers.abc",
+      "status": "works",
+      "evidence": "%%barnumbers 1 -> measure-numbering 'yes' on all 4 measures (same output as %%measurenumbering yes)"
+    },
+    {
+      "feature": "%%swing",
+      "probe": "p22_swing_mute.abc",
+      "status": "works",
+      "evidence": "1 <sound swing='yes'> direction emitted at the first note after the directive"
+    },
+    {
+      "feature": "%%mute",
+      "probes": ["p22_swing_mute.abc", "p22b_mute_only.abc"],
+      "status": "broken",
+      "evidence": "FEATURES.md documents %%mute -> <sound mute='yes'/>; measured output contains ZERO sound elements for it - the queued 'mute' deco is captured first by the decoration map entry 'mute':'stopped' (line ~922) and comes out as <technical><stopped/> (a brass hand-stop) on the next note; the sound-mute branch at line ~1785 is unreachable for 'mute'",
+      "root_cause": "decoration dispatch order: rename the map key or check the sound tokens before the articulation map"
+    },
+    {
+      "feature": "%%tempofont <font>",
+      "probe": "p23_tempofont.abc",
+      "status": "works",
+      "evidence": "<metronome font-family='Georgia'> with beat-unit quarter / per-minute 120"
+    },
+    {
+      "feature": "%%linked-tab <voice> auto mirror TAB staff",
+      "probes": ["p24_linked_tab.abc", "p24b_direct_tab.abc"],
+      "status": "works",
+      "evidence": "one 2-staff part: staff 2 gets clef TAB line 5 (number='2') + staff-details staff-lines=6, notes duplicated to staff 2/voice 2; WITH -f: 8 <string>+8 <fret> pairs, all on staff-2 notes only, correct EADGBE frets (C4 -> string 2 fret 1); MuseScore import OK",
+      "caveats": "without the undocumented -f CLI flag the mirror TAB staff carries NO string/fret elements (0 emitted - line ~1147 gates on s.fOpt), so fidelity depends on the importer re-fretting from pitch; staff 1 also gets no explicit clef element (only the TAB clef number='2' is written); same -f gate applies to a direct clef=tab voice"
+    }
+  ],
+  "counts": {"works": 20, "broken": 5, "missing": 1, "unclear": 1},
+  "doc_gaps": [
+    "vel:, %%harp, %%accordion, %%measurenb, %%linked-tab -f requirement, and the {one-named-voice} grand-staff heuristic are all absent from FEATURES.md",
+    "FEATURES.md '%%mute -> <sound mute=yes>' row is false as shipped (see %%mute finding)"
+  ]
+}

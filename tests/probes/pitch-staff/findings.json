@@ -1,0 +1,244 @@
+{
+  "domain": "pitch-staff",
+  "census_date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py (campaign baseline, backup abc2xml.py.pre-conformance-2026-08-06)",
+  "method": "26 self-contained probe .abc files converted with `python3 abc2xml/abc2xml.py -o xml <file>`; XML inspected with xml.etree via inspect_probes.py (element counts, attribute-order-independent).",
+  "counts": {"works": 22, "broken": 6, "missing": 4, "unclear": 0},
+  "features": [
+    {
+      "feature": "clef treble",
+      "syntax": "V:1 clef=treble",
+      "status": "works",
+      "probe": "01_clef_treble_bass.abc",
+      "evidence": "1 <clef> sign=G line=2; pitches C4..C5 unshifted."
+    },
+    {
+      "feature": "clef bass",
+      "syntax": "V:2 clef=bass",
+      "status": "works",
+      "probe": "01_clef_treble_bass.abc",
+      "evidence": "1 <clef> sign=F line=4; pitches C3..C4 unshifted (ABC pitch is absolute)."
+    },
+    {
+      "feature": "clef alto",
+      "syntax": "V:1 clef=alto",
+      "status": "works",
+      "probe": "02_clef_alto_tenor.abc",
+      "evidence": "1 <clef> sign=C line=3."
+    },
+    {
+      "feature": "clef tenor",
+      "syntax": "V:2 clef=tenor",
+      "status": "works",
+      "probe": "02_clef_alto_tenor.abc",
+      "evidence": "1 <clef> sign=C line=4."
+    },
+    {
+      "feature": "clef soprano (C1) by standard name",
+      "syntax": "V:1 clef=soprano (standard ABC name) — not recognised; house name alto1 works",
+      "status": "missing",
+      "probe": "03_clef_soprano_alto1.abc",
+      "evidence": "P1 (clef=soprano): 0 <clef> elements emitted, silently ignored; P2 (clef=alto1): <clef> sign=C line=1.",
+      "proposal": "Add 'soprano' -> ('C','1') and 'mezzosoprano' -> ('C','2') to clefMap and to the clef-name regex in doClef (aliases of the existing alto1/alto2), matching standard ABC 2.1 clef names."
+    },
+    {
+      "feature": "clef percussion",
+      "syntax": "K:C clef=perc",
+      "status": "works",
+      "probe": "04_clef_perc_auto.abc",
+      "evidence": "1 <clef> sign=percussion (no line); all 7 notes emitted as <unpitched>."
+    },
+    {
+      "feature": "clef tab (with default tuning)",
+      "syntax": "V:1 clef=tab",
+      "status": "works",
+      "probe": "05_clef_tab.abc",
+      "evidence": "<clef> sign=TAB line=5; <staff-details> staff-lines=6 with 6 <staff-tuning> E2 A2 D3 G3 B3 E4 (default guitar)."
+    },
+    {
+      "feature": "clef treble-8 with correct sounding octave",
+      "syntax": "V:1 clef=treble-8",
+      "status": "works",
+      "probe": "06_clef_treble_m8.abc",
+      "evidence": "<clef> G/2 with <clef-octave-change>-1</clef-octave-change>; ABC c..c' emitted as sounding C4..C5 (written-pitch shifted down 1 octave, correct MusicXML semantics)."
+    },
+    {
+      "feature": "clef treble+8 with correct sounding octave",
+      "syntax": "V:1 clef=treble+8",
+      "status": "works",
+      "probe": "07_clef_treble_p8.abc",
+      "evidence": "<clef-octave-change>1</clef-octave-change>; ABC C..c emitted as sounding C5..C6."
+    },
+    {
+      "feature": "clef bass-8 with correct sounding octave",
+      "syntax": "V:1 clef=bass-8",
+      "status": "works",
+      "probe": "08_clef_bass_m8_display8.abc",
+      "evidence": "<clef> F/4 with octave-change -1; ABC C,..C emitted as sounding C2..C3. Note: display-only variant clef=treble_8 emits octave-change -1 with UNshifted pitches C5..C6 (abc2xml convention: +/- shift playback, ^/_ display only)."
+    },
+    {
+      "feature": "clef none (invisible clef)",
+      "syntax": "V:1 clef=none — accepted but emits nothing; MusicXML <sign>none</sign> unreachable",
+      "status": "missing",
+      "probe": "09_clef_none.abc",
+      "evidence": "0 <clef> elements in output; doClef maps 'none' to ('','') and returns before emitting.",
+      "proposal": "Map 'none' to sign 'none' (clefMap 'none':('none','')) so MusicXML <clef><sign>none</sign></clef> is emitted and MuseScore hides the clef."
+    },
+    {
+      "feature": "key signatures, full sharp/flat range",
+      "syntax": "K:C# ... [K:Cb] ... [K:F] ... [K:G]",
+      "status": "works",
+      "probe": "10_key_sharps_flats.abc",
+      "evidence": "4 <key> elements with fifths 7, -7, -1, 1; implied alters applied to notes (C#4.. under K:C#, Gb4.. under K:Cb)."
+    },
+    {
+      "feature": "modal keys (dorian, mixolydian, lydian, minor)",
+      "syntax": "K:Ddor, [K:Gmix], [K:Elyd], [K:Amin]",
+      "status": "works",
+      "probe": "11_key_modal.abc",
+      "evidence": "fifths/mode = 0/dorian, 0/mixolydian, 5/lydian, 0/minor — all correct."
+    },
+    {
+      "feature": "aeolian (and ionian) mode names",
+      "syntax": "K:Aaeolian, [K:Cionian]",
+      "status": "broken",
+      "probe": "12_key_aeolian_ionian.abc",
+      "evidence": "K:Aaeolian emits fifths=3 mode=major (should be fifths=0 mode=aeolian) and sharpens sounding pitches (C#5 in output); K:Cionian emits mode=major (fifths 0 correct only by coincidence of C).",
+      "cause": "offTab/modTab lack 'aeo' and 'ion'; unknown modes silently fall back to 'maj'.",
+      "proposal": "Add 'aeo':11,'ion':8 to offTab and 'aeo':'aeolian','ion':'ionian' to modTab."
+    },
+    {
+      "feature": "K:none",
+      "syntax": "K:none",
+      "status": "works",
+      "probe": "13_key_none.abc",
+      "evidence": "Emits <key> fifths=0 mode=major (standard MusicXML representation of an empty signature); no spurious note alterations."
+    },
+    {
+      "feature": "explicit-accidental custom key signature",
+      "syntax": "K:C ^f _b",
+      "status": "broken",
+      "probe": "14_key_custom.abc",
+      "evidence": "<key> gets correct key-step/key-alter pairs (B/-1, F/1) and notes inherit the alterations, BUT the emitted <key-octave> elements are malformed: <key-octave number=\"5\"/> — empty content and the octave stored in the number attribute; per MusicXML, number must be the 1-based index of the key-step and the octave goes in the element text.",
+      "proposal": "Emit <key-octave number=\"i\">oct</key-octave> with i = position of the key-step (1-based), text = octave; or drop key-octave entirely when octaves are default."
+    },
+    {
+      "feature": "K: exp (explicit-only accidental list)",
+      "syntax": "K:D exp _b _e",
+      "status": "broken",
+      "probe": "15_key_exp.abc",
+      "evidence": "Emits 4 key-steps [B-1, C+1, E-1, F+1]: the 'exp' keyword is ignored, so the D-major signature (F#, C#) leaks through and the listed flats are merely added; ABC 2.1 'exp' means ONLY the listed accidentals (expected exactly B-1, E-1).",
+      "proposal": "When the mode token is 'exp', clear s.keyAlts before applying the listed alterations."
+    },
+    {
+      "feature": "common time M:C (symbol)",
+      "syntax": "M:C",
+      "status": "broken",
+      "probe": "16_time_common_cut.abc",
+      "evidence": "<time> beats=4 beat-type=4 with NO symbol attribute — the C glyph is lost (MuseScore shows numeric 4/4). MusicXML expects <time symbol=\"common\">.",
+      "proposal": "In doFields, keep a flag when field was 'C'/'C|' and set t.set('symbol','common'/'cut')."
+    },
+    {
+      "feature": "cut time M:C| (symbol)",
+      "syntax": "M:C|",
+      "status": "broken",
+      "probe": "16_time_common_cut.abc",
+      "evidence": "<time> beats=2 beat-type=2 with NO symbol attribute — the cut-time glyph is lost; should carry symbol=\"cut\"."
+    },
+    {
+      "feature": "complex meters 5/8, 7/8",
+      "syntax": "M:5/8, [M:7/8]",
+      "status": "works",
+      "probe": "17_time_complex.abc",
+      "evidence": "Two <time> elements beats/beat-type 5/8 and 7/8; measure durations accepted without warnings."
+    },
+    {
+      "feature": "additive meter 3+2/8",
+      "syntax": "M:3+2/8",
+      "status": "works",
+      "probe": "18_time_additive.abc",
+      "evidence": "<time> beats='3+2' beat-type=8 (valid MusicXML additive beats text); 5-quaver measures accepted."
+    },
+    {
+      "feature": "accidentals sharp/flat/natural",
+      "syntax": "^C _D =E",
+      "status": "works",
+      "probe": "19_acc_basic.abc",
+      "evidence": "<accidental> sharp/flat/natural with alter 1/-1/0."
+    },
+    {
+      "feature": "double sharp",
+      "syntax": "^^F",
+      "status": "broken",
+      "probe": "19_acc_basic.abc",
+      "evidence": "alter=2 (correct pitch) but <accidental>sharp-sharp</accidental> — the two-vertical-sharps glyph, not the conventional x-shaped 𝄪; canonical MusicXML value is 'double-sharp'.",
+      "cause": "accTab maps '^^' to 'sharp-sharp'.",
+      "proposal": "accTab['^^'] = 'double-sharp'."
+    },
+    {
+      "feature": "double flat",
+      "syntax": "__G",
+      "status": "works",
+      "probe": "19_acc_basic.abc",
+      "evidence": "alter=-2 with <accidental>flat-flat</accidental> — 'flat-flat' IS the canonical MusicXML value for 𝄫."
+    },
+    {
+      "feature": "courtesy (parenthesised) accidentals",
+      "syntax": "!courtesy!=C, !courtesy!^F (decoration immediately before the note)",
+      "status": "works",
+      "probe": "20_acc_courtesy.abc",
+      "evidence": "2 <accidental parentheses=\"yes\"> elements (natural, sharp). NOTE: !courtesy! is implemented (mkNote line ~1233) but undocumented in FEATURES.md."
+    },
+    {
+      "feature": "microtone accidentals (ABC 2.1 fractional syntax)",
+      "syntax": "none reaches the converter — standard ABC 2.1 ^/C, _/D, ^3/2E all rejected",
+      "status": "missing",
+      "probe": "21_acc_microtone.abc",
+      "evidence": "8 'misplaced symbol' warnings; all notes emitted as plain unaltered pitches (0 <accidental>, 0 alter) — the microtone intent is silently discarded from the score. Grammar accidental = oneOf('^^ __ ^ _ =') only; docs declare no microtone syntax.",
+      "proposal": "Support ABC 2.1 fractional accidentals ^/C (alter 0.5, <accidental>quarter-sharp</accidental>), _/C (-0.5, quarter-flat), ^3/2C (1.5, three-quarters-sharp), _3/2C (-1.5, three-quarters-flat)."
+    },
+    {
+      "feature": "noteheads on pitched notes (x, diamond, slash, triangle, none, circle-x)",
+      "syntax": "none exists for pitched notes; <notehead> is reachable only via I:percmap / drummap on percussion voices",
+      "status": "missing",
+      "probe": "22_notehead_pitched.abc",
+      "evidence": "!diamond! !x! !slash! on 3 notes produce 0 <notehead> elements and 21 <other-articulation> elements: each unknown decoration is re-emitted on EVERY later note (note1 gets [diamond], note2 [diamond,x], note3..8 [diamond,x,slash]) — the same sticky-decoration defect class as D31.",
+      "proposal": "Add a decoration family !head=x! / !head=diamond! / !head=slash! / !head=triangle! / !head=none! / !head=circle-x! (optionally trailing + / - for filled yes/no, mirroring the percmap convention) mapped to <notehead>; and clear s.nextdecos of consumed/unknown tokens so they cannot leak onto later notes."
+    },
+    {
+      "feature": "I:percmap noteheads + unpitched percussion notes",
+      "syntax": "I:percmap <note> <step> <midi> <notehead> under a clef=perc voice",
+      "status": "works",
+      "probe": "23_percmap_noteheads.abc",
+      "evidence": "7 <unpitched> notes D4..C5 with <notehead> x, circle-x, diamond, triangle, slash, none, normal[filled=yes] ('normal+' suffix works); 7 distinct <instrument> refs with score-part <midi-unpitched> = GM number + 1 (correct 1-based MusicXML)."
+    },
+    {
+      "feature": "percussion auto-map (unpitched without I:percmap)",
+      "syntax": "K:C clef=perc, then plain notes; ^ gives x head, _ gives circle-x",
+      "status": "works",
+      "probe": "04_clef_perc_auto.abc",
+      "evidence": "7 <unpitched> notes; noteheads normal/x/circle-x auto-assigned from accidental; midi-unpitched 72/74/76 auto-derived from staff position."
+    },
+    {
+      "feature": "staff-lines change",
+      "syntax": "V:1 ... stafflines=1",
+      "status": "works",
+      "probe": "24_stafflines.abc",
+      "evidence": "<staff-details><staff-lines>1</staff-lines> on the perc voice and staff-lines=4 on the treble voice."
+    },
+    {
+      "feature": "transpose in V:/K: field",
+      "syntax": "V:1 transpose=-2 (also t=3)",
+      "status": "works",
+      "probe": "25_transpose_field.abc",
+      "evidence": "<transpose><chromatic>-2</chromatic> and <chromatic>3</chromatic> inside <attributes>; written pitches unchanged (correct MusicXML written+transpose semantics). <diatonic> not emitted (optional)."
+    },
+    {
+      "feature": "%%MIDI transpose directive",
+      "syntax": "%%MIDI transpose -12",
+      "status": "works",
+      "probe": "26_midi_transpose.abc",
+      "evidence": "<transpose><chromatic>-12</chromatic> emitted in the first measure's <attributes>."
+    }
+  ]
+}

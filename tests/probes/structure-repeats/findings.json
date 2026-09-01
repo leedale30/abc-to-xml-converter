@@ -1,0 +1,132 @@
+{
+  "domain": "structure-repeats",
+  "census_date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py (pre-conformance backup: abc2xml.py.pre-conformance-2026-08-06)",
+  "probe_dir": "tests/probes/structure-repeats",
+  "method": "Each probe converted with `python3 abc2xml/abc2xml.py -o xml <probe>.abc`; XML inspected with xml.etree (inspect_probes.py) — element counts only, attribute-order independent.",
+  "features": [
+    {
+      "feature": "repeat barlines |: :| (and :: double repeat) with playback",
+      "syntax": "|: ... :| and ... :: ... (standard ABC)",
+      "probe": "repeats_basic.abc",
+      "status": "works",
+      "evidence": "repeats_basic.xml: 4 <repeat> elements directions [forward, backward, forward, backward]; barlines carry heavy-light/light-heavy <bar-style>; the :: pair correctly splits into backward stop + forward start."
+    },
+    {
+      "feature": "1st/2nd voltas (endings)",
+      "syntax": "[1 ... :|[2  and  |1,3 ... :|2  and  [\"text\" (standard ABC)",
+      "probe": "voltas.abc, voltas_extra.abc",
+      "status": "works",
+      "evidence": "voltas.xml: 4 <ending> elements [(1,start),(1,stop),(2,start),(2,stop)] with stops on right barlines next to the backward <repeat>; voltas_extra.xml: |1,3 -> number=\"1,3\".",
+      "caveat": "Quoted text volta [\"4.-5.\" emits placeholder number=\"33\" (intentional hack) but the display text is mangled: the '-' is replaced by ',' (\"4.,5.\") because ending.replace('-',',') at abc2xml.py:2084 runs BEFORE the quoted-string check at :2086."
+    },
+    {
+      "feature": "D.C. / D.S. / al Fine / al Coda jumps via decorations, with <sound> attributes",
+      "syntax": "!D.C.! !D.S.! !D.C.alFine! !D.C.alCoda! !D.S.alFine! !D.S.alCoda! !dacoda! !fine! (capoMap, abc2xml.py:928-931)",
+      "probe": "dcds_decorations.abc",
+      "status": "works",
+      "evidence": "dcds_decorations.xml: 8 <words> texts [Fine, D.C., D.S., D.C. al Fine, D.C. al Coda, D.S. al Coda, D.S. al Fine, To Coda], each in a valid <direction> with exactly 1 <direction-type> and a paired <sound> carrying the right attribute (dacapo=yes / dalsegno=segno / fine=yes / tocoda=coda); 0 other-articulation elements."
+    },
+    {
+      "feature": "fine marker",
+      "syntax": "!fine! (decoration)",
+      "probe": "dcds_decorations.abc",
+      "status": "works",
+      "evidence": "Emits <words>Fine</words> + <sound fine=\"yes\"> in one direction (measure 3 of probe)."
+    },
+    {
+      "feature": "segno + coda signs (real glyph elements)",
+      "syntax": "!segno! !coda! (or shorthand S / O)",
+      "probe": "dcds_decorations.abc",
+      "status": "works",
+      "evidence": "1 <segno/> and 1 <coda/> element each inside a <direction-type>, each with paired <sound segno=\"segno\"> / <sound coda=\"coda\">."
+    },
+    {
+      "feature": "%% sound-jump directives (playback-only route)",
+      "syntax": "%%dacapo, %%fine, %%segno <label>, %%dalsegno <label>, %%tocoda <label> (house extension, see examples/midi_features.abc; handled at abc2xml.py:2475-2489)",
+      "probe": "dcds_directives.abc",
+      "status": "broken",
+      "evidence": "dcds_directives.xml: 5 <sound> elements with correct attrs (segno=TheSegno, coda=TheCoda, dalsegno=TheSegno, dacapo=yes, fine=yes) BUT each is wrapped in <direction placement=\"below\"> containing ZERO <direction-type> children — schema-invalid MusicXML 4.0 (direction requires 1+ direction-type). Also no visible sign is emitted, and a directive between two music lines lands at the START of the following measure."
+    },
+    {
+      "feature": "barline style: double",
+      "syntax": "|| (standard ABC)",
+      "probe": "barline_styles.abc",
+      "status": "works",
+      "evidence": "<bar-style>light-light</bar-style> on right barline of measure 1."
+    },
+    {
+      "feature": "barline style: final",
+      "syntax": "|] (standard ABC)",
+      "probe": "barline_styles.abc",
+      "status": "works",
+      "evidence": "<bar-style>light-heavy</bar-style> on right barline of last measure."
+    },
+    {
+      "feature": "barline style: dotted (ABC's dashed-family barline)",
+      "syntax": ".| or : (standard ABC dotted barline)",
+      "probe": "barline_styles.abc",
+      "status": "works",
+      "evidence": "<bar-style>dotted</bar-style> emitted for .| (measure 2)."
+    },
+    {
+      "feature": "barline style: invisible (none)",
+      "syntax": "[|] or [] (standard ABC)",
+      "probe": "barline_styles.abc",
+      "status": "works",
+      "evidence": "<bar-style>none</bar-style> emitted for [|] (measure 4)."
+    },
+    {
+      "feature": "barline style: dashed",
+      "syntax": "none — ABC has only the dotted barline (.|); mkMeasure (abc2xml.py:2189-2200) never emits bar-style 'dashed'",
+      "probe": "barline_styles.abc",
+      "status": "missing",
+      "evidence": "0 <bar-style>dashed</bar-style> reachable from any accepted token.",
+      "proposal": "Inline directive %%barline dashed applied to the next right barline (mirrors the existing %%measurenb one-shot pattern at abc2xml.py:2419), or accept ,| as a dashed token alongside .| in the rbar grammar."
+    },
+    {
+      "feature": "barline style: heavy",
+      "syntax": "none — no token maps to bar-style 'heavy' or 'heavy-heavy'",
+      "probe": "barline_styles.abc",
+      "status": "missing",
+      "evidence": "0 <bar-style>heavy</bar-style> reachable; only heavy-light/light-heavy appear (repeat/final contexts).",
+      "proposal": "%%barline heavy one-shot directive (same mechanism as above)."
+    },
+    {
+      "feature": "barline style: tick",
+      "syntax": "none — no token maps to bar-style 'tick' (or 'short')",
+      "probe": "barline_styles.abc",
+      "status": "missing",
+      "evidence": "0 <bar-style>tick</bar-style> reachable from the grammar.",
+      "proposal": "%%barline tick one-shot directive (same mechanism as above)."
+    },
+    {
+      "feature": "%%barnumbers / %%measurenumbering",
+      "syntax": "%%barnumbers <0|1|yes|no> (v1.4.2 alias), %%measurenumbering <yes|no|system> (abc2xml.py:2409-2412)",
+      "probe": "barnumbers.abc, barnumbers_header.abc",
+      "status": "broken",
+      "evidence": "TWO defects. (1) GLOBAL POLLUTION: s.measureNumbering is initialised to the truthy string 'no' (abc2xml.py:1007), so the print-block condition at :2162 fires for EVERY measure of EVERY conversion — all 10 probe XMLs carry <print><measure-numbering>none</measure-numbering></print> in every single measure, even with no directive anywhere (measured: 46/46 measures across the probe set). (2) OFF-BY-ONE: %%barnumbers 1 placed after K: (first body line) is parsed as an inline field and processed in the measure element loop AFTER the print block, so measure 1 emits 'none' and only measures 2+ emit 'yes' (barnumbers.xml: [none, yes, yes, yes]); header placement before K: works (barnumbers_header.xml: [yes, yes, yes, yes]). Same D31 family: state set once, sprayed everywhere."
+    },
+    {
+      "feature": "mid-piece M: metre changes",
+      "syntax": "[M:3/4] inline or M:2/4 on its own line (standard ABC)",
+      "probe": "metre_change.abc",
+      "status": "works",
+      "evidence": "metre_change.xml: 3 <time> elements — 4/4 in measure 1, 3/4 in measure 2 (inline form), 2/4 in measure 4 (field-line form); all in <attributes> of the correct measures."
+    },
+    {
+      "feature": "anacrusis (pickup bar)",
+      "syntax": "short first measure (standard ABC implicit anacrusis)",
+      "probe": "anacrusis.abc",
+      "status": "broken",
+      "evidence": "anacrusis.xml: first measure has total note duration 240 of a 960-division full bar but carries NO implicit=\"yes\" attribute and is numbered 1 — the pickup counts as a full measure, so every bar number in the piece is off by one; pitches/durations themselves are correct."
+    }
+  ],
+  "counts": { "works": 10, "broken": 3, "missing": 3, "unclear": 0 },
+  "new_defects_for_register": [
+    "measure-numbering pollution: init s.measureNumbering='no' (truthy) at abc2xml.py:1007 makes every measure of every conversion emit <print><measure-numbering>none</measure-numbering></print>; body-placed %%barnumbers additionally takes effect one measure late (element loop runs after the print block in mkMeasure, abc2xml.py:2162-2175).",
+    "%% sound-jump directives (%%dacapo/%%fine/%%segno/%%dalsegno/%%tocoda) emit <direction> with no <direction-type> child — schema-invalid MusicXML (abc2xml.py:2475-2489 via addDirection with element=None).",
+    "anacrusis: pickup measure not marked implicit=\"yes\"/number 0 — bar numbering off by one (mkMeasure numbers measures sequentially, no pickup detection).",
+    "text volta display string mangled: '-' replaced by ',' inside quoted volta text because the replace at abc2xml.py:2084 precedes the quoted-string branch at :2086."
+  ]
+}

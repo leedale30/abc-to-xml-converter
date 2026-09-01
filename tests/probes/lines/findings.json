@@ -1,0 +1,119 @@
+{
+  "domain": "lines",
+  "census_date": "2026-08-06",
+  "converter": "abc2xml/abc2xml.py",
+  "method": "tiny probes converted with abc2xml, XML inspected with xml.etree via inspect_lines.py (element counts, attribute-order independent)",
+  "features": [
+    {
+      "feature": "glissando paired (!gliss(! / !gliss)!, alias !~(! / !~)!)",
+      "status": "works",
+      "probe": "probe_gliss_paired.abc",
+      "syntax_source": "FEATURES.md 'Pedal & Octave Lines' table (spell gliss, not glissando); aliases ~( ~) in abc2xml.py line 1413",
+      "evidence": "4 <glissando> in <notations>: 2 type=start + 2 type=stop, line-type=wavy, number=1 on both pairs; 0 other-articulation; 8 notes"
+    },
+    {
+      "feature": "bare !glissando! (D31)",
+      "status": "broken",
+      "probe": "probe_glissando_d31.abc",
+      "syntax_source": "undocumented spelling users will naturally try; FEATURES.md warns 'spell gliss, not glissando'",
+      "evidence": "D31 REPRODUCED: decoration on note 1 only, yet all 8/8 notes carry <other-articulation>glissando</other-articulation>; 0 real <glissando> elements",
+      "mechanism": "abc2xml.py mkNote else-branch (lines 1455-1464) adds <other-articulation> AND calls staffDecos, whose else (line 1810) re-appends the unknown token to s.nextdecos, so the next note re-consumes it forever; applies to EVERY unknown decoration (also measured on dashes(/bracket(/dim(niente))"
+    },
+    {
+      "feature": "slide paired (!slide(! / !slide)!, alias !-(! / !-)!)",
+      "status": "works",
+      "probe": "probe_slide_paired.abc",
+      "syntax_source": "abc2xml.py line 1417; bare !slide! maps to articulation scoop instead (artMap line 909)",
+      "evidence": "4 <slide> in <notations>: 2 start + 2 stop, line-type=solid, number=1; 0 other-articulation"
+    },
+    {
+      "feature": "pedal sign style (!ped! / !ped-up!)",
+      "status": "works",
+      "probe": "probe_pedal_sign.abc",
+      "syntax_source": "FEATURES.md + TESTFILES/test_pedal_styles.abc",
+      "evidence": "2 <pedal> in <direction>: type=start and type=stop, both line=\"no\" sign=\"yes\""
+    },
+    {
+      "feature": "pedal line style (!ped(! / !ped)!)",
+      "status": "works",
+      "probe": "probe_pedal_line.abc",
+      "syntax_source": "FEATURES.md + TESTFILES/test_pedal_styles.abc",
+      "evidence": "2 <pedal> in <direction>: type=start and type=stop, both line=\"yes\" sign=\"no\""
+    },
+    {
+      "feature": "pedal change (!ped-change! inside a pedal line)",
+      "status": "works",
+      "probe": "probe_pedal_change.abc",
+      "syntax_source": "FEATURES.md + TESTFILES/test_pedal_styles.abc",
+      "evidence": "3 <pedal> in <direction>: start(line=yes,sign=no), change(line=yes), stop(line=yes,sign=no) in order"
+    },
+    {
+      "feature": "octave-shift 8va (!8va! ... !8va)!)",
+      "status": "works",
+      "probe": "probe_octave_8va.abc",
+      "syntax_source": "FEATURES.md (close with ')')",
+      "evidence": "2 <octave-shift> in <direction>: type=down size=8 then type=stop size=8; written pitches unchanged (C5 E5 G5 C6) — MusicXML type=down + written-as-typed = sounds an octave higher, correct 8va semantics"
+    },
+    {
+      "feature": "octave-shift 8vb (!8vb! ... !8vb)!)",
+      "status": "works",
+      "probe": "probe_octave_8vb.abc",
+      "syntax_source": "FEATURES.md",
+      "evidence": "2 <octave-shift> in <direction>: type=up size=8 then type=stop size=8; written pitches unchanged (C3 E3 G3 C4) — type=up = sounds an octave lower, correct 8vb semantics"
+    },
+    {
+      "feature": "octave-shift 15ma/15mb/22ma/22mb with closes",
+      "status": "works",
+      "probe": "probe_octave_15_22.abc",
+      "syntax_source": "FEATURES.md",
+      "evidence": "8 <octave-shift> in <direction>: down/15, stop/15, up/15, stop/15, down/22, stop/22, up/22, stop/22 — sizes and up/down directions all correct"
+    },
+    {
+      "feature": "wedge paired word forms (!crescendo(!/!crescendo)!, !diminuendo(!, !cresc(!, !dim(!, !decresc(!)",
+      "status": "works",
+      "probe": "probe_wedge_paired_words.abc",
+      "syntax_source": "FEATURES.md + TESTFILES/test_wedge_hairpins.abc (v1.4.3 regression)",
+      "evidence": "10 <wedge> all in <direction-type>: alternating crescendo,stop,diminuendo,stop,crescendo,stop,diminuendo,stop,diminuendo,stop — decresc( correctly maps to diminuendo; none land in <notations>"
+    },
+    {
+      "feature": "wedge paired symbol forms (!<(! !<)! !>(! !>)!)",
+      "status": "works",
+      "probe": "probe_wedge_symbols.abc",
+      "syntax_source": "TESTFILES/test_wedge_hairpins.abc",
+      "evidence": "4 <wedge> in <direction-type>: crescendo, stop, diminuendo, stop"
+    },
+    {
+      "feature": "wedge (start)/(end) forms and bare forms (!cresc(start)! !cresc(end)! !dim(start)! !dim(end)!; bare !crescendo! !dim! !w!)",
+      "status": "works",
+      "probe": "probe_wedge_startend.abc",
+      "syntax_source": "wedgeMap abc2xml.py line 903",
+      "evidence": "7 <wedge> in <direction-type>: crescendo,stop,diminuendo,stop from the (start)/(end) pairs, plus 3 start-only wedges (crescendo, diminuendo, crescendo) from bare crescendo/dim/w — bare forms emit a valid start but never a stop, so they must be closed with any stop token or MuseScore gets an unterminated hairpin"
+    },
+    {
+      "feature": "wedge niente (al niente / dal niente hairpin)",
+      "status": "missing",
+      "probe": "probe_wedge_niente.abc",
+      "syntax_source": "none — no token in wedgeMap, no doc, no test mentions niente; !n! is only the niente DYNAMIC in dynaMap",
+      "evidence": "0 <wedge> carries a niente attribute anywhere in the codebase's output; guessed syntaxes produce propagating garbage: <other-articulation>dim(niente)</other-articulation> x8 (D31-style spread to all notes)",
+      "proposal": "add wedgeMap tokens !dim-niente(! -> <wedge type=\"diminuendo\" niente=\"yes\"> and !cresc-niente(! -> <wedge type=\"crescendo\" niente=\"yes\">, closed by the existing !dim)! / !cresc)! stop tokens — same paired-paren convention as every other wedge token"
+    },
+    {
+      "feature": "dashes span (direction-type <dashes>)",
+      "status": "missing",
+      "probe": "probe_dashes_span.abc",
+      "syntax_source": "none — no 'dashes' token anywhere in abc2xml.py, FEATURES.md, docs/ or TESTFILES/",
+      "evidence": "0 <dashes> elements; instead <other-articulation>dashes(</other-articulation> x8 and dashes) x5 (propagating unknown-deco fallback)",
+      "proposal": "!dashes(! / !dashes)! -> <direction-type><dashes type=\"start\"/> and type=\"stop\", with a dashnum counter for the number attribute exactly like s.glisnum/s.slidenum; typical use: cresc./dim. text continuation lines"
+    },
+    {
+      "feature": "bracket span (direction-type <bracket>)",
+      "status": "missing",
+      "probe": "probe_bracket_span.abc",
+      "syntax_source": "none — 'bracket' in the codebase only refers to part-group brackets (%%score [..]) and volta brackets",
+      "evidence": "0 direction-type <bracket> elements; instead <other-articulation>bracket(</other-articulation> x8 and bracket) x5 (propagating unknown-deco fallback)",
+      "proposal": "!bracket(! / !bracket)! -> <direction-type><bracket type=\"start\" line-end=\"down\" line-type=\"solid\"/> and <bracket type=\"stop\" line-end=\"down\"/>, numbered like glissandos; the paired-paren decoration convention matches the rest of the house syntax"
+    }
+  ],
+  "cross_cutting_hazard": "The D31 mechanism is generic: ANY decoration token the converter does not recognise is both emitted as <other-articulation> on the current note AND re-queued via staffDecos->s.nextdecos (abc2xml.py line 1810), so it stamps every subsequent note in the voice to end of tune. Measured on glissando (8/8 notes), dashes( (8/8 from note 1), bracket( (8/8), dim(niente) (8/8). Any FIX for D31 should clear the token instead of re-queueing unknowns.",
+  "counts": {"works": 11, "broken": 1, "missing": 3, "unclear": 0}
+}

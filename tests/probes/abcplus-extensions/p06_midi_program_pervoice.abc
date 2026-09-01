@@ -1,0 +1,11 @@
+X:1
+T:per-voice MIDI program in header
+M:4/4
+L:1/4
+V:V1 name="Flute"
+%%MIDI program 73
+V:V2 name="Cello"
+%%MIDI program 42
+K:C
+[V:V1] C D E F|G A B c|
+[V:V2] C, D, E, F,|G, A, B, C|

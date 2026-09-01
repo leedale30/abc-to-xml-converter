@@ -1,0 +1,7 @@
+X:1
+T:Probe - octave shift 15ma 15mb 22ma 22mb
+M:4/4
+L:1/4
+K:C
+V:1 name="Piano"
+[V:1] !15ma!c e !15ma)!g c | !15mb!C, E, !15mb)!G, C | !22ma!c e !22ma)!g c | !22mb!C, E, !22mb)!G, C |

@@ -1,0 +1,9 @@
+X:1
+T:Bass minus 8 and display-only treble_8
+M:4/4
+L:1/4
+K:C
+V:1 clef=bass-8
+C, D, E, F,|G, A, B, C|
+V:2 clef=treble_8
+c d e f|g a b c'|

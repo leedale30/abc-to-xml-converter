@@ -1,0 +1,16 @@
+X:1
+T:Sound Jump Directives
+M:4/4
+L:1/4
+K:C
+C D E F |
+%%segno TheSegno
+G A B c |
+%%tocoda TheCoda
+c B A G |
+%%dalsegno TheSegno
+F E D C |
+%%dacapo
+C D E F |
+%%fine
+G A B c |]

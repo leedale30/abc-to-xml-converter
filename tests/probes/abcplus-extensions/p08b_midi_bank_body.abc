@@ -1,0 +1,12 @@
+X:1
+T:midi-bank vol pan in voice body
+M:4/4
+L:1/4
+V:V1 name="Synth"
+%%MIDI program 80
+K:C
+[V:V1]
+%%midi-bank 2
+%%midi-vol 90
+%%midi-pan 64
+C D E F|G A B c|

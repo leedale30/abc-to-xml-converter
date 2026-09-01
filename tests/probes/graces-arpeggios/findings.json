@@ -1,0 +1,84 @@
+{
+  "domain": "graces-arpeggios",
+  "date": "2026-08-06",
+  "agent": "census",
+  "converter": "abc2xml/abc2xml.py (pre-conformance backup: abc2xml.py.pre-conformance-2026-08-06)",
+  "method": "tiny .abc probes -> abc2xml -o . -> xml.etree element counts (attribute-order independent); MuseScore 4 headless import smoke-test on every probe (all 8 IMPORT-OK when run individually; batch runs are flaky at the mscore-launch level, not content level)",
+  "features": [
+    {
+      "feature": "acciaccatura {/X}",
+      "status": "works",
+      "probe": "p01_acciaccatura.abc",
+      "syntax": "{/d}c  (ABC standard; FEATURES.md line 30)",
+      "evidence": "3 principal notes, 3 <grace slash=\"yes\"> notes, 3/3 slashed, grace notes have <type>eighth and no <duration>; MuseScore 4 import OK",
+      "code_ref": "abc2xml.py:172 (acciaccatura = Literal('/')), :1102 (grace.set('slash','yes'))"
+    },
+    {
+      "feature": "appoggiatura {X}",
+      "status": "works",
+      "probe": "p02_appoggiatura.abc",
+      "syntax": "{d}c  (ABC standard; FEATURES.md line 29)",
+      "evidence": "3 <grace> elements with empty attribute dict (no slash), 0 slashed, no <duration> on grace notes; MuseScore 4 import OK"
+    },
+    {
+      "feature": "grace chords {[XY]}",
+      "status": "works",
+      "probe": "p03_grace_chord.abc",
+      "syntax": "{[df]}c  (grammar: grace_stem = Optional(decorations) + stem, stem includes chord; doGrace calls convertChord)",
+      "evidence": "per group: 2 <grace> notes, second also carries <chord/>; 4 grace notes total for 2 groups; MuseScore 4 import OK",
+      "code_ref": "abc2xml.py:173-174, :439-442 (doGrace)"
+    },
+    {
+      "feature": "multiple graces {WXYZ}",
+      "status": "works",
+      "probe": "p04_multiple_graces.abc",
+      "syntax": "{defg}c",
+      "evidence": "4 consecutive <grace> notes (D5 E5 F5 G5) then principal C5, all type=eighth, none with duration; MuseScore 4 import OK"
+    },
+    {
+      "feature": "acciaccatura slash on multi-note grace run {/XY}",
+      "status": "broken",
+      "probe": "p04_multiple_graces.abc",
+      "syntax": "{/de}d",
+      "evidence": "only 1 of 2 grace notes in the {/de} group carries slash=\"yes\" (the first; s.acciatura is cleared after the first note at abc2xml.py:1102) - MuseScore's own MusicXML export puts slash=\"yes\" on every note of a slashed run, so the rest of the run silently loses the acciaccatura flag",
+      "code_ref": "abc2xml.py:1102 'if s.acciatura: grace.set(slash,yes); s.acciatura = 0'"
+    },
+    {
+      "feature": "grace-after (grace notes attached to the PRECEDING note, MusicXML <grace steal-time-previous>)",
+      "status": "missing",
+      "probe": "p05_grace_after.abc",
+      "syntax": "none exists. Probe c{d}| shows a trailing brace group is just emitted as a normal forward-attaching grace at that stream position",
+      "evidence": "grep 'steal' over abc2xml.py = 0 hits; probe output: final <note> is a bare <grace> (no steal-time-previous attribute) stranded after the last principal note, which MusicXML semantics attach FORWARD to a following note that does not exist",
+      "proposal": "extend the brace-group flag position already used by '/': a leading '<' inside braces, e.g. c{<d} -> emit the group's notes AFTER the principal note in document order with <grace steal-time-previous=\"50\"> (mirrors acciaccatura = Literal('/') at abc2xml.py:172; '<' is unused inside braces so no grammar conflict with broken rhythm)"
+    },
+    {
+      "feature": "arpeggiate !arpeggio!",
+      "status": "works",
+      "probe": "p06_arpeggio.abc",
+      "syntax": "!arpeggio![ceg]  (decoration; handled at abc2xml.py:1412, not listed in FEATURES.md)",
+      "evidence": "2 decorated chords -> exactly 2 <arpeggiate number=\"1\"/> inside <notations>, undecorated middle chord gets none, 0 phantom other-articulation; MuseScore 4 import OK. Caveat: element lands only on the FIRST chord note - MusicXML best practice (and MuseScore's own export) repeats <arpeggiate> on every chord note; MuseScore imports the first-note-only form fine",
+      "code_ref": "abc2xml.py:1412"
+    },
+    {
+      "feature": "arpeggiate up/down (<arpeggiate direction=\"up|down\">)",
+      "status": "missing",
+      "probe": "p07_arpeggio_direction.abc",
+      "syntax": "none exists (tried !arpeggioup! / !arpeggiodown!; no directional token in code or docs)",
+      "evidence": "0 <arpeggiate> elements in output; instead the two unknown tokens trigger the sticky phantom bug: 17 empty <other-articulation> elements sprayed over all 10 notes incl. the rest (notes 0-2 carry 1 each, notes 3-9 carry 2 each - each unknown deco permanently adds one more, same mechanism as D31/D95)",
+      "proposal": "!arpeggioup! / !arpeggiodown! -> <arpeggiate direction=\"up|down\" number=\"1\"/>, added beside the existing 'arpeggio' branch at abc2xml.py:1412"
+    },
+    {
+      "feature": "non-arpeggiate (<non-arpeggiate type=\"top|bottom\">)",
+      "status": "missing",
+      "probe": "p08_non_arpeggiate.abc",
+      "syntax": "none exists (tried !nonarpeggio! / !non-arpeggiate!)",
+      "evidence": "0 <non-arpeggiate> elements; identical phantom fallout to p07: 17 empty <other-articulation> elements across all 10 notes",
+      "proposal": "!nonarpeggio![ceg] -> <non-arpeggiate type=\"bottom\"/> on the lowest chord note and <non-arpeggiate type=\"top\"/> on the highest (MusicXML defines the bracket by its two ends)"
+    }
+  ],
+  "cross_cutting_observations": [
+    "The unknown-decoration fallback (abc2xml.py:1453-1459 else-branch feeding staffDecos + other-articulation) is STICKY and CUMULATIVE: every unrecognised !token! adds one more empty <other-articulation> to every subsequent note in the voice, including rests. Measured in p07/p08: 1 unknown token -> +1 per note, 2 tokens -> +2 per note (17 total over 10 notes). This is the same mechanism family as known bugs D31 (!glissando!) and D95 (~).",
+    "Grace notes correctly omit <duration> and carry <type>eighth by default; <grace> is the first child of <note> as required.",
+    "MuseScore 4 headless (mscore -o out.mscz in.xml) is flaky when invoked in rapid succession - batch runs intermittently fail on random files; each of the 8 probes imports cleanly when retried individually. Do not trust a single batch FAIL."
+  ]
+}

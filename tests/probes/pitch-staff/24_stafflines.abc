@@ -1,0 +1,9 @@
+X:1
+T:Staff lines change
+M:4/4
+L:1/4
+K:C
+V:1 clef=perc stafflines=1
+B B B B|B B B2|
+V:2 clef=treble stafflines=4
+C D E F|G A B c|

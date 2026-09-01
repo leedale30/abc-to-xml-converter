@@ -589,10 +589,7 @@ def splitHeaderVoices (abctext):
     hfs, vfs = [], []
     for x in header[1:-1].split (']['):
         if x[0] == 'V': vfs.append (x)          # filter voice- and midi-definitions
-        # CONF-abcplus-extensions-2: match case-INSENSITIVELY so the %%midi-bank / %%midi-vol
-        # / %%midi-pan header forms travel with their voice too.  Left in the header they
-        # lose the voice they belong to and are silently dropped.
-        elif x[:6].upper () == 'I:MIDI': vfs.append (x)  # from the header to vfs
+        elif x[:6] == 'I:MIDI': vfs.append (x)  # from the header to vfs
         elif x[:9] == 'I:percmap': vfs.append (x)  # and also percmap
         else: hfs.append (x)                    # all other fields stay in header
     header = '[' + ']['.join (hfs) + ']'        # restore the header
@@ -977,7 +974,7 @@ class MusicXml:
         s.unitLcur = (1, 8) # unit length of current voice
         s.keyAlts = {}      # alterations implied by key
         s.msreAlts = {}     # temporarily alterations
-        s.curVolta = None   # open volta bracket (None = none open; '' = an open TEXT-only volta)
+        s.curVolta = ''     # open volta bracket
         s.title = ''        # title of music
         s.creator = {}      # {creator-type -> creator string}
         s.metadata = {}     # {metadata-type -> string}
@@ -1008,8 +1005,6 @@ class MusicXml:
         s.pMapFound = 0     # at least one I:percmap has been found
         s.vcepid = {}       # voice_id -> part_id
         s.tempofont = ''
-        s.lastQpm = 120.    # current playback tempo in quarters/min (MusicXML default) --
-                            # a metric modulation (Q:a/b=c/d) is RELATIVE, so it needs this
         s.measureNumbering = ''     # empty = no directive seen -> emit no <measure-numbering> at all
         s.midiInst = {}     # inst_id -> (part_id, voice_id, channel, midi_number), remember instruments used
         s.capo = 0          # fret position of the capodastro
@@ -1635,7 +1630,7 @@ class MusicXml:
                 s.measureNb = d[10:].strip()
                 continue
             if d.startswith('measurenumbering '):
-                s.measureNumbering = d[17:].strip() or 'yes'
+                s.measureNumbering = 'yes' if 'yes' in d else 'no'
                 continue
             if d.startswith('frame '):
                 remaining = d[6:].strip()
@@ -1795,10 +1790,8 @@ class MusicXml:
             elif d in ['swing', 'swing-off']:
                 snd = E.Element('sound', swing='yes' if d == 'swing' else 'no')
                 addDirection (maat, None, lev, gstaff, [snd])
-            elif d in ['mute', 'mute-off', 'sound-mute', 'sound-mute-off']:
-                # 'mute'/'mute-off'         = the !mute! decoration (abc-plus CHECKLIST 236)
-                # 'sound-mute'/'-off'       = the DEFERRED %%mute / %%mute-off directive
-                snd = E.Element('sound', mute='no' if d.endswith ('-off') else 'yes')
+            elif d in ['mute', 'mute-off']:
+                snd = E.Element('sound', mute='yes' if d == 'mute' else 'no')
                 addDirection (maat, None, lev, gstaff, [snd])
             elif d in ['coda', 'segno']:
                 text, attr, val = s.capoMap [d]
@@ -1814,12 +1807,9 @@ class MusicXml:
             elif d == '(' or d == '.(': s.slurbeg.append (d)   # start slur on next note
             elif d in ['/-','//-','///-','////-']:  # duplet tremolo sequence
                 s.tmnum, s.tmden, s.ntup, s.trem, s.intrem = 2, 1, 2, len (d) - 1, 1
-            # CONF-ornaments-3: MusicXML tremolo-marks is 0..8, so the slash and trem<N>
-            # forms run to EIGHT beams, not three.  (The '/-' duplet-tremolo branch above
-            # is tested first, so '!////-!' still means the two-note form.)
-            elif re.match (r'^/{1,8}$', d):  # single note tremolo with slash notation
+            elif d in ['/','//','///']:  # single note tremolo with slash notation
                 s.trem = -len(d)
-            elif re.match (r'^trem[1-8]$', d):  # single note tremolo with explicit bar count
+            elif d in ['trem1', 'trem2', 'trem3']:  # single note tremolo with explicit bar count
                 s.trem = -int(d[4:])
             elif d == 'dolce' or d == 'espressivo' or d == 'rit.': # Expressive text aliases
                 words = E.Element('words')
@@ -2063,14 +2053,9 @@ class MusicXml:
 
     def doTempo (s, maat, field, lev):
         gstaff = s.gStaffNums.get (s.vid, 0)    # staff number of the current voice
-        # CONF-dynamics-directions-tempo-1: Q:a/b=c/d is a METRIC MODULATION (note = note),
-        # not a per-minute mark.  It must be tested BEFORE the per-minute regex, whose
-        # (\d[.\d]*) right-hand branch reads the '3' of '3/8' as a tempo of 3 per minute
-        # (<sound tempo="3.00"> = near-frozen, effectively silent playback).
-        mm = re.search (r'(\d+)/(\d+)\s*=\s*(\d+)/(\d+)', field)
-        t = None if mm else re.search (r'(\d)/(\d\d?)\s*=\s*(\d[.\d]*)|(\d[.\d]*)', field)
+        t = re.search (r'(\d)/(\d\d?)\s*=\s*(\d[.\d]*)|(\d[.\d]*)', field)
         rtxt = re.search (r'"([^"]*)"', field) # look for text in Q: field
-        if not t and not mm and not rtxt: return
+        if not t and not rtxt: return
         elems = []  # [(element, sub-elements)] will be added as direction-types
         if rtxt:
             num, den, upm = 1, 4, s.tempoMap.get (rtxt.group (1).lower ().strip (), 120)
@@ -2079,18 +2064,6 @@ class MusicXml:
                 words.set('font-family', s.tempofont)
             words.text = rtxt.group (1)
             elems.append ((words, []))
-        if mm:
-            def beatUnit (n, d):    # (numerator, denominator) -> [<beat-unit>, <beat-unit-dot>?]
-                n, d = simplify (n, d)
-                dotted, d_not = (1, d // 2) if n == 3 else (0, d)
-                u = E.Element ('beat-unit'); u.text = s.typeMap.get (4 * d_not, 'quarter')
-                return [u, E.Element ('beat-unit-dot')] if dotted else [u]
-            lnum, lden, rnum, rden = [int (g) for g in mm.groups ()]
-            metro = E.Element ('metronome')
-            if hasattr(s, 'tempofont') and s.tempofont:
-                metro.set('font-family', s.tempofont)
-            # MusicXML metric modulation = two beat-unit groups, NO per-minute
-            elems.append ((metro, beatUnit (lnum, lden) + beatUnit (rnum, rden)))
         if t:
             try:
                 if t.group (4): num, den, upm = 1, s.unitLcur[1] , float (t.group (4))  # old syntax Q:120
@@ -2106,14 +2079,8 @@ class MusicXml:
             subelms = [u, E.Element ('beat-unit-dot'), pm] if dotted else [u, pm]
             elems.append ((metro, subelms))
         dir = addDirection (maat, elems, lev, gstaff, [], placement='above')
-        if mm:
-            # the RIGHT note now lasts exactly as long as the LEFT one did, so the beat rate
-            # scales by right/left.  s.lastQpm carries it, so chained modulations compose.
-            qpm = s.lastQpm * (float (rnum) / rden) / (float (lnum) / lden)
-        else:
-            if num != 1 and num != 3: info ('in Q: numerator in %d/%d not supported' % (num, den))
-            qpm = 4. * num * upm / den
-        s.lastQpm = qpm
+        if num != 1 and num != 3: info ('in Q: numerator in %d/%d not supported' % (num, den))
+        qpm = 4. * num * upm / den
         sound = E.Element ('sound'); sound.set ('tempo', '%.2f' % qpm)
         addElem (dir, sound, lev + 1)
 
@@ -2121,9 +2088,9 @@ class MusicXml:
         b = E.Element ('barline', location=loc)
         if style:
             addElemT (b, 'bar-style', style, lev + 1)
-        if s.curVolta is not None:    # first stop a current volta ('' is a legal open text-only volta)
+        if s.curVolta:    # first stop a current volta
             end = E.Element ('ending', number=s.curVolta, type='stop')
-            s.curVolta = None
+            s.curVolta = ''
             if loc == 'left':   # stop should always go to a right barline
                 bp = E.Element ('barline', location='right')
                 addElem (bp, end, lev + 1)
@@ -2131,19 +2098,11 @@ class MusicXml:
             else:
                 addElem (b, end, lev + 1)
         if ending:
-            # CONF-structure-repeats-4: the quoted-string test comes FIRST -- '-' is legal
-            # inside volta TEXT ("4.-5.") and must not be rewritten to a comma.  Only the
-            # numeric list form is a MusicXML ending-number, where '-' does mean ','.
+            ending = ending.replace ('-',',')   # MusicXML only accepts comma's
             endtxt = ''
-            if ending.startswith ('"'):     # ending is a quoted string: a TEXT-only volta
+            if ending.startswith ('"'):     # ending is a quoted string
                 endtxt = ending.strip ('"')
-                # MusicXML ending-number is "a comma separated list of positive integers
-                # OR a string of zero or more spaces" -- the empty value is the canonical
-                # encoding for a text-only ending.  (Was the fake sentinel number '33',
-                # which collides with a real 33rd ending and lies to every consumer.)
-                ending = ''
-            else:
-                ending = ending.replace ('-',',')   # MusicXML only accepts comma's
+                ending = '33'               # any number that is not likely to occur elsewhere
             end = E.Element ('ending', number=ending, type='start')
             if endtxt: end.text = endtxt    # text appears in score in stead of number attribute
             addElem (b, end, lev + 1)
@@ -2222,8 +2181,7 @@ class MusicXml:
             if x.name == 'inline' and x.t[0] == 'I':
                 fld = ' '.join (x.t[1:])
                 if fld.startswith ('barnumbers '):
-                    arg = fld[11:].strip ().lower ()
-                    s.measureNumbering = 'yes' if arg in ('1', 'yes', 'true', 'on') else 'no'
+                    s.measureNumbering = 'yes' if '1' in fld or 'yes' in fld else 'no'
                 elif fld.startswith ('measurenumbering '):
                     s.measureNumbering = fld[17:].strip ()
             elif x.name == 'note' or x.name == 'rest':
@@ -2238,12 +2196,7 @@ class MusicXml:
                 e.set ('new-system', 'yes')
                 s.newline = 0
             if hasattr(s, 'measureNumbering') and s.measureNumbering:
-                 # the measure-numbering enum is none|measure|system in every MusicXML version;
-                 # 'yes' is schema-invalid (lenient importers drop it, Dorico refuses the file)
-                 mn = s.measureNumbering.strip ().lower ()
-                 if mn not in ('none', 'measure', 'system'):
-                     mn = 'system' if mn in ('yes', '1', 'true', 'on') else 'none'
-                 addElemT(e, 'measure-numbering', mn, lev + 2)
+                 addElemT(e, 'measure-numbering', 'yes' if s.measureNumbering in ['yes', 'system'] else 'none', lev + 2)
             addElem (maat, e, lev + 1)
             s.linebrk = 0
         for it, x in enumerate (t):
@@ -2332,7 +2285,7 @@ class MusicXml:
         s.slidenum = 0;         # xml number attribute for slides
         s.wavynum = 0;          # xml number attribute for wavy-lines (extended trills)
         s.unitLcur = s.unitL    # set the default unit length at begin of each voice
-        s.curVolta = None
+        s.curVolta = ''
         s.lyrdash = {}
         s.linebrk = 0
         s.pickupOff = 0         # 1 when the part starts with an anacrusis (measure 0, implicit)
@@ -2485,19 +2438,11 @@ class MusicXml:
         elif x.startswith ('fb '):
             s.fbDefs[s.vid] = s.fbDefs.get(s.vid, []) + [x[3:]]
         elif x in ['swing', 'swing-off', 'mute', 'mute-off']:
-            # CONF-abcplus-extensions-1: these directives are DEFERRED to the next note
-            # (no measure exists yet in a header).  Deferring the bare token 'mute' handed
-            # it to the note-decoration path, where 'mute' is the tecMap key for the
-            # !+!/hand-stop articulation -- so %%mute silently became <stopped/> on the
-            # next note and the documented <sound mute="yes"> was unreachable.  Defer
-            # under a token that cannot collide with any decoration name; the hand-stop
-            # articulation (!+! / !plus! / !mute!) keeps its own meaning untouched.
-            s.nextdecos.append ('sound-' + x if x.startswith ('mute') else x)
+            s.nextdecos.append (x)
         elif x.startswith ('measurenumbering '):
             s.measureNumbering = x[17:].strip()
         elif x.startswith ('barnumbers '):
-            arg = x[11:].strip ().lower ()
-            s.measureNumbering = 'yes' if arg in ('1', 'yes', 'true', 'on') else 'no'
+            s.measureNumbering = 'yes' if '1' in x or 'yes' in x else 'no'
         elif x.startswith ('tempofont '):
             s.tempofont = x[10:].strip()
         elif x.startswith (('vskip', 'sep', 'harp ', 'accordion ')):
@@ -2531,23 +2476,19 @@ class MusicXml:
             # Support both ABC notation (^_=) and standard notation (#b) for accidentals
             r3 = re.search (r"drummap\s+([_=^#b]?)([A-Ga-g])([#b]?)([,']*)\s+(\d+)", x)
             r4 = re.search (r'control *(\d+) +(\d+)', x)
-            # CONF-abcplus-extensions-2: %%MIDI bank N had no regex at all, so the word form
-            # of bank select was silently dropped (only the %%midi-bank N form was read).
-            r5 = re.search (r'\bbank +(\d+)', x)
-            ch_nw, prg_nw, vol_nw, pan_nw, bank_nw = '', '', '', '', ''
+            ch_nw, prg_nw, vol_nw, pan_nw = '', '', '', ''
             if r1: ch_nw, prg_nw = r1.groups () # channel nr or '', program nr
             if r2: ch_nw = r2.group (1)         # channel nr only
-            if r5: bank_nw = r5.group (1)       # bank nr
             if r4:
                 cnum, cval = r4.groups ()       # controller number, controller value
                 if cnum == '7': vol_nw = cval
                 if cnum == '10': pan_nw = cval
-            if r1 or r2 or r4 or r5:
+            if r1 or r2 or r4:
                 ch  = ch_nw  or s.midprg [0]
                 prg = prg_nw or s.midprg [1]
                 vol = vol_nw or s.midprg [2]
                 pan = pan_nw or s.midprg [3]
-                bank = bank_nw or s.midprg [4]
+                bank = s.midprg [4]
                 instId = 'I%s-%s' % (s.pid, s.vid)              # only look for real instruments, no percussion
                 if instId in s.midiInst: instChange (ch, prg, vol, pan, bank)   # instChance -> doFields
                 s.midprg = [ch, prg, vol, pan, bank]  # mknote: new instrument -> s.midiInst
@@ -2588,10 +2529,7 @@ class MusicXml:
                 dir = addDirection (s.maat, words, lev, s.gStaffNums.get(s.vid, 0), placement='above')
                 addElem (dir, snd, lev + 1)
         elif x.startswith ('tocoda '):
-            # MusicXML <sound>: 'coda' LABELS the coda section, 'tocoda' is the JUMP target.
-            # %%tocoda is the jump ("To Coda"), so it must set tocoda=, not coda= -- writing
-            # coda= made this directive read as a coda MARKER placed at the jump.
-            snd = E.Element('sound', tocoda=x[7:].strip())
+            snd = E.Element('sound', coda=x[7:].strip())
             if s.maat is not None:
                 words = E.Element ('words'); words.text = 'To Coda'
                 dir = addDirection (s.maat, words, lev, s.gStaffNums.get(s.vid, 0), placement='above')
@@ -3281,39 +3219,6 @@ if __name__ == '__main__':
             info ('skipped directory %s. Only files are accepted' % fnmext)
             continue
         abctext = readfile (fnmext)
-        # ---- HOUSE GUARD, D116 (added 2026-09-01) --------------------------------
-        # This converter does not know what an ABC+ `@{v=NN}` performance tag is. It
-        # drops the whole velocity layer SILENTLY and exit 0 -- and it does not only
-        # delete, it FABRICATES: `v` is ABC's legacy down-bow shorthand, so it engraves
-        # a <down-bow/> on the following note. Measured on the _exam_bank 2026-09-01:
-        # 23,798 velocity tags lost and 23,492 phantom down-bows written across 207 of
-        # 209 extracts, every one of them built with this command instead of the house
-        # front end. A tool that silently deletes data AND invents notation in its place
-        # survives a proofread, because the page looks like someone meant it.
-        #
-        # `COMPOSER/tools/abc_perf.py compile` drives THIS SAME converter and then
-        # injects the tags as <note dynamics="...">. It rewrites every tag to a
-        # "^@PERF:..." annotation before calling us, so the correct path never trips
-        # this guard -- only a direct call on tagged source does.
-        # `"^@PERF:` is abc_perf's own rewrite marker, so text carrying one reached us
-        # THROUGH abc_perf and must pass even if a few raw tags remain beside it (those
-        # are orphans -- a tag not attached to a note -- which abc_perf and
-        # perf_tag_check report, and which must not kill the build). Checking for the
-        # marker as well as the env var keeps this guard compatible with an abc_perf
-        # that predates it, so the two repos need not be upgraded in lockstep.
-        if (re.search (r'@\{[^}\n]*[vt]\s*=', abctext)
-                and '"^@PERF:' not in abctext
-                and not os.environ.get ('ABC2XML_VIA_ABC_PERF')
-                and not os.environ.get ('ABC2XML_ALLOW_PERF_TAG_LOSS')):
-            sys.stderr.write (
-                '\nREFUSING: %s carries ABC+ @{v=/t=} performance tags.\n'
-                '  Bare abc2xml drops every one of them and engraves a phantom <down-bow/>\n'
-                '  in their place (house defect D116). Build it the house way instead:\n\n'
-                '      python3 COMPOSER/tools/abc_perf.py compile %s -o OUTDIR\n\n'
-                '  Verify with:  python3 AOS_COMPOSER_TEST/perf_tag_check.py %s\n'
-                '  To convert anyway and accept the loss, set ABC2XML_ALLOW_PERF_TAG_LOSS=1.\n'
-                % (fnmext, fnmext, fnmext))
-            sys.exit (2)
         skip, num = options.m
         xml_docs = getXmlDocs (abctext, skip, num, options.r, options.b, options.f)
         for itune, xmldoc in enumerate (xml_docs):

@@ -1,0 +1,10 @@
+X:1
+T:Two voices one staff
+M:4/4
+L:1/4
+%%score (1 2)
+K:C
+V:1
+c d e f | e2 d2 |]
+V:2
+E F G A | G2 F2 |]

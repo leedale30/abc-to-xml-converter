@@ -1,0 +1,9 @@
+X:1
+T:Hand-stop articulation and the mute sound directive are distinct
+M:4/4
+L:1/4
+K:C
+%%mute
+!plus!C D E F|
+%%mute-off
+G A B c|

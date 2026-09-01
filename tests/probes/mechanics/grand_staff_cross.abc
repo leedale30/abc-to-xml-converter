@@ -1,0 +1,10 @@
+X:1
+T:Grand staff with cross-staff switch
+M:4/4
+L:1/4
+%%score {* RH LH}
+K:C
+V:RH clef=treble name="Piano"
+c d e f |[I:staff +1] C D E F |]
+V:LH clef=bass
+C, D, E, F, | C,4 |]

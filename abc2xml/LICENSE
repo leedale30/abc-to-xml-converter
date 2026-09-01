@@ -37,10 +37,26 @@ enum work, and the D116 performance-tag guard); the `.pre-*` snapshots
 beside it record the state before each. Those modifications are likewise
 LGPL, being derivative of an LGPL work.
 
-TODO: ship a verbatim copy of the LGPL text in this directory. The licence
-requires that recipients receive one, and a URL is not a substitute. It is
-deliberately not transcribed here rather than risk an inexact copy — fetch
-it from gnu.org and commit it as `LGPL.txt`.
+The licence text is shipped alongside, as the LGPL requires — a URL is not a
+substitute for giving recipients a copy:
+
+    abc2xml/LGPL.txt   GNU Lesser General Public License v3, 29 June 2007
+    abc2xml/GPL.txt    GNU General Public License v3, 29 June 2007
+
+BOTH are needed, and this is easy to get wrong. LGPLv3 is not a standalone
+licence: its own opening states that it "incorporates the terms and conditions
+of version 3 of the GNU General Public License, supplemented by the additional
+permissions listed below". Shipping LGPL.txt alone would deliver a document
+that refers to terms the recipient does not have.
+
+WHICH VERSION, AND WHY. abc2xml.py's header names no version — it says only
+"the Lesser GNU General Public License as published by the Free Software
+Foundation" and links <http://www.gnu.org/licenses/lgpl.html>, which is the
+FSF's canonical page for the current LGPL and serves version 3. Version 3 is
+therefore shipped as the version the author's own link resolves to. Because
+the notice is unversioned, a recipient may under the FSF's usual reading take
+any version; nothing here narrows that. Both files were fetched verbatim from
+gnu.org, unmodified.
 
 
 2. README.md — MIT, Copyright (c) 2023 Federico Del Gaudio

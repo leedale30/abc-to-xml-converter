@@ -385,35 +385,39 @@ def convert_to():
                 # Clean up the temporary LilyPond file
                 if os.path.exists(temp_out_path):
                     os.remove(temp_out_path)
-            else:
-                # Use music21 for other formats
-                import music21
-                
-                # Create a temporary XML file
-                with tempfile.NamedTemporaryFile(mode='w+', suffix='.xml', delete=False, encoding='utf-8') as temp_xml:
-                    temp_xml.write(xml_content)
-                    temp_xml_path = temp_xml.name
-                
+            elif format in ('musicxml', 'xml'):
+                # abc2xml has ALREADY produced this above. music21 used to re-parse the
+                # MusicXML and re-serialise it, which was both wasteful and lossy; hand
+                # back what the dedicated converter produced.
+                output_content = xml_content.encode('utf-8')
+            elif format in ('midi', 'mid'):
+                # abc2midi, the same converter /convert-to-midi uses. Previously music21
+                # wrote the MIDI from the MusicXML, one lossy hop further from the source.
+                temp_out_path = temp_abc_path.replace('.abc', '.mid')
+                result = subprocess.run(
+                    ['abc2midi', temp_abc_path, '-o', temp_out_path],
+                    capture_output=True, text=True, encoding='utf-8', check=False
+                )
+                if result.returncode != 0 or not os.path.exists(temp_out_path):
+                    return jsonify({'error': result.stderr or 'abc2midi failed'}), 500
                 try:
-                    # Parse the MusicXML
-                    score = music21.converter.parse(temp_xml_path)
-                    
-                    # Create another temporary file for the output
-                    with tempfile.NamedTemporaryFile(mode='wb', suffix=f'.{format}', delete=False) as temp_out:
-                        temp_out_path = temp_out.name
-                    
-                    # Convert to the requested format
-                    score.write(format, temp_out_path)
-                    
-                    # Read the output file
                     with open(temp_out_path, 'rb') as f:
                         output_content = f.read()
                 finally:
-                    # Clean up temporary files
-                    if os.path.exists(temp_xml_path):
-                        os.remove(temp_xml_path)
                     if os.path.exists(temp_out_path):
                         os.remove(temp_out_path)
+            else:
+                # music21 used to catch every other target format here (MEI, ABC, Braille,
+                # Humdrum and the rest of its writer list). Removed 2026-09-02: house rule
+                # 10 bans it as a lossy importer, and as a silent fallback it turned a
+                # converter failure into a quietly degraded file. Fail honestly instead.
+                return jsonify({
+                    'error': f"Unsupported target format: {format}",
+                    'supported': ['musicxml', 'midi', 'lilypond'],
+                    'reason': ('Formats beyond these were produced by music21, which is no '
+                               'longer a dependency. Each supported format now goes through '
+                               'its own dedicated converter: abc2xml, abc2midi, abc2ly.'),
+                }), 400
             
             # Determine MIME type
             mime_types = {
@@ -699,54 +703,10 @@ def convert_to_all():
                 if 'ly_path' in locals() and os.path.exists(ly_path):
                     os.remove(ly_path)
             
-            # 4. Use music21 for additional formats if MusicXML was successful
-            if xml_content:
-                try:
-                    import music21
-                    
-                    # Create a temporary XML file
-                    with tempfile.NamedTemporaryFile(mode='w+', suffix='.xml', delete=False, encoding='utf-8') as temp_xml:
-                        temp_xml.write(xml_content)
-                        temp_xml_path = temp_xml.name
-                    
-                    try:
-                        # Parse the MusicXML
-                        score = music21.converter.parse(temp_xml_path)
-                        
-                        # Additional formats
-                        additional_formats = ['abc']
-                        for format in additional_formats:
-                            try:
-                                # Create a temporary file for output
-                                with tempfile.NamedTemporaryFile(mode='wb', suffix=f'.{format}', delete=False) as temp_out:
-                                    temp_out_path = temp_out.name
-                                
-                                # Write the output
-                                score.write(format, temp_out_path)
-                                
-                                # Read the output and add it to the zip
-                                if os.path.exists(temp_out_path):
-                                    if format == 'abc':
-                                        with open(temp_out_path, 'r', encoding='utf-8') as f:
-                                            content = f.read()
-                                    else:
-                                        with open(temp_out_path, 'rb') as f:
-                                            content = f.read()
-                                    zipf.writestr(f'output.{format}', content)
-                            except Exception as e:
-                                print(f"Failed to convert to {format}: {e}", file=sys.stderr)
-                                # Skip this format and continue with others
-                                continue
-                            finally:
-                                # Clean up temporary output file
-                                if 'temp_out_path' in locals() and os.path.exists(temp_out_path):
-                                    os.remove(temp_out_path)
-                    finally:
-                        # Clean up temporary XML file
-                        if os.path.exists(temp_xml_path):
-                            os.remove(temp_xml_path)
-                except Exception as e:
-                    print(f"Error during music21 conversions: {e}", file=sys.stderr)
+            # music21 previously added an `output.abc` round-trip to this zip. Removed
+            # 2026-09-02: house rule 10 bans music21 as a lossy importer, and a MusicXML
+            # -> ABC round-trip through it is exactly the lossy direction. The zip now
+            # contains only what dedicated converters produced.
         
         # Rewind the buffer to the beginning
         zip_buffer.seek(0)
@@ -765,28 +725,22 @@ def convert_to_all():
         return jsonify({'error': str(e)}), 500
 
 # Format information mapping
+# What this project can ACTUALLY deliver, each through a dedicated converter:
+#     ABC+ -> MusicXML   abc2xml   (vendored, see abc2xml/LICENSE)
+#     ABC+ -> MIDI       abc2midi
+#     ABC+ -> LilyPond   abc2ly
+#
+# This table used to advertise Capella, NoteWorthy, Humdrum, RomanText, Scala, MuseData,
+# MEI and Braille as well. Every one of those existed only because music21 was imported to
+# read or write it. music21 was removed on 2026-09-02 (house rule 10 — lossy importers),
+# so listing them would be advertising capability the app no longer has.
 FORMAT_INFO = {
-    'abc': {'name': 'ABC Notation', 'ext': 'abc', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'musicxml': {'name': 'MusicXML', 'ext': 'xml', 'mime': 'application/xml', 'can_read': True, 'can_write': True},
-    'mxl': {'name': 'Compressed MusicXML', 'ext': 'mxl', 'mime': 'application/vnd.recordare.musicxml', 'can_read': True, 'can_write': True},
-    'midi': {'name': 'MIDI', 'ext': 'mid', 'mime': 'audio/midi', 'can_read': True, 'can_write': True},
-    'mid': {'name': 'MIDI', 'ext': 'mid', 'mime': 'audio/midi', 'can_read': True, 'can_write': True},
-    'lilypond': {'name': 'LilyPond', 'ext': 'ly', 'mime': 'text/plain', 'can_read': True, 'can_write': False},
-    'ly': {'name': 'LilyPond', 'ext': 'ly', 'mime': 'text/plain', 'can_read': True, 'can_write': False},
-    'mei': {'name': 'MEI', 'ext': 'mei', 'mime': 'application/xml', 'can_read': True, 'can_write': False},
-    'capella': {'name': 'Capella', 'ext': 'cap', 'mime': 'application/octet-stream', 'can_read': True, 'can_write': False},
-    'cap': {'name': 'Capella', 'ext': 'cap', 'mime': 'application/octet-stream', 'can_read': True, 'can_write': False},
-    'noteworthy': {'name': 'NoteWorthy Composer Text', 'ext': 'nwctxt', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'nwctxt': {'name': 'NoteWorthy Composer Text', 'ext': 'nwctxt', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'nwc': {'name': 'NoteWorthy Composer Binary', 'ext': 'nwc', 'mime': 'application/octet-stream', 'can_read': True, 'can_write': False},
-    'humdrum': {'name': 'Humdrum', 'ext': 'krn', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'krn': {'name': 'Humdrum', 'ext': 'krn', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'romantext': {'name': 'Roman Numeral Text', 'ext': 'rntxt', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'rntxt': {'name': 'Roman Numeral Text', 'ext': 'rntxt', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'scala': {'name': 'Scala', 'ext': 'scala', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'musedata': {'name': 'MuseData', 'ext': 'musedata', 'mime': 'text/plain', 'can_read': True, 'can_write': True},
-    'mus': {'name': 'MuseData', 'ext': 'mus', 'mime': 'text/plain', 'can_read': True, 'can_write': False},
-    'braille': {'name': 'Braille', 'ext': 'txt', 'mime': 'text/plain', 'can_read': False, 'can_write': True},
+    'abc': {'name': 'ABC Notation', 'ext': 'abc', 'mime': 'text/plain', 'can_read': True, 'can_write': False},
+    'musicxml': {'name': 'MusicXML', 'ext': 'xml', 'mime': 'application/xml', 'can_read': False, 'can_write': True},
+    'midi': {'name': 'MIDI', 'ext': 'mid', 'mime': 'audio/midi', 'can_read': False, 'can_write': True},
+    'mid': {'name': 'MIDI', 'ext': 'mid', 'mime': 'audio/midi', 'can_read': False, 'can_write': True},
+    'lilypond': {'name': 'LilyPond', 'ext': 'ly', 'mime': 'text/plain', 'can_read': False, 'can_write': True},
+    'ly': {'name': 'LilyPond', 'ext': 'ly', 'mime': 'text/plain', 'can_read': False, 'can_write': True},
 }
 
 @app.route('/supported-formats', methods=['GET'])
@@ -809,184 +763,38 @@ def get_supported_formats():
 
 @app.route('/upload-and-convert', methods=['POST'])
 def upload_and_convert():
-    """Upload a music file and convert to target format."""
-    try:
-        import tempfile
-        import music21
-        
-        # Check if we have a file or JSON content
-        if 'file' in request.files:
-            file = request.files['file']
-            if file.filename == '':
-                return jsonify({'error': 'No file selected'}), 400
-            
-            # Get file extension for format detection
-            file_ext = os.path.splitext(file.filename)[1].lower().lstrip('.')
-            target_format = request.form.get('format', 'musicxml')
-            
-            # Save uploaded file temporarily
-            with tempfile.NamedTemporaryFile(mode='wb', suffix=f'.{file_ext}', delete=False) as temp_in:
-                file.save(temp_in)
-                temp_in_path = temp_in.name
-        else:
-            # Content via JSON
-            data = request.json
-            content = data.get('content')
-            source_format = data.get('source_format')
-            target_format = data.get('format', 'musicxml')
-            
-            if not content:
-                return jsonify({'error': 'No content provided'}), 400
-            if not source_format:
-                return jsonify({'error': 'No source format specified'}), 400
-            
-            # Save content temporarily
-            file_ext = source_format
-            with tempfile.NamedTemporaryFile(mode='w+' if source_format in ['abc', 'musicxml', 'lilypond', 'mei', 'humdrum', 'romantext', 'scala', 'musedata', 'noteworthy', 'braille'] else 'wb', 
-                                         suffix=f'.{file_ext}', delete=False, encoding='utf-8') as temp_in:
-                temp_in.write(content)
-                temp_in_path = temp_in.name
-        
-        try:
-            # Parse the input file with music21
-            score = music21.converter.parse(temp_in_path)
-            
-            # Create output file
-            with tempfile.NamedTemporaryFile(mode='wb', suffix=f'.{FORMAT_INFO.get(target_format, {}).get("ext", target_format)}', delete=False) as temp_out:
-                temp_out_path = temp_out.name
-            
-            # Special case: ABC+ needs preprocessing if it's the source
-            if file_ext == 'abc' and target_format in ['musicxml', 'midi', 'lilypond']:
-                # If we're converting from ABC, check if it's ABC+ and use our specialized tools
-                try:
-                    with open(temp_in_path, 'r', encoding='utf-8') as f:
-                        abc_content = f.read()
-                    
-                    # Check if we should use our existing converters for ABC
-                    if target_format == 'musicxml':
-                        # Use existing convert endpoint logic
-                        processed_abc = preprocess_abc(abc_content)
-                        
-                        with tempfile.NamedTemporaryFile(mode='w+', suffix='.abc', delete=False, encoding='utf-8') as temp_abc_processed:
-                            temp_abc_processed.write(processed_abc)
-                            temp_abc_processed_path = temp_abc_processed.name
-                        
-                        try:
-                            result = subprocess.run(
-                                [sys.executable, CONVERTER_SCRIPT, temp_abc_processed_path],
-                                capture_output=True,
-                                text=True,
-                                encoding='utf-8',
-                                check=False
-                            )
-                            
-                            if result.returncode == 0:
-                                with open(temp_out_path, 'w', encoding='utf-8') as f:
-                                    f.write(result.stdout)
-                            else:
-                                # Fall back to music21
-                                score.write(target_format, temp_out_path)
-                        finally:
-                            if os.path.exists(temp_abc_processed_path):
-                                os.remove(temp_abc_processed_path)
-                    
-                    elif target_format == 'midi':
-                        # Use abc2midi
-                        processed_abc = preprocess_abc(abc_content)
-                        
-                        with tempfile.NamedTemporaryFile(mode='w+', suffix='.abc', delete=False, encoding='utf-8') as temp_abc_processed:
-                            temp_abc_processed.write(processed_abc)
-                            temp_abc_processed_path = temp_abc_processed.name
-                        
-                        try:
-                            result = subprocess.run(
-                                ['abc2midi', temp_abc_processed_path, '-o', temp_out_path],
-                                capture_output=True,
-                                text=True,
-                                encoding='utf-8',
-                                check=False
-                            )
-                            
-                            if result.returncode != 0 or not os.path.exists(temp_out_path):
-                                # Fall back to music21
-                                score.write(target_format, temp_out_path)
-                        finally:
-                            if os.path.exists(temp_abc_processed_path):
-                                os.remove(temp_abc_processed_path)
-                    
-                    elif target_format == 'lilypond':
-                        # Use abc2ly
-                        processed_abc = preprocess_abc(abc_content)
-                        
-                        with tempfile.NamedTemporaryFile(mode='w+', suffix='.abc', delete=False, encoding='utf-8') as temp_abc_processed:
-                            temp_abc_processed.write(processed_abc)
-                            temp_abc_processed_path = temp_abc_processed.name
-                        
-                        try:
-                            result = subprocess.run(
-                                ['abc2ly', '-o', temp_out_path, temp_abc_processed_path],
-                                capture_output=True,
-                                text=True,
-                                encoding='utf-8',
-                                check=False
-                            )
-                            
-                            if result.returncode != 0 or not os.path.exists(temp_out_path):
-                                # Fall back to music21 (though it doesn't write LilyPond)
-                                raise Exception("abc2ly failed and music21 can't write LilyPond")
-                        finally:
-                            if os.path.exists(temp_abc_processed_path):
-                                os.remove(temp_abc_processed_path)
-                    else:
-                        # Use music21 for other formats
-                        score.write(target_format, temp_out_path)
-                except Exception as e:
-                    print(f"Specialized converter failed, falling back to music21: {e}", file=sys.stderr)
-                    # Fall back to music21
-                    score.write(target_format, temp_out_path)
-            else:
-                # Use music21 for all other conversions
-                score.write(target_format, temp_out_path)
-            
-            # Read the output file
-            mode = 'rb'
-            encoding = None
-            if target_format in ['abc', 'musicxml', 'lilypond', 'mei', 'humdrum', 'romantext', 'scala', 'musedata', 'noteworthy', 'braille']:
-                mode = 'r'
-                encoding = 'utf-8'
-            
-            with open(temp_out_path, mode, encoding=encoding) as f:
-                output_content = f.read()
-            
-            # Determine MIME type
-            mime_type = FORMAT_INFO.get(target_format, {}).get('mime', 'application/octet-stream')
-            file_ext = FORMAT_INFO.get(target_format, {}).get('ext', target_format)
-            
-            # Create response
-            if mode == 'r':
-                # Text format, return as JSON for display
-                return jsonify({
-                    'success': True,
-                    'content': output_content,
-                    'format': target_format,
-                    'mime': mime_type
-                })
-            else:
-                # Binary format, return as file download
-                response = make_response(output_content)
-                response.headers['Content-Type'] = mime_type
-                response.headers['Content-Disposition'] = f'attachment; filename=converted.{file_ext}'
-                return response
-                
-        finally:
-            # Clean up
-            if os.path.exists(temp_in_path):
-                os.remove(temp_in_path)
-            if 'temp_out_path' in locals() and os.path.exists(temp_out_path):
-                os.remove(temp_out_path)
-                
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    """REMOVED 2026-09-02 — this endpoint was built entirely on music21.
+
+    It parsed ANY uploaded file with `music21.converter.parse()` and wrote a dozen
+    exotic formats through `score.write()`. music21 is banned by house rule 10: its
+    importers are lossy (the ABC one collapses voices into the last part), and here it
+    was also acting as a SILENT FALLBACK whenever abc2xml/abc2midi/abc2ly failed — so a
+    failed conversion returned a quietly degraded file instead of an error.
+
+    Nothing depended on it: no caller anywhere in the estate referenced this route, while
+    the house pipeline goes through `abc_perf.py compile` (2,295 references).
+
+    The endpoints that do real work are untouched and use dedicated converters:
+        POST /convert            ABC+ -> MusicXML   (abc2xml)
+        POST /convert-to         ABC+ -> musicxml|midi|lilypond
+        POST /convert-to-midi    ABC+ -> MIDI       (abc2midi)
+        POST /convert-to-lilypond ABC+ -> LilyPond  (abc2ly)
+        POST /convert-to-all     all of the above, zipped
+    """
+    return jsonify({
+        'error': 'This endpoint has been removed.',
+        'reason': ('It required music21, which is no longer a dependency of this project. '
+                   'music21 was used to read arbitrary input formats and to write formats '
+                   'no dedicated converter covers; it is lossy and was silently masking '
+                   'converter failures.'),
+        'use_instead': {
+            'ABC+ -> MusicXML': 'POST /convert',
+            'ABC+ -> musicxml | midi | lilypond': 'POST /convert-to',
+            'ABC+ -> MIDI': 'POST /convert-to-midi',
+            'ABC+ -> LilyPond': 'POST /convert-to-lilypond',
+            'ABC+ -> all of the above (zip)': 'POST /convert-to-all',
+        },
+    }), 410
 
 def kill_stale_process(port):
     """Attempt to find and kill any process already using the specified port."""

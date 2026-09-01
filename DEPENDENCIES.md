@@ -23,8 +23,13 @@ covers which file.
 The ABC+ Converter requires the following Python packages:
 
 - Flask
-- music21
 - requests
+
+> **music21 was removed on 2026-09-02.** It had been used to read arbitrary input formats
+> and to write formats no dedicated converter covers, and — more seriously — as a silent
+> fallback whenever `abc2xml`/`abc2midi`/`abc2ly` failed, so a failed conversion returned a
+> quietly degraded file rather than an error. House rule 10 bans it as a lossy importer.
+> Every format this project still offers now goes through its own dedicated converter.
 
 These dependencies are typically installed using pip:
 

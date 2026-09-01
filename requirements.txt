@@ -72,7 +72,8 @@ matplotlib-inline==0.2.1
 mistune==3.1.4
 modulegraph==0.19.7
 more-itertools==10.8.0
-music21==9.9.1
+# music21 REMOVED 2026-09-02 (house rule 10: lossy importers; it was also acting as a
+# silent fallback that turned converter failures into quietly degraded output).
 narwhals==2.10.0
 nbclient==0.10.2
 nbconvert==7.16.6

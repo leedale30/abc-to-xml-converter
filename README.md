@@ -73,6 +73,12 @@ python app.py
 
 ### 🌐 API Endpoints
 
+> **Supported formats: MusicXML, MIDI, LilyPond** — each via its own dedicated converter
+> (`abc2xml`, `abc2midi`, `abc2ly`). Support for MEI, Humdrum, Capella, NoteWorthy,
+> RomanText, Scala, MuseData and Braille was removed on 2026-09-02 along with music21,
+> which was the only thing providing them. `POST /upload-and-convert` is removed for the
+> same reason and returns **410 Gone** with a pointer to the working endpoints.
+
 The ABC+ Converter provides a RESTful API for programmatic access to conversion functionality:
 
 #### `POST /convert`
